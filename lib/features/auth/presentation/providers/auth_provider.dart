@@ -42,6 +42,18 @@ class AuthNotifier extends Notifier<AuthState> {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
+
+  Future<void> checkAuthentication() async {
+    await Future.delayed(const Duration(seconds: 2));
+
+    String? accessToken = await TokenManager.getAccessToken();
+
+    if (accessToken != null) {
+      state = state.copyWith(isAuthenticated: true, isInitialized: true);
+    } else {
+      state = state.copyWith(isAuthenticated: false, isInitialized: true);
+    }
+  }
 }
 
 final authProvider = NotifierProvider<AuthNotifier, AuthState>(

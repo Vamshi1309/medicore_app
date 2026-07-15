@@ -5,6 +5,8 @@ class AuthState {
 
   final bool isAuthenticated;
 
+  final bool isInitialized;
+
   final User? user;
 
   final String? error;
@@ -14,6 +16,7 @@ class AuthState {
   const AuthState({
     this.isLoading = false,
     this.isAuthenticated = false,
+    this.isInitialized = false,
     this.user,
     this.message,
     this.error,
@@ -23,6 +26,8 @@ class AuthState {
     bool? isLoading,
 
     bool? isAuthenticated,
+
+    bool? isInitialized,
 
     User? user,
 
@@ -34,6 +39,8 @@ class AuthState {
       isLoading: isLoading ?? this.isLoading,
 
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
+
+      isInitialized: isInitialized ?? this.isInitialized,
 
       user: user ?? this.user,
 
