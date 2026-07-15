@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:frontend/core/screens/splash_screen.dart';
 import 'package:go_router/go_router.dart';
 
 class AppRouter {
@@ -10,7 +10,7 @@ class AppRouter {
       GoRoute(
         path: '/',
         builder: (context, state) {
-          return const Scaffold(body: Center(child: Text("Home Screen")));
+          return const SplashScreen();
         },
       ),
     ],
