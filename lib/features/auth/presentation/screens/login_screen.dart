@@ -14,6 +14,8 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
+  bool isStaff = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,7 +61,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                       SizedBox(height: 8),
                       Text(
-                        "Sign in to your MediCore account",
+                        isStaff
+                            ? "Sign in as Hospital Staff"
+                            : "Sign in to your MediCore account",
                         style: TextStyle(
                           color: AppColors.grey300,
                           fontSize: 18,
@@ -82,131 +86,212 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       AppCard(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Phone Number",
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 14),
-                            AppTextField(
-                              hintText: "Enter your phone number",
-                              keyboardType: TextInputType.numberWithOptions(),
-                            ),
-                            SizedBox(height: 20),
-                            Text(
-                              "Password",
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 14),
-                            AppTextField(
-                              hintText: "Enter your password",
-                              obscureText: true,
-                              isPassword: true,
-                              suffixIcon: Icons.remove_red_eye_outlined,
-                            ),
-                            SizedBox(height: 24),
-                            PrimaryButton(
-                              text: "Login",
-                              onPressed: () {
-                                debugPrint("Will implement Navigation");
-                              },
-                            ),
-                            SizedBox(height: 24),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Divider(
-                                    endIndent: 15,
-                                    color: AppColors.grey500,
+                          children: isStaff
+                              ? [
+                                  Text(
+                                    "Staff ID",
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
-                                Text("Or"),
-                                Expanded(
-                                  child: Divider(
-                                    indent: 15,
-                                    color: AppColors.grey500,
+                                  SizedBox(height: 14),
+                                  AppTextField(
+                                    hintText: "Enter your staff ID",
+                                    keyboardType: TextInputType.text,
                                   ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 24),
-                            PrimaryButton(
-                              text: "Send OTP",
-                              onPressed: () {
-                                debugPrint("Will implement feature later");
-                              },
-                            ),
-                          ],
+                                  SizedBox(height: 20),
+                                  Text(
+                                    "Password",
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 14),
+                                  AppTextField(
+                                    hintText: "Enter your password",
+                                    obscureText: true,
+                                    isPassword: true,
+                                    suffixIcon: Icons.remove_red_eye_outlined,
+                                  ),
+                                  SizedBox(height: 24),
+                                  PrimaryButton(
+                                    text: "Login",
+                                    onPressed: () {
+                                      debugPrint("Will implement Staff Login");
+                                    },
+                                  ),
+                                ]
+                              : [
+                                  Text(
+                                    "Phone Number",
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 14),
+                                  AppTextField(
+                                    hintText: "Enter your phone number",
+                                    keyboardType:
+                                        TextInputType.numberWithOptions(),
+                                  ),
+                                  SizedBox(height: 20),
+                                  Text(
+                                    "Password",
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 14),
+                                  AppTextField(
+                                    hintText: "Enter your password",
+                                    obscureText: true,
+                                    isPassword: true,
+                                    suffixIcon: Icons.remove_red_eye_outlined,
+                                  ),
+                                  SizedBox(height: 24),
+                                  PrimaryButton(
+                                    text: "Login",
+                                    onPressed: () {
+                                      debugPrint("Will implement Navigation");
+                                    },
+                                  ),
+                                  SizedBox(height: 24),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Divider(
+                                          endIndent: 15,
+                                          color: AppColors.grey500,
+                                        ),
+                                      ),
+                                      Text("Or"),
+                                      Expanded(
+                                        child: Divider(
+                                          indent: 15,
+                                          color: AppColors.grey500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 24),
+                                  PrimaryButton(
+                                    text: "Send OTP",
+                                    onPressed: () {
+                                      debugPrint(
+                                        "Will implement feature later",
+                                      );
+                                    },
+                                  ),
+                                ],
                         ),
                       ),
                       SizedBox(height: 25),
-                      Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: AppColors.grey300,
-                          borderRadius: BorderRadius.circular(30),
-                          border: Border.all(
-                            width: 1.5,
-                            color: AppColors.grey500,
-                          ),
-                        ),
-                        padding: EdgeInsets.all(8),
-                        child: Row(
-                          children: [
-                            Spacer(flex: 1),
-                            CircleAvatar(
-                              backgroundColor: const Color.fromARGB(
-                                255,
-                                205,
-                                205,
-                                205,
-                              ),
-                              child: Icon(
-                                Icons.badge_outlined,
-                                color: AppColors.primary,
+                      if (!isStaff)
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              isStaff = true;
+                            });
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: AppColors.grey300,
+                              borderRadius: BorderRadius.circular(30),
+                              border: Border.all(
+                                width: 1.5,
+                                color: AppColors.grey500,
                               ),
                             ),
-                            Spacer(flex: 2),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            padding: EdgeInsets.all(8),
+                            child: Row(
                               children: [
-                                Text(
-                                  "Hospital Staff member?",
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                Spacer(flex: 1),
+                                CircleAvatar(
+                                  backgroundColor: const Color.fromARGB(
+                                    255,
+                                    205,
+                                    205,
+                                    205,
+                                  ),
+                                  child: Icon(
+                                    Icons.badge_outlined,
+                                    color: AppColors.primary,
+                                  ),
                                 ),
-                                Text("Use staff ID for login"),
+                                Spacer(flex: 2),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Hospital Staff member?",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text("Use staff ID for login"),
+                                  ],
+                                ),
+                                Spacer(flex: 10),
+                                Icon(Icons.chevron_right),
                               ],
                             ),
-                            Spacer(flex: 10),
-                            Icon(Icons.chevron_right),
-                          ],
+                          ),
                         ),
-                      ),
                     ],
                   ),
                   SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Dont have an account?",
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        "Create Account",
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(color: AppColors.primary, fontSize: 14),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 20),
+                  if (!isStaff)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Dont have an account?",
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          "Create Account",
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                color: AppColors.primary,
+                                fontSize: 14,
+                              ),
+                        ),
+                      ],
+                    )
+                  else
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.arrow_back, size: 16),
+                        SizedBox(width: 6),
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(text: "Are you a Patient?"),
+                              TextSpan(
+                                text: " Go back",
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(
+                                      color: AppColors.primary,
+                                      fontSize: 14,
+                                    ),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () {
+                                    setState(() => isStaff = false);
+                                  },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  SizedBox(height: isStaff ? 150 : 20),
                   Text.rich(
                     TextSpan(
                       style: const TextStyle(color: Colors.grey),
@@ -241,7 +326,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: 30),
+                  SizedBox(height: 50),
                 ],
               ),
             ),
