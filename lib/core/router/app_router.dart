@@ -3,6 +3,7 @@ import 'package:frontend/core/router/app_routes.dart';
 import 'package:frontend/core/screens/splash_screen.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_state.dart';
 import 'package:frontend/features/auth/presentation/screens/login_screen.dart';
+import 'package:frontend/features/auth/presentation/screens/register_screen.dart';
 import 'package:go_router/go_router.dart';
 
 class AppRouter {
@@ -14,18 +15,17 @@ class AppRouter {
       redirect: (context, state) {
         final location = state.matchedLocation;
 
-        // Still checking authentication
         if (!authState.isInitialized) {
           return location == AppRoutes.splash ? null : AppRoutes.splash;
         }
 
-        // Authentication check completed
+        if (!authState.isAuthenticated) {
+          const publicRoutes = {AppRoutes.login, AppRoutes.register};
 
-        if (authState.isAuthenticated) {
-          return location == AppRoutes.home ? null : AppRoutes.home;
+          return publicRoutes.contains(location) ? null : AppRoutes.login;
         }
 
-        return location == AppRoutes.login ? null : AppRoutes.login;
+        return location == AppRoutes.home ? null : AppRoutes.home;
       },
 
       routes: [
@@ -39,6 +39,12 @@ class AppRouter {
           path: AppRoutes.login,
           builder: ((context, state) {
             return const LoginScreen();
+          }),
+        ),
+        GoRoute(
+          path: AppRoutes.register,
+          builder: ((context, state) {
+            return const RegisterScreen();
           }),
         ),
         GoRoute(
