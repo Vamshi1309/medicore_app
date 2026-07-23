@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 
 class LoginHeader extends StatelessWidget {
-  final bool isStaff;
+  final String displayText;
 
   const LoginHeader({
     super.key,
-    required this.isStaff,
+    required this.displayText
   });
 
   @override
@@ -50,9 +50,7 @@ class LoginHeader extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                isStaff
-                    ? "Sign in as Hospital Staff"
-                    : "Sign in to your MediCore account",
+                displayText,
                 style: const TextStyle(
                   color: AppColors.grey300,
                   fontSize: 18,

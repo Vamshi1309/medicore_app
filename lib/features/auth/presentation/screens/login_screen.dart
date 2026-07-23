@@ -28,7 +28,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            LoginHeader(isStaff: isStaff),
+            LoginHeader(
+              displayText: "Sign in to your MediCore account",
+              ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
