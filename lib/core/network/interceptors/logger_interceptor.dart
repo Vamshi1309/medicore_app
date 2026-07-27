@@ -14,7 +14,7 @@ class LoggerInterceptor extends Interceptor {
     debugPrint(options.headers.toString());
 
     debugPrint("BODY:");
-    debugPrint(options.data);
+    debugPrint(options.data.toString());
 
     debugPrint(
       "================================= End ========================",
@@ -32,7 +32,7 @@ class LoggerInterceptor extends Interceptor {
     debugPrint("URL: ${response.requestOptions.uri}");
 
     debugPrint("BODY:");
-    debugPrint(response.data);
+    debugPrint(response.data.toString());
 
     debugPrint("========================= End =======================");
 
@@ -43,14 +43,13 @@ class LoggerInterceptor extends Interceptor {
   void onError(DioException err, ErrorInterceptorHandler handler) {
     debugPrint("====================== ERROR ===========================");
 
+    debugPrint("TYPE: ${err.type}");
     debugPrint("URL: ${err.requestOptions.uri}");
+    debugPrint("MESSAGE: ${err.message}");
+    debugPrint("ERROR: ${err.error}");
 
     debugPrint("STATUS: ${err.response?.statusCode}");
-
-    debugPrint("MESSAGE: ${err.message}");
-
-    debugPrint("RESPONSE:");
-    debugPrint(err.response?.data);
+    debugPrint("RESPONSE: ${err.response?.data}");
 
     debugPrint("======================== End =========================");
 

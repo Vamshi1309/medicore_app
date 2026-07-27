@@ -1,8 +1,8 @@
-class LoginRequest {
+class PatientLoginRequest {
   final String phoneNumber;
   final String password;
 
-  const LoginRequest({required this.phoneNumber, required this.password});
+  const PatientLoginRequest({required this.phoneNumber, required this.password});
 
   Map<String, dynamic> toJson() {
     return {"phoneNumber": phoneNumber, "password": password};

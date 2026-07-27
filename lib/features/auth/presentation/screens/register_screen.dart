@@ -80,7 +80,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     SizedBox(width: 8),
                     InkWell(
                       onTap: () {
-                        goRouter.go(AppRoutes.login);
+                        goRouter.go(AppRoutes.login  );
                       },
                       child: Text(
                         "Login",

@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/router/app_routes.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/widgets/app_card.dart';
+import 'package:frontend/features/auth/data/models/patient_login_request.dart';
+import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
 import 'package:frontend/features/auth/presentation/widgets/patient_login_form.dart';
 import 'package:frontend/features/auth/presentation/widgets/staff_login_form.dart';
 import '../../../../core/providers/go_router_provider.dart';
@@ -22,15 +24,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool showOtp = false;
 
   @override
+  void initState() {
+    super.initState();
+
+    ref.listenManual(authProvider, (prev, next) {
+      if (next.isAuthenticated) {
+        ref.read(goRouterProvider).go(AppRoutes.home);
+      }
+
+      if (next.error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.error!), backgroundColor: Colors.red),
+        );
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final goRouter = ref.watch(goRouterProvider);
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
           children: [
-            LoginHeader(
-              displayText: "Sign in to your MediCore account",
-              ),
+            LoginHeader(displayText: "Sign in to your MediCore account"),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
@@ -44,17 +62,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ? StaffLoginForm(
                                 onLogin: () {
                                   debugPrint(
-                                    "++++++++++++++ will implement +++++++++++++++",
+                                    "+++++++++++++++ Will implement Navigation +++++++++++++",
                                   );
                                 },
                               )
                             : PatientLoginForm(
                                 showOtp: showOtp,
-                                onLogin: () {
-                                  debugPrint(
-                                    "+++++++++++++++ Will implement Navigation +++++++++++++",
-                                  );
-                                },
+                                onLogin: onTapLogin,
                                 onSendOtp: () {
                                   setState(() {
                                     showOtp = true;
@@ -136,7 +150,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                         SizedBox(width: 8),
                         InkWell(
-                          onTap: (){
+                          onTap: () {
                             goRouter.go(AppRoutes.register);
                           },
                           child: Text(
@@ -194,5 +208,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
       ),
     );
+  }
+
+  void onTapLogin(String phoneNumber, String password) {
+    ref
+        .read(authProvider.notifier)
+        .patientLogin(
+          PatientLoginRequest(phoneNumber: phoneNumber, password: password),
+        );
   }
 }

@@ -5,9 +5,9 @@ import 'package:frontend/core/widgets/primary_button.dart';
 import 'labelded_text_field.dart';
 import 'otp_verification_section.dart';
 
-class PatientLoginForm extends StatelessWidget {
+class PatientLoginForm extends StatefulWidget {
   final bool showOtp;
-  final VoidCallback onLogin;
+  final void Function(String phone, String password) onLogin;
   final VoidCallback onSendOtp;
   final VoidCallback onGoBack;
   final ValueChanged<String> onOtpCompleted;
@@ -22,19 +22,43 @@ class PatientLoginForm extends StatelessWidget {
   });
 
   @override
+  State<PatientLoginForm> createState() => _PatientLoginFormState();
+}
+
+class _PatientLoginFormState extends State<PatientLoginForm> {
+  late final TextEditingController phoneController;
+  late final TextEditingController passwordController;
+
+  @override
+  void initState() {
+    super.initState();
+    phoneController = TextEditingController();
+    passwordController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    phoneController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         LabeledTextField(
           title: "Phone Number",
+          controller: phoneController,
           hintText: "Enter your phone number",
           keyboardType: TextInputType.phone,
         ),
         const SizedBox(height: 20),
 
-        if (!showOtp) ...[
+        if (!widget.showOtp) ...[
           LabeledTextField(
             title: "Password",
+            controller: passwordController,
             hintText: "Enter your password",
             obscureText: true,
             isPassword: true,
@@ -44,39 +68,31 @@ class PatientLoginForm extends StatelessWidget {
 
           PrimaryButton(
             text: "Login",
-            onPressed: onLogin,
+            onPressed: () {
+              widget.onLogin(
+                phoneController.text.trim(),
+                passwordController.text.trim(),
+              );
+            },
           ),
 
           const SizedBox(height: 24),
 
           Row(
             children: [
-              Expanded(
-                child: Divider(
-                  endIndent: 15,
-                  color: AppColors.grey500,
-                ),
-              ),
+              Expanded(child: Divider(endIndent: 15, color: AppColors.grey500)),
               const Text("Or"),
-              Expanded(
-                child: Divider(
-                  indent: 15,
-                  color: AppColors.grey500,
-                ),
-              ),
+              Expanded(child: Divider(indent: 15, color: AppColors.grey500)),
             ],
           ),
 
           const SizedBox(height: 24),
 
-          PrimaryButton(
-            text: "Send OTP",
-            onPressed: onSendOtp,
-          ),
+          PrimaryButton(text: "Send OTP", onPressed: widget.onSendOtp),
         ] else
           OtpVerificationSection(
-            onGoBack: onGoBack,
-            onCompleted: onOtpCompleted,
+            onGoBack: widget.onGoBack,
+            onCompleted: widget.onOtpCompleted,
           ),
       ],
     );
