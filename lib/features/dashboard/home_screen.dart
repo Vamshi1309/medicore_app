@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/core/widgets/app_snackbar.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
 
@@ -17,19 +18,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     ref.listenManual(authProvider, (prev, next) {
       if (next.error != null) {
-        ScaffoldMessenger.of(context)
-        ..clearSnackBars()
-        ..showSnackBar(
-          SnackBar(content: Text(next.error!), backgroundColor: Colors.red),
-        );
+        AppSnackBar.error(context, next.error!);
       }
 
       if (next.message != null) {
-        ScaffoldMessenger.of(context)
-        ..clearSnackBars()
-        ..showSnackBar(
-          SnackBar(content: Text(next.message!), backgroundColor: Colors.green),
-        );
+        AppSnackBar.success(context, next.message!);
       }
     });
   }
