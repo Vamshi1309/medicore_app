@@ -28,14 +28,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.initState();
 
     ref.listenManual(authProvider, (prev, next) {
-      if (next.isAuthenticated) {
-        ref.read(goRouterProvider).go(AppRoutes.home);
+      if (next.error != null) {
+        ScaffoldMessenger.of(context)
+          ..clearSnackBars()
+          ..showSnackBar(
+            SnackBar(content: Text(next.error!), backgroundColor: Colors.red),
+          );
       }
 
-      if (next.error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.error!), backgroundColor: Colors.red),
-        );
+      if (next.message != null) {
+        ScaffoldMessenger.of(context)
+          ..clearSnackBars()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(next.message!),
+              backgroundColor: Colors.green,
+            ),
+          );
       }
     });
   }

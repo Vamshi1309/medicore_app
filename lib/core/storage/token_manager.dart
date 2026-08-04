@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class TokenManager {
@@ -30,6 +31,7 @@ class TokenManager {
 
   // Clear tokens during logout
   static Future<void> clearTokens() async {
+    debugPrint("+++++++++++++ Tokens Cleared ++++++++++++++++++++++");
     await _storage.delete(key: _accessTokenKey);
 
     await _storage.delete(key: _refreshTokenKey);

@@ -37,4 +37,10 @@ class AuthRepository {
       (data) => LoginResponse.formJson(data),
     );
   }
+
+  Future<ApiResponse<void>> logout() async {
+    final respone = await apiClient.post(ApiConstants.logout);
+
+    return ApiResponse.fromJson(respone.data, (_) {});
+  }
 }

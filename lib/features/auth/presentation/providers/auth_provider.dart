@@ -81,6 +81,28 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
+  Future<void> logout() async {
+    try {
+      state = state.copyWith(isLoading: true, error: null, message: null);
+
+      await repository.logout();
+
+      state = state.copyWith(
+        isLoading: false,
+        isAuthenticated: false,
+        message: "Logged out successfully",
+      );
+
+      await TokenManager.clearTokens();
+    } on DioException catch (e) {
+      final message = e.response?.data?['message'] ?? "Something went wrong";
+
+      state = state.copyWith(isLoading: false, error: message);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
   Future<void> checkAuthentication() async {
     await Future.delayed(const Duration(seconds: 2));
 

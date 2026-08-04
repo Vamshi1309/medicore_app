@@ -1,16 +1,16 @@
 import 'package:frontend/features/auth/domain/entities/user.dart';
 
+class _Unset {
+  const _Unset();
+}
+const _unset = _Unset();
+
 class AuthState {
   final bool isLoading;
-
   final bool isAuthenticated;
-
   final bool isInitialized;
-
   final User? user;
-
   final String? error;
-
   final String? message;
 
   const AuthState({
@@ -24,29 +24,19 @@ class AuthState {
 
   AuthState copyWith({
     bool? isLoading,
-
     bool? isAuthenticated,
-
     bool? isInitialized,
-
-    User? user,
-
-    String? message,
-
-    String? error,
+    Object? user = _unset,
+    Object? message = _unset,
+    Object? error = _unset,
   }) {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
-
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
-
       isInitialized: isInitialized ?? this.isInitialized,
-
-      user: user ?? this.user,
-
-      message: message ?? this.message,
-
-      error: error ?? this.error,
+      user: user == _unset ? this.user : user as User?,
+      message: message == _unset ? this.message : message as String?,
+      error: error == _unset ? this.error : error as String?,
     );
   }
 }
