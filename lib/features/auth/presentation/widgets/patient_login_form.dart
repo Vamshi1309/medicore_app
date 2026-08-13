@@ -8,9 +8,9 @@ import 'otp_verification_section.dart';
 class PatientLoginForm extends StatefulWidget {
   final bool showOtp;
   final void Function(String phone, String password) onLogin;
-  final VoidCallback onSendOtp;
+  final void Function(String phone) onSendOtp;
   final VoidCallback onGoBack;
-  final ValueChanged<String> onOtpCompleted;
+  final Future<void> Function(String) onOtpCompleted;
 
   const PatientLoginForm({
     super.key,
@@ -88,7 +88,12 @@ class _PatientLoginFormState extends State<PatientLoginForm> {
 
           const SizedBox(height: 24),
 
-          PrimaryButton(text: "Send OTP", onPressed: widget.onSendOtp),
+          PrimaryButton(
+            text: "Send OTP",
+            onPressed: () {
+              widget.onSendOtp(phoneController.text.trim());
+            },
+          ),
         ] else
           OtpVerificationSection(
             onGoBack: widget.onGoBack,

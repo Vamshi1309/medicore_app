@@ -5,6 +5,7 @@ import 'package:frontend/core/router/app_routes.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/widgets/app_card.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
+import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
 import 'package:frontend/features/auth/presentation/widgets/labelded_text_field.dart';
 import 'package:frontend/features/auth/presentation/widgets/login_header.dart';
 import 'package:frontend/features/auth/presentation/widgets/otp_verification_section.dart';
@@ -18,6 +19,16 @@ class RegisterScreen extends ConsumerStatefulWidget {
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool showOTP = false;
+
+  final nameController = TextEditingController();
+  final phoneController = TextEditingController();
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    phoneController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,23 +48,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       LabeledTextField(
                         title: "Name",
                         hintText: "Enter your name",
+                        controller: nameController,
                       ),
                       SizedBox(height: 20),
                       LabeledTextField(
                         title: "Phone Number",
                         hintText: "Enter your phone number",
                         keyboardType: TextInputType.numberWithOptions(),
+                        controller: phoneController,
                       ),
                       SizedBox(height: 30),
                       if (!showOTP) ...[
-                        PrimaryButton(
-                          text: "Send OTP",
-                          onPressed: () {
-                            setState(() {
-                              showOTP = true;
-                            });
-                          },
-                        ),
+                        PrimaryButton(text: "Send OTP", onPressed: sendOtp),
                       ] else ...[
                         OtpVerificationSection(
                           onGoBack: () {
@@ -61,8 +67,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               showOTP = false;
                             });
                           },
-                          onCompleted: (pin) {
-                            debugPrint("Entered OTP: $pin");
+                          onCompleted: (pin) async {
+                            final success = await ref
+                                .read(authProvider.notifier)
+                                .verifyFirebaseOtp(pin);
+
+                            if (!mounted) return;
+
+                            if (success) {
+                              debugPrint("Firebase OTP verified");
+
+                              // We will implement registration with Spring Boot next.
+                            }
                           },
                         ),
                       ],
@@ -80,7 +96,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     SizedBox(width: 8),
                     InkWell(
                       onTap: () {
-                        goRouter.go(AppRoutes.login  );
+                        goRouter.go(AppRoutes.login);
                       },
                       child: Text(
                         "Login",
@@ -96,5 +112,28 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> sendOtp() async {
+    final phoneNumber = phoneController.text.trim();
+
+    if (phoneNumber.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter your phone number")),
+      );
+      return;
+    }
+
+    await ref.read(authProvider.notifier).sendFirebaseOtp(phoneNumber);
+
+    final authState = ref.read(authProvider);
+
+    if (!mounted) return;
+
+    if (authState.error == null && authState.verificationId != null) {
+      setState(() {
+        showOTP = true;
+      });
+    }
   }
 }

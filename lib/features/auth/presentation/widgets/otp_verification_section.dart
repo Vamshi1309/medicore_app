@@ -4,7 +4,7 @@ import 'package:pinput/pinput.dart';
 
 class OtpVerificationSection extends StatelessWidget {
   final VoidCallback onGoBack;
-  final ValueChanged<String> onCompleted;
+  final Future<void> Function(String) onCompleted;
 
   const OtpVerificationSection({
     super.key,
@@ -20,25 +20,15 @@ class OtpVerificationSection extends StatelessWidget {
           children: [
             const Text(
               "Enter OTP",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const Spacer(),
-            Icon(
-              Icons.chevron_left,
-              size: 18,
-              color: AppColors.primary,
-            ),
+            Icon(Icons.chevron_left, size: 18, color: AppColors.primary),
             InkWell(
               onTap: onGoBack,
               child: const Text(
                 "Go Back",
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.primary,
-                ),
+                style: TextStyle(fontSize: 12, color: AppColors.primary),
               ),
             ),
           ],
@@ -46,7 +36,9 @@ class OtpVerificationSection extends StatelessWidget {
         const SizedBox(height: 14),
         Pinput(
           length: 6,
-          onCompleted: onCompleted,
+          onCompleted: (pin) async {
+            await onCompleted(pin);
+          },
           defaultPinTheme: PinTheme(
             width: 48,
             height: 48,
@@ -67,10 +59,7 @@ class OtpVerificationSection extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
             decoration: BoxDecoration(
-              border: Border.all(
-                color: AppColors.primary,
-                width: 2,
-              ),
+              border: Border.all(color: AppColors.primary, width: 2),
               borderRadius: BorderRadius.circular(12),
             ),
           ),
@@ -82,7 +71,7 @@ class OtpVerificationSection extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               border: Border.all(color: AppColors.primary),
               borderRadius: BorderRadius.circular(12),
             ),

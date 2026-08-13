@@ -68,18 +68,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             : PatientLoginForm(
                                 showOtp: showOtp,
                                 onLogin: onTapLogin,
-                                onSendOtp: () {
-                                  setState(() {
-                                    showOtp = true;
-                                  });
+                                onSendOtp: (phoneNumber) async {
+                                  await sendOtp(phoneNumber);
                                 },
                                 onGoBack: () {
                                   setState(() {
                                     showOtp = false;
                                   });
                                 },
-                                onOtpCompleted: (pin) {
-                                  debugPrint("OTP entered: $pin");
+                                onOtpCompleted: (pin) async {
+                                  await verifyOtp(pin);
                                 },
                               ),
                       ),
@@ -215,5 +213,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         .patientLogin(
           PatientLoginRequest(phoneNumber: phoneNumber, password: password),
         );
+  }
+
+  Future<void> sendOtp(String phoneNumber) async {
+    await ref.read(authProvider.notifier).sendFirebaseOtp(phoneNumber);
+
+    final authState = ref.read(authProvider);
+
+    if (!mounted) return;
+
+    if (authState.error == null && authState.verificationId != null) {
+      setState(() {
+        showOtp = true;
+      });
+    }
+  }
+
+  Future<void> verifyOtp(String otp) async {
+    final success = await ref
+        .read(authProvider.notifier)
+        .verifyFirebaseOtp(otp);
+
+    if (!mounted) return;
+
+    if (success) {
+      debugPrint("Firebase OTP verified successfully");
+
+      // Later:
+      // 1. Get Firebase ID token
+      // 2. Send it to Spring Boot
+      // 3. Spring Boot creates your application JWT
+    }
   }
 }

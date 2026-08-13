@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/storage/token_manager.dart';
+import 'package:frontend/features/auth/data/firebase_auth_service.dart';
 import 'package:frontend/features/auth/data/models/patient_login_request.dart';
 import 'package:frontend/features/auth/data/models/staff_login_request.dart';
 import 'package:frontend/features/auth/data/repositories/auth_respository.dart';
@@ -9,10 +10,13 @@ import 'package:frontend/features/auth/providers/auth_repository_provider.dart';
 
 class AuthNotifier extends Notifier<AuthState> {
   late AuthRepository repository;
+  late FirebaseAuthService firebaseAuthService;
 
   @override
   AuthState build() {
     repository = ref.read(authRepositoryProvider);
+    firebaseAuthService = FirebaseAuthService();
+
     return const AuthState();
   }
 
@@ -112,6 +116,63 @@ class AuthNotifier extends Notifier<AuthState> {
       state = state.copyWith(isAuthenticated: true, isInitialized: true);
     } else {
       state = state.copyWith(isAuthenticated: false, isInitialized: true);
+    }
+  }
+
+  Future<void> sendFirebaseOtp(String phoneNumber) async {
+    try {
+      state = state.copyWith(isLoading: true, error: null, message: null);
+
+      final verificationId = await firebaseAuthService.sendOtp(
+        phoneNumber: phoneNumber,
+      );
+
+      state = state.copyWith(
+        isLoading: false,
+        verificationId: verificationId,
+        message: "OTP sent successfully",
+      );
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<bool> verifyFirebaseOtp(String otp) async {
+    try {
+      if (state.verificationId == null) {
+        state = state.copyWith(
+          error: "OTP session expired. Please request a new OTP.",
+        );
+        return false;
+      }
+
+      state = state.copyWith(isLoading: true, error: null, message: null);
+
+      await firebaseAuthService.verifyOtp(
+        verificationId: state.verificationId!,
+        otp: otp,
+      );
+
+      state = state.copyWith(
+        isLoading: false,
+        message: "OTP verified successfully",
+      );
+
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+
+      return false;
+    }
+  }
+
+  Future<String?> getFirebaseIdToken() async {
+    try {
+      return await firebaseAuthService.getIdToken();
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+
+      return null;
     }
   }
 }

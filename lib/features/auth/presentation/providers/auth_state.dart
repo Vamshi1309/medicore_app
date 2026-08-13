@@ -3,6 +3,7 @@ import 'package:frontend/features/auth/domain/entities/user.dart';
 class _Unset {
   const _Unset();
 }
+
 const _unset = _Unset();
 
 class AuthState {
@@ -12,6 +13,7 @@ class AuthState {
   final User? user;
   final String? error;
   final String? message;
+  final String? verificationId;
 
   const AuthState({
     this.isLoading = false,
@@ -20,6 +22,7 @@ class AuthState {
     this.user,
     this.message,
     this.error,
+    this.verificationId,
   });
 
   AuthState copyWith({
@@ -29,6 +32,7 @@ class AuthState {
     Object? user = _unset,
     Object? message = _unset,
     Object? error = _unset,
+    Object? verificationId = _unset,
   }) {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
@@ -37,6 +41,9 @@ class AuthState {
       user: user == _unset ? this.user : user as User?,
       message: message == _unset ? this.message : message as String?,
       error: error == _unset ? this.error : error as String?,
+      verificationId: verificationId == _unset
+          ? this.verificationId
+          : verificationId as String?,
     );
   }
 }
