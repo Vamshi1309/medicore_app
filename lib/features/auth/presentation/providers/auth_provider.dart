@@ -31,16 +31,14 @@ class AuthNotifier extends Notifier<AuthState> {
         return;
       }
 
-      TokenManager.saveTokens(
+      await TokenManager.saveTokens(
         accessToken: response.data!.accessToken,
         refreshToken: response.data!.refreshToken,
       );
 
-      state = state.copyWith(
-        isLoading: false,
-        isAuthenticated: true,
-        message: response.message,
-      );
+      await getMe();
+
+      state = state.copyWith(isLoading: false, message: response.message);
     } on DioException catch (e) {
       final message = e.response?.data?['message'] ?? "Something went wrong";
 
@@ -61,7 +59,7 @@ class AuthNotifier extends Notifier<AuthState> {
         return;
       }
 
-      TokenManager.saveTokens(
+      await TokenManager.saveTokens(
         accessToken: response.data!.accessToken,
         refreshToken: response.data!.refreshToken,
       );
@@ -104,13 +102,20 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<void> checkAuthentication() async {
-    await Future.delayed(const Duration(seconds: 2));
+    final accessToken = await TokenManager.getAccessToken();
 
-    String? accessToken = await TokenManager.getAccessToken();
+    if (accessToken == null) {
+      state = state.copyWith(isAuthenticated: false, isInitialized: true);
+      return;
+    }
 
-    if (accessToken != null) {
-      state = state.copyWith(isAuthenticated: true, isInitialized: true);
-    } else {
+    try {
+      await getMe();
+
+      state = state.copyWith(isInitialized: true);
+    } catch (e) {
+      await TokenManager.clearTokens();
+
       state = state.copyWith(isAuthenticated: false, isInitialized: true);
     }
   }
@@ -199,17 +204,28 @@ class AuthNotifier extends Notifier<AuthState> {
         refreshToken: loginData.refreshToken,
       );
 
-      state = state.copyWith(
-        isLoading: false,
-        isAuthenticated: true,
-        message: response.message,
-      );
+      await getMe();
+
+      state = state.copyWith(isLoading: false, message: response.message);
 
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
       return false;
     }
+  }
+
+  Future<void> getMe() async {
+    final response = await repository.getMe();
+
+    if (!response.success || response.data == null) {
+      state = state.copyWith(isAuthenticated: false, error: response.message);
+      return;
+    }
+
+    final user = response.data!.toEntity();
+
+    state = state.copyWith(isAuthenticated: true, user: user);
   }
 
   // Future<void> sendFirebaseOtp(String phoneNumber) async {

@@ -30,13 +30,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: PrimaryButton(
-          text: "Logout",
-          onPressed: () {
-            ref.read(authProvider.notifier).logout();
-          },
-        ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(ref.watch(authProvider).user?.name ?? "No user",style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
+          Text(ref.watch(authProvider).user?.id ?? "No id",style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
+          Text(ref.watch(authProvider).user?.phoneNumber ?? "No phone number",style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
+          Text(ref.watch(authProvider).user?.role.name ?? "No role",style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
+          SizedBox(height: 120),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: PrimaryButton(
+                text: "Logout",
+                onPressed: () {
+                  ref.read(authProvider.notifier).logout();
+                },
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

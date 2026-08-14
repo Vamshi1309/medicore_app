@@ -18,4 +18,6 @@ class ApiConstants {
   static const String sendLoginOtp = "/auth/login/send-otp";
 
   static const String verifyLoginOtp = "/auth/login/verify-otp";
+
+  static const String me = "/auth/me";
 }

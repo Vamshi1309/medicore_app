@@ -8,6 +8,7 @@ import 'package:frontend/features/auth/data/models/request/verify_register_otp.d
 import 'package:frontend/features/auth/data/models/response/login_response.dart';
 import 'package:frontend/features/auth/data/models/request/staff_login_request.dart';
 import 'package:frontend/features/auth/data/models/response/otp_response.dart';
+import 'package:frontend/features/auth/data/models/response/user_profile_response.dart';
 
 class AuthRepository {
   final ApiClient apiClient;
@@ -99,6 +100,15 @@ class AuthRepository {
     return ApiResponse.fromJson(
       response.data,
       (data) => LoginResponse.formJson(data),
+    );
+  }
+
+  Future<ApiResponse<UserProfileResponse>> getMe() async {
+    final response = await apiClient.get(ApiConstants.me);
+
+    return ApiResponse.fromJson(
+      response.data,
+      (data) => UserProfileResponse.fromJson(data),
     );
   }
 }
