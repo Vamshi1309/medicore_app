@@ -5,7 +5,8 @@ import 'package:frontend/core/router/app_routes.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/widgets/app_card.dart';
 import 'package:frontend/core/widgets/app_snackbar.dart';
-import 'package:frontend/features/auth/data/models/patient_login_request.dart';
+import 'package:frontend/features/auth/data/models/request/patient_login_request.dart';
+import 'package:frontend/features/auth/data/models/request/verify_login_otp.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
 import 'package:frontend/features/auth/presentation/widgets/patient_login_form.dart';
 import 'package:frontend/features/auth/presentation/widgets/staff_login_form.dart';
@@ -23,6 +24,7 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool isStaff = false;
   bool showOtp = false;
+  String? otpPhoneNumber;
 
   @override
   void initState() {
@@ -74,6 +76,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 onGoBack: () {
                                   setState(() {
                                     showOtp = false;
+                                    otpPhoneNumber = null;
                                   });
                                 },
                                 onOtpCompleted: (pin) async {
@@ -216,33 +219,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> sendOtp(String phoneNumber) async {
-    await ref.read(authProvider.notifier).sendFirebaseOtp(phoneNumber);
-
-    final authState = ref.read(authProvider);
+    final success = await ref
+        .read(authProvider.notifier)
+        .sendLoginOtp(phoneNumber);
 
     if (!mounted) return;
 
-    if (authState.error == null && authState.verificationId != null) {
+    if (success) {
       setState(() {
+        otpPhoneNumber = phoneNumber;
         showOtp = true;
       });
     }
   }
 
   Future<void> verifyOtp(String otp) async {
+    if (otpPhoneNumber == null) {
+      AppSnackBar.error(
+        context,
+        "Phone number is missing. Please request OTP again.",
+      );
+      return;
+    }
+
     final success = await ref
         .read(authProvider.notifier)
-        .verifyFirebaseOtp(otp);
+        .verifyLoginOtp(
+          VerifyLoginOtpRequest(phoneNumber: otpPhoneNumber!, otp: otp),
+        );
 
     if (!mounted) return;
 
     if (success) {
-      debugPrint("Firebase OTP verified successfully");
+      final goRouter = ref.read(goRouterProvider);
 
-      // Later:
-      // 1. Get Firebase ID token
-      // 2. Send it to Spring Boot
-      // 3. Spring Boot creates your application JWT
+      goRouter.go(AppRoutes.home);
     }
   }
 }

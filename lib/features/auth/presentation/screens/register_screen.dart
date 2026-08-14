@@ -5,6 +5,7 @@ import 'package:frontend/core/router/app_routes.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/widgets/app_card.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
+import 'package:frontend/features/auth/data/models/request/verify_register_otp.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
 import 'package:frontend/features/auth/presentation/widgets/labelded_text_field.dart';
 import 'package:frontend/features/auth/presentation/widgets/login_header.dart';
@@ -22,11 +23,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   final nameController = TextEditingController();
   final phoneController = TextEditingController();
+  final passwordController = TextEditingController();
 
   @override
   void dispose() {
     nameController.dispose();
     phoneController.dispose();
+    passwordController.dispose();
     super.dispose();
   }
 
@@ -57,6 +60,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         keyboardType: TextInputType.numberWithOptions(),
                         controller: phoneController,
                       ),
+                      const SizedBox(height: 20),
+
+                      LabeledTextField(
+                        title: "Password",
+                        hintText: "Enter your password",
+                        controller: passwordController,
+                        obscureText: true,
+                        isPassword: true,
+                        suffixIcon: Icons.remove_red_eye_outlined,
+                      ),
                       SizedBox(height: 30),
                       if (!showOTP) ...[
                         PrimaryButton(text: "Send OTP", onPressed: sendOtp),
@@ -70,14 +83,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           onCompleted: (pin) async {
                             final success = await ref
                                 .read(authProvider.notifier)
-                                .verifyFirebaseOtp(pin);
+                                .verifyRegistrationOtp(
+                                  VerifyRegistrationOtpRequest(
+                                    name: nameController.text.trim(),
+                                    phoneNumber: phoneController.text.trim(),
+                                    password: passwordController.text.trim(),
+                                    otp: pin,
+                                  ),
+                                );
 
                             if (!mounted) return;
 
                             if (success) {
-                              debugPrint("Firebase OTP verified");
-
-                              // We will implement registration with Spring Boot next.
+                              goRouter.go(AppRoutes.login);
                             }
                           },
                         ),
@@ -124,13 +142,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       return;
     }
 
-    await ref.read(authProvider.notifier).sendFirebaseOtp(phoneNumber);
-
-    final authState = ref.read(authProvider);
+    final success = await ref
+        .read(authProvider.notifier)
+        .sendRegisterOtpRequest(phoneNumber);
 
     if (!mounted) return;
 
-    if (authState.error == null && authState.verificationId != null) {
+    if (success) {
       setState(() {
         showOTP = true;
       });

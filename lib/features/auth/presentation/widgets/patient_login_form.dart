@@ -69,6 +69,15 @@ class _PatientLoginFormState extends State<PatientLoginForm> {
           PrimaryButton(
             text: "Login",
             onPressed: () {
+              if (!_isValidPhoneNumber()) return;
+
+              if (passwordController.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Please enter your password")),
+                );
+                return;
+              }
+
               widget.onLogin(
                 phoneController.text.trim(),
                 passwordController.text.trim(),
@@ -91,6 +100,8 @@ class _PatientLoginFormState extends State<PatientLoginForm> {
           PrimaryButton(
             text: "Send OTP",
             onPressed: () {
+              if (!_isValidPhoneNumber()) return;
+
               widget.onSendOtp(phoneController.text.trim());
             },
           ),
@@ -101,5 +112,27 @@ class _PatientLoginFormState extends State<PatientLoginForm> {
           ),
       ],
     );
+  }
+
+  bool _isValidPhoneNumber() {
+    final phone = phoneController.text.trim();
+
+    if (phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter your phone number")),
+      );
+      return false;
+    }
+
+    if (!RegExp(r'^\d{10}$').hasMatch(phone)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please enter a valid 10-digit phone number"),
+        ),
+      );
+      return false;
+    }
+
+    return true;
   }
 }
