@@ -23,6 +23,7 @@ class MyApp extends ConsumerWidget {
 
     return AppInitializer(
       child: MaterialApp.router(
+        debugShowCheckedModeBanner: false,
         title: "MediCore",
         theme: AppTheme.lightTheme,
         routerConfig: router,

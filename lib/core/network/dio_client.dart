@@ -5,6 +5,7 @@ import 'package:frontend/core/network/interceptors/auth_interceptor.dart';
 import 'package:frontend/core/network/interceptors/connectivity_interceptor.dart';
 import 'package:frontend/core/network/interceptors/error_interceptor.dart';
 import 'package:frontend/core/network/interceptors/logger_interceptor.dart';
+import 'package:frontend/core/network/interceptors/retry_interceptor.dart';
 
 class DioClient {
   DioClient._();
@@ -34,6 +35,7 @@ class DioClient {
       AuthInterceptor(),
       LoggerInterceptor(),
       ErrorInterceptor(),
+      RefreshInterceptor(dio: dio)
     ]);
 
     return dio;

@@ -21,12 +21,13 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
     final displayName = name ?? "Sir/Ma'am";
 
     return AppBar(
+      toolbarHeight: 80,
       titleSpacing: 16,
-
       title: Row(
         children: [
           CircleAvatar(
             backgroundColor: Colors.blueGrey,
+            radius: 23,
             child: Text(
               name != null && name.isNotEmpty
                   ? name.substring(0, 1).toUpperCase()
@@ -47,7 +48,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
               Text(
                 isMorning() ? "Good Morning," : "Good Evening,",
                 style: const TextStyle(
-                  fontSize: 11,
+                  fontSize: 13,
                   color: Color.fromARGB(255, 87, 93, 100),
                   fontWeight: FontWeight.w500,
                 ),
@@ -56,7 +57,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
               Text(
                 name != null ? "$displayName Garu" : displayName,
                 style: const TextStyle(
-                  fontSize: 17,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -68,15 +69,15 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
       actions: [
         StatusBadge(
           status: userRole,
-          backgroundColor: AppColors.primary.withAlpha(75),
-          textColor: AppColors.primary,
+          backgroundColor: AppColors.primary.withAlpha(55),
+          textColor: Colors.blue.shade500,
         ),
 
         const SizedBox(width: 12),
 
         Badge(
           child: CircleAvatar(
-            radius: 16,
+            radius: 20,
             backgroundColor: Colors.blueGrey.withAlpha(75),
             child: IconButton(
               padding: EdgeInsets.zero,
@@ -86,7 +87,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
               },
               icon: const Icon(
                 Icons.notifications_outlined,
-                size: 20,
+                size: 25,
                 color: Colors.black,
               ),
             ),
@@ -104,5 +105,5 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(80);
 }
