@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/widgets/app_snackbar.dart';
+import 'package:frontend/features/dashboard/mock%20data/Appointment.dart';
 import 'package:frontend/features/dashboard/widgets/custom_app_bar.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
 import 'package:frontend/features/dashboard/widgets/dashboard_card.dart';
@@ -38,132 +39,225 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       appBar: CustomAppBar(
         userRole: ref.watch(authProvider).user?.role.name ?? "No role",
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 16),
-            DashboardCard(
-              role: ref.read(authProvider).user?.role.name ?? "No user",
-              color: Colors.blue.shade700,
-              buttonText: 'view',
-              textFontColor: Colors.blue.shade700,
-              textBgColor: Colors.white,
-              onPressed: () {},
-              children: [
-                Text(
-                  "Next Appointment",
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(color: Colors.white70),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  "Dr. Laxmi Dasari",
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleMedium?.copyWith(color: Colors.white),
-                ),
-                const SizedBox(height: 5),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.calendar_month_outlined,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      "Today, 10:30 AM - Dermatology",
-                      style: Theme.of(
-                        context,
-                      ).textTheme.titleSmall?.copyWith(color: Colors.white70),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            SizedBox(height: 15),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                DashboardOutlinedCard(
-                  color: Colors.blue.shade100,
-                  icon: LucideIcons.calendarCheck600Dir,
-                  count: "5",
-                  text: "Upcoming",
-                ),
-                DashboardOutlinedCard(
-                  color: Colors.lightBlueAccent.shade200,
-                  icon: LucideIcons.fileText600Dir,
-                  count: "3",
-                  text: "Prescriptions",
-                ),
-                DashboardOutlinedCard(
-                  color: Colors.green.shade100,
-                  icon: LucideIcons.clipboard600,
-                  count: "7",
-                  text: "Reports",
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
-            Text(
-              "Quick Actions",
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            SizedBox(height: 15),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                QuickActionWidget(
-                  color: Colors.blue.shade700,
-                  colorbg: Colors.lightBlue.shade100,
-                  text: 'Book Appointment',
-                  icon: LucideIcons.calendarPlus300,
-                ),
-                QuickActionWidget(
-                  color: Colors.greenAccent.shade700,
-                  colorbg: Colors.green.shade100,
-                  text: 'Prescriptions',
-                  icon: LucideIcons.pill300,
-                ),
-                QuickActionWidget(
-                  color: Colors.amberAccent.shade700,
-                  colorbg: Colors.amber.shade100,
-                  text: 'Reports',
-                  icon: LucideIcons.clipboardList300,
-                ),
-                QuickActionWidget(
-                  color: Colors.blueGrey.shade700,
-                  colorbg: Colors.grey.shade200,
-                  text: 'My Profile',
-                  icon: LucideIcons.user300,
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
-            Row(
-              children: [
-                Text(
-                  "Upcoming Appointments",
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                Spacer(),
-                TextButton(
-                  onPressed: () {},
-                  child: Text(
-                    "See all",
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Colors.blue.shade700,
-                      fontSize: 15,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 16),
+              DashboardCard(
+                role: ref.read(authProvider).user?.role.name ?? "No user",
+                color: Colors.blue.shade700,
+                buttonText: 'view',
+                textFontColor: Colors.blue.shade700,
+                textBgColor: Colors.white,
+                onPressed: () {},
+                children: [
+                  Text(
+                    "Next Appointment",
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleSmall?.copyWith(color: Colors.white70),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    "Dr. Laxmi Dasari",
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(color: Colors.white),
+                  ),
+                  const SizedBox(height: 5),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.calendar_month_outlined,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        "Today, 10:30 AM - Dermatology",
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleSmall?.copyWith(color: Colors.white70),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(height: 15),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  DashboardOutlinedCard(
+                    color: Colors.blue.shade100,
+                    icon: LucideIcons.calendarCheck600Dir,
+                    count: "5",
+                    text: "Upcoming",
+                  ),
+                  DashboardOutlinedCard(
+                    color: Colors.lightBlueAccent.shade200,
+                    icon: LucideIcons.fileText600Dir,
+                    count: "3",
+                    text: "Prescriptions",
+                  ),
+                  DashboardOutlinedCard(
+                    color: Colors.green.shade100,
+                    icon: LucideIcons.clipboard600,
+                    count: "7",
+                    text: "Reports",
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+              Text(
+                "Quick Actions",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              SizedBox(height: 15),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  QuickActionWidget(
+                    color: Colors.blue.shade700,
+                    colorbg: Colors.lightBlue.shade100,
+                    text: 'Book Appointment',
+                    icon: LucideIcons.calendarPlus300,
+                  ),
+                  QuickActionWidget(
+                    color: Colors.greenAccent.shade700,
+                    colorbg: Colors.green.shade100,
+                    text: 'Prescriptions',
+                    icon: LucideIcons.pill300,
+                  ),
+                  QuickActionWidget(
+                    color: Colors.amberAccent.shade700,
+                    colorbg: Colors.amber.shade100,
+                    text: 'Reports',
+                    icon: LucideIcons.clipboardList300,
+                  ),
+                  QuickActionWidget(
+                    color: Colors.blueGrey.shade700,
+                    colorbg: Colors.grey.shade200,
+                    text: 'My Profile',
+                    icon: LucideIcons.user300,
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+              Row(
+                children: [
+                  Text(
+                    "Upcoming Appointments",
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  Spacer(),
+                  TextButton(
+                    onPressed: () {},
+                    child: Text(
+                      "See all",
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.blue.shade700,
+                        fontSize: 15,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+              SizedBox(height: 8),
+              ListView.builder(
+                itemCount: appointments.length,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemBuilder: (context, index) {
+                  final appointment = appointments[index];
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        // Doctor image
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: Colors.blue.shade50,
+                          child: Text(
+                            appointment.doctorName
+                                .replaceFirst('Dr. ', '')
+                                .substring(0, 1),
+                            style: TextStyle(
+                              color: Colors.blue.shade700,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(width: 12),
+
+                        // Doctor information
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                appointment.doctorName,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+
+                              const SizedBox(height: 4),
+
+                              Text(
+                                '${appointment.specialty} · ${appointment.dateTime}',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey.shade500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(width: 8),
+
+                        // Status
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: appointment.status == 'Confirmed'
+                                ? Colors.green.shade50
+                                : Colors.orange.shade50,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            appointment.status,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: appointment.status == 'Confirmed'
+                                  ? Colors.green
+                                  : Colors.orange,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: NavigationBar(
@@ -208,4 +302,55 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
+
+  final List<Appointment> appointments = [
+    Appointment(
+      doctorName: 'Dr. Sarah Johnson',
+      specialty: 'Cardiology',
+      dateTime: 'Today, 10:30 AM',
+      status: 'Confirmed',
+    ),
+    Appointment(
+      doctorName: 'Dr. Michael Chen',
+      specialty: 'General',
+      dateTime: 'Dec 18, 2:00 PM',
+      status: 'Pending',
+    ),
+    Appointment(
+      doctorName: 'Dr. Emily Davis',
+      specialty: 'Dermatology',
+      dateTime: 'Dec 19, 11:00 AM',
+      status: 'Confirmed',
+    ),
+    Appointment(
+      doctorName: 'Dr. Robert Wilson',
+      specialty: 'Orthopedics',
+      dateTime: 'Dec 20, 3:30 PM',
+      status: 'Cancelled',
+    ),
+    Appointment(
+      doctorName: 'Dr. Olivia Martinez',
+      specialty: 'Neurology',
+      dateTime: 'Dec 21, 9:00 AM',
+      status: 'Confirmed',
+    ),
+    Appointment(
+      doctorName: 'Dr. James Anderson',
+      specialty: 'Pediatrics',
+      dateTime: 'Dec 22, 1:30 PM',
+      status: 'Pending',
+    ),
+    Appointment(
+      doctorName: 'Dr. Sophia Taylor',
+      specialty: 'Gynecology',
+      dateTime: 'Dec 23, 10:00 AM',
+      status: 'Confirmed',
+    ),
+    Appointment(
+      doctorName: 'Dr. Daniel Brown',
+      specialty: 'ENT',
+      dateTime: 'Dec 24, 4:00 PM',
+      status: 'Pending',
+    ),
+  ];
 }
