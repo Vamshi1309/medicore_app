@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/widgets/status_badge.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
   final String userRole;
@@ -26,7 +27,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
       title: Row(
         children: [
           CircleAvatar(
-            backgroundColor: Colors.blueGrey,
+            backgroundColor: Colors.blue.shade700,
             radius: 23,
             child: Text(
               name != null && name.isNotEmpty
@@ -77,7 +78,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
 
         Badge(
           child: CircleAvatar(
-            radius: 20,
+            radius: 19,
             backgroundColor: Colors.blueGrey.withAlpha(75),
             child: IconButton(
               padding: EdgeInsets.zero,
@@ -85,8 +86,8 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
               onPressed: () {
                 // Open notifications
               },
-              icon: const Icon(
-                Icons.notifications_outlined,
+              icon: Icon(
+                LucideIcons.bell500Dir,
                 size: 25,
                 color: Colors.black,
               ),

@@ -20,6 +20,7 @@ dependencies:
   pinput: ^6.0.2
   firebase_core: ^4.13.0
   firebase_auth: ^6.5.7
+  lucide_icons_flutter: ^3.1.15
 
 dev_dependencies:
   flutter_test:
