@@ -5,7 +5,7 @@ import 'package:frontend/core/screens/splash_screen.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
 import 'package:frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:frontend/features/auth/presentation/screens/register_screen.dart';
-import 'package:frontend/features/dashboard/home_screen.dart';
+import 'package:frontend/features/patient/dashboard/home_screen.dart';
 import 'package:go_router/go_router.dart';
 
 class AppRouter {

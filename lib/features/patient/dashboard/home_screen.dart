@@ -6,10 +6,10 @@ import 'package:frontend/core/widgets/app_snackbar.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
 import 'package:frontend/core/widgets/status_badge.dart';
 import 'package:frontend/features/dashboard/mock%20data/Appointment.dart';
-import 'package:frontend/features/dashboard/widgets/custom_app_bar.dart';
+import 'package:frontend/features/patient/dashboard/widgets/custom_app_bar.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
-import 'package:frontend/features/dashboard/widgets/dashboard_card.dart';
-import 'package:frontend/features/dashboard/widgets/dashboard_outlined_card.dart';
+import 'package:frontend/features/patient/dashboard/widgets/dashboard_card.dart';
+import 'package:frontend/features/patient/dashboard/widgets/dashboard_outlined_card.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
