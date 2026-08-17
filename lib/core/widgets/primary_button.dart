@@ -8,7 +8,8 @@ class PrimaryButton extends StatelessWidget {
   final bool isLoading;
   final bool enabled;
   final IconData? icon;
-  final bool outlined; // <-- new
+  final Color color;
+  final bool outlined;
 
   const PrimaryButton({
     super.key,
@@ -16,6 +17,7 @@ class PrimaryButton extends StatelessWidget {
     required this.onPressed,
     this.isLoading = false,
     this.enabled = true,
+    this.color = AppColors.primary,
     this.icon,
     this.outlined = false,
   });
@@ -48,6 +50,7 @@ class PrimaryButton extends StatelessWidget {
         width: double.infinity,
         child: OutlinedButton(
           onPressed: enabled && !isLoading ? onPressed : null,
+          style: OutlinedButton.styleFrom(backgroundColor: color),
           child: child,
         ),
       );
@@ -57,6 +60,7 @@ class PrimaryButton extends StatelessWidget {
       width: double.infinity,
       child: ElevatedButton(
         onPressed: enabled && !isLoading ? onPressed : null,
+        style: OutlinedButton.styleFrom(backgroundColor: color),
         child: child,
       ),
     );

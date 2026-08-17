@@ -1,12 +1,15 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/widgets/app_snackbar.dart';
+import 'package:frontend/core/widgets/primary_button.dart';
+import 'package:frontend/core/widgets/status_badge.dart';
 import 'package:frontend/features/dashboard/mock%20data/Appointment.dart';
 import 'package:frontend/features/dashboard/widgets/custom_app_bar.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
 import 'package:frontend/features/dashboard/widgets/dashboard_card.dart';
 import 'package:frontend/features/dashboard/widgets/dashboard_outlined_card.dart';
-import 'package:frontend/features/dashboard/widgets/quick_action_widget.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -17,7 +20,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  int currentIndex = 1;
+  int currentIndex = 0;
   @override
   initState() {
     super.initState();
@@ -111,39 +114,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ],
               ),
               SizedBox(height: 20),
-              Text(
-                "Quick Actions",
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
+              Text("Actions", style: Theme.of(context).textTheme.titleLarge),
               SizedBox(height: 15),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  QuickActionWidget(
-                    color: Colors.blue.shade700,
-                    colorbg: Colors.lightBlue.shade100,
-                    text: 'Book Appointment',
-                    icon: LucideIcons.calendarPlus300,
-                  ),
-                  QuickActionWidget(
-                    color: Colors.greenAccent.shade700,
-                    colorbg: Colors.green.shade100,
-                    text: 'Prescriptions',
-                    icon: LucideIcons.pill300,
-                  ),
-                  QuickActionWidget(
-                    color: Colors.amberAccent.shade700,
-                    colorbg: Colors.amber.shade100,
-                    text: 'Reports',
-                    icon: LucideIcons.clipboardList300,
-                  ),
-                  QuickActionWidget(
-                    color: Colors.blueGrey.shade700,
-                    colorbg: Colors.grey.shade200,
-                    text: 'My Profile',
-                    icon: LucideIcons.user300,
-                  ),
-                ],
+              PrimaryButton(
+                text: "Book Appointment",
+                icon: LucideIcons.calendarPlus300Dir,
+                color: Colors.blue.shade700,
+                onPressed: () {},
               ),
               SizedBox(height: 20),
               Row(
@@ -167,7 +144,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
               SizedBox(height: 8),
               ListView.builder(
-                itemCount: appointments.length,
+                itemCount: min(appointments.length, 5),
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemBuilder: (context, index) {
@@ -229,27 +206,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         const SizedBox(width: 8),
 
                         // Status
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: appointment.status == 'Confirmed'
-                                ? Colors.green.shade50
-                                : Colors.orange.shade50,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
+                        StatusBadge(
+                          status: appointment.status,
+                          fontSize: 11,
+                          icon: statusIcon(appointment.status),
+                          backgroundColor: statusBackgroundColor(
                             appointment.status,
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                              color: appointment.status == 'Confirmed'
-                                  ? Colors.green
-                                  : Colors.orange,
-                            ),
                           ),
+                          textColor: statusTextColor(appointment.status),
                         ),
                       ],
                     ),
@@ -301,6 +265,54 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ],
       ),
     );
+  }
+
+  Color statusBackgroundColor(String status) {
+    switch (status) {
+      case "Confirmed":
+        return Colors.green.shade100;
+
+      case "Pending":
+        return Colors.amber.shade100;
+
+      case "Cancelled":
+        return Colors.red.shade100;
+
+      default:
+        return Colors.grey.shade100;
+    }
+  }
+
+  Color statusTextColor(String status) {
+    switch (status) {
+      case "Confirmed":
+        return Colors.green.shade600;
+
+      case "Pending":
+        return Colors.amber.shade700;
+
+      case "Cancelled":
+        return Colors.red.shade600;
+
+      default:
+        return Colors.grey.shade600;
+    }
+  }
+
+  IconData statusIcon(String status) {
+    switch (status) {
+      case "Confirmed":
+        return LucideIcons.circleCheck;
+
+      case "Pending":
+        return LucideIcons.clock;
+
+      case "Cancelled":
+        return LucideIcons.circleX;
+
+      default:
+        return LucideIcons.circleHelp;
+    }
   }
 
   final List<Appointment> appointments = [
