@@ -38,7 +38,11 @@ class AuthNotifier extends Notifier<AuthState> {
 
       await getMe();
 
-      state = state.copyWith(isLoading: false, message: response.message);
+      state = state.copyWith(
+        isLoading: false,
+        isInitialized: true,
+        message: response.message,
+      );
     } on DioException catch (e) {
       final message = e.response?.data?['message'] ?? "Something went wrong";
 
@@ -64,10 +68,11 @@ class AuthNotifier extends Notifier<AuthState> {
         refreshToken: response.data!.refreshToken,
       );
 
+      await getMe();
+
       state = state.copyWith(
         isLoading: false,
-
-        isAuthenticated: true,
+        isInitialized: true,
         message: response.message,
       );
     } on DioException catch (e) {
@@ -206,7 +211,11 @@ class AuthNotifier extends Notifier<AuthState> {
 
       await getMe();
 
-      state = state.copyWith(isLoading: false, message: response.message);
+      state = state.copyWith(
+        isLoading: false,
+        isInitialized: true,
+        message: response.message,
+      );
 
       return true;
     } catch (e) {

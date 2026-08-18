@@ -2,10 +2,11 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+// bottom nav moved to PatientShell
 import 'package:frontend/core/widgets/app_snackbar.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
 import 'package:frontend/core/widgets/status_badge.dart';
-import 'package:frontend/features/dashboard/mock%20data/Appointment.dart';
+import 'package:frontend/features/patient/dashboard/mock%20data/appointment.dart';
 import 'package:frontend/features/patient/dashboard/widgets/custom_app_bar.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
 import 'package:frontend/features/patient/dashboard/widgets/dashboard_card.dart';
@@ -20,7 +21,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  int currentIndex = 0;
   @override
   initState() {
     super.initState();
@@ -223,46 +223,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ],
           ),
         ),
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: currentIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            currentIndex = index;
-          });
-        },
-
-        backgroundColor: Colors.white,
-
-        indicatorColor: Colors.transparent,
-
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-
-        destinations: [
-          NavigationDestination(
-            icon: Icon(LucideIcons.house, color: Colors.grey.shade400),
-            selectedIcon: const Icon(LucideIcons.house, color: Colors.blue),
-            label: 'Home',
-          ),
-
-          NavigationDestination(
-            icon: Icon(LucideIcons.calendar, color: Colors.grey.shade400),
-            selectedIcon: const Icon(LucideIcons.calendar, color: Colors.blue),
-            label: 'Appointments',
-          ),
-
-          NavigationDestination(
-            icon: Icon(LucideIcons.fileText, color: Colors.grey.shade400),
-            selectedIcon: const Icon(LucideIcons.fileText, color: Colors.blue),
-            label: 'Records',
-          ),
-
-          NavigationDestination(
-            icon: Icon(LucideIcons.userRound, color: Colors.grey.shade400),
-            selectedIcon: const Icon(LucideIcons.userRound, color: Colors.blue),
-            label: 'Profile',
-          ),
-        ],
       ),
     );
   }

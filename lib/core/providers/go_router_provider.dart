@@ -11,6 +11,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   final controller = StreamController<AuthState>.broadcast();
 
   ref.listen<AuthState>(authProvider, (previous, next) {
+    debugPrint(
+      'AUTH CHANGED -> '
+      'initialized: ${next.isInitialized}, '
+      'authenticated: ${next.isAuthenticated}, '
+      'user: ${next.user?.name}',
+    );
+
     controller.add(next);
   });
 
