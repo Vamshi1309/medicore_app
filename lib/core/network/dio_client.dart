@@ -19,7 +19,9 @@ class DioClient {
 
         connectTimeout: const Duration(seconds: 10),
 
-        validateStatus: (status) => status != null && status < 500,
+        validateStatus: (status) {
+          return status != null && status >= 200 && status < 300;
+        },
 
         receiveTimeout: const Duration(seconds: 10),
 
@@ -34,8 +36,8 @@ class DioClient {
     dio.interceptors.addAll([
       AuthInterceptor(),
       LoggerInterceptor(),
+      RefreshInterceptor(dio: dio),
       ErrorInterceptor(),
-      RefreshInterceptor(dio: dio)
     ]);
 
     return dio;

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/features/patient/appointments/mock%20data/appointment_model.dart';
 import 'package:frontend/features/patient/appointments/widgets/appointment_card.dart';
-import 'package:frontend/features/patient/dashboard/widgets/custom_app_bar.dart';
+import 'package:frontend/features/patient/widgets/app_header.dart';
 
 enum AppointmentFilter { all, upcoming, previous, cancelled }
 
@@ -43,35 +43,38 @@ class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(userRole: "Doctor"),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SingleChildScrollView(
+      backgroundColor: const Color(0xFFF5F6F8),
+      body: SafeArea(
+        child: Column(
+          children: [
+            AppHeader(
+              title: "My Appointments",
+              statCards: [
+                StatCard(count: "4", heading: "upcoming"),
+                StatCard(count: "2", heading: "previous"),
+                StatCard(count: "1", heading: "cancelled"),
+              ],
+            ),
+            Container(
+              width: double.infinity,
+              color: const Color(0xFFF5F6F8),
+              padding: const EdgeInsets.fromLTRB(12, 8, 0, 16),
+              child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
                     _filterChip(label: 'All', filter: AppointmentFilter.all),
-                
                     const SizedBox(width: 8),
-                
                     _filterChip(
                       label: 'Upcoming',
                       filter: AppointmentFilter.upcoming,
                     ),
-                
                     const SizedBox(width: 8),
-                
                     _filterChip(
                       label: 'Previous',
                       filter: AppointmentFilter.previous,
                     ),
-                
                     const SizedBox(width: 8),
-                
                     _filterChip(
                       label: 'Cancelled',
                       filter: AppointmentFilter.cancelled,
@@ -79,11 +82,16 @@ class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-              // Appointments
-              buildSelectedContent(),
-            ],
-          ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: buildSelectedContent(),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -182,6 +190,7 @@ class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
       selected: isSelected,
       selectedColor: Colors.blue.shade800,
       backgroundColor: Colors.grey.shade100,
+      checkmarkColor: Colors.white,
       labelStyle: TextStyle(
         color: isSelected ? Colors.white : Colors.black87,
         fontWeight: FontWeight.bold,
@@ -263,7 +272,7 @@ final List<AppointmentModel> appointments = [
     status: AppointmentStatus.confirmed,
   ),
   AppointmentModel(
-    doctorName: 'Dr. Rajesh Naidu',
+    doctorName: 'Dr. Sai Kishor',
     specialty: 'ENT',
     appointmentDateTime: DateTime(2026, 8, 10, 16, 0),
     status: AppointmentStatus.completed,

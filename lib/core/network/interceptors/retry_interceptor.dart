@@ -53,11 +53,21 @@ class RefreshInterceptor extends QueuedInterceptor {
     final response = await dio.post(
       ApiConstants.refreshToken,
       data: {"refreshToken": refreshToken},
+      options: Options(extra: {"skipAuth": true, "skipRefresh": true}),
     );
 
-    final accessToken = response.data["accessToken"];
+    final data = response.data["data"];
 
-    final newRefreshToken = response.data["refreshToken"];
+    if (data == null) {
+      return null;
+    }
+
+    final accessToken = data["accessToken"];
+    final newRefreshToken = data["refreshToken"];
+
+    if (accessToken == null || newRefreshToken == null) {
+      return null;
+    }
 
     await TokenManager.saveTokens(
       accessToken: accessToken,

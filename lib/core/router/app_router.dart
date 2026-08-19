@@ -61,6 +61,14 @@ class AppRouter {
           path: AppRoutes.patientAppointment,
           builder: (context, state) => const PatientShell(initialIndex: 1),
         ),
+        GoRoute(
+          path: AppRoutes.patientRecord,
+          builder: (context, state) => const PatientShell(initialIndex: 2),
+        ),
+        GoRoute(
+          path: AppRoutes.patientProfile,
+          builder: (context, state) => const PatientShell(initialIndex: 3),
+        ),
       ],
     );
   }
