@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/widgets/status_badge.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// ---------------------------------------------------------------------
 /// AppointmentStatus enum -> drives StatusBadge colors/label
 /// ---------------------------------------------------------------------
-enum AppointmentStatus {
-  confirmed,
-  pending,
-  cancelled,
-  completed,
-}
+enum AppointmentStatus { pending, confirmed, completed, cancelled, noShow }
 
 extension AppointmentStatusX on AppointmentStatus {
   String get label {
@@ -25,6 +21,28 @@ extension AppointmentStatusX on AppointmentStatus {
 
       case AppointmentStatus.completed:
         return 'Completed';
+
+      case AppointmentStatus.noShow:
+        return 'No Show';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case AppointmentStatus.confirmed:
+        return LucideIcons.circleCheck;
+
+      case AppointmentStatus.pending:
+        return LucideIcons.clock;
+
+      case AppointmentStatus.cancelled:
+        return LucideIcons.circleX;
+
+      case AppointmentStatus.completed:
+        return LucideIcons.circleCheck;
+
+      case AppointmentStatus.noShow:
+        return LucideIcons.circleAlert;
     }
   }
 
@@ -41,6 +59,9 @@ extension AppointmentStatusX on AppointmentStatus {
 
       case AppointmentStatus.completed:
         return const Color(0xFFEDEDED);
+
+      case AppointmentStatus.noShow:
+        return const Color(0xFFEDEDED);
     }
   }
 
@@ -56,6 +77,9 @@ extension AppointmentStatusX on AppointmentStatus {
         return const Color(0xFFD93025);
 
       case AppointmentStatus.completed:
+        return const Color(0xFF6B6B6B);
+
+      case AppointmentStatus.noShow:
         return const Color(0xFF6B6B6B);
     }
   }
@@ -100,8 +124,7 @@ class AppointmentCard extends StatelessWidget {
       child: Column(
         children: [
           Padding(
-            
-            padding: const EdgeInsets.only(top:16, left: 8, right: 8),
+            padding: const EdgeInsets.only(top: 16, left: 8, right: 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -122,7 +145,7 @@ class AppointmentCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
-            
+
                     // Name + subtitle
                     Expanded(
                       child: Column(
@@ -147,7 +170,7 @@ class AppointmentCard extends StatelessWidget {
                         ],
                       ),
                     ),
-            
+
                     // Status badge (imported from status_badge.dart)
                     StatusBadge(
                       status: status.label,
@@ -157,9 +180,9 @@ class AppointmentCard extends StatelessWidget {
                     ),
                   ],
                 ),
-            
+
                 const SizedBox(height: 14),
-            
+
                 // Date & time row
                 Row(
                   children: [
@@ -192,7 +215,7 @@ class AppointmentCard extends StatelessWidget {
                     ),
                   ],
                 ),
-            
+
                 const SizedBox(height: 12),
               ],
             ),
