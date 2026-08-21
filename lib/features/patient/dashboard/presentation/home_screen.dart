@@ -11,6 +11,7 @@ import 'package:frontend/core/widgets/status_badge.dart';
 import 'package:frontend/features/patient/appointments/widgets/appointment_card.dart';
 import 'package:frontend/features/patient/dashboard/data/models/appointment_response.dart';
 import 'package:frontend/features/patient/dashboard/presentation/providers/appointment_provider.dart';
+import 'package:frontend/features/patient/dashboard/presentation/providers/lab_reports_provider.dart';
 import 'package:frontend/features/patient/dashboard/presentation/providers/prescription_provider.dart';
 import 'package:frontend/features/patient/dashboard/widgets/custom_app_bar.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
@@ -63,12 +64,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         },
       );
     });
+
+    ref.listenManual(labReportsProvider, (previous, next) {
+      next.whenOrNull(
+        error: (error, _) {
+          final message = error is ApiException
+              ? error.message
+              : 'Something went wrong';
+
+          AppSnackBar.error(context, message);
+        },
+      );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final appointmentsAsync = ref.watch(patientAppointmentsProvider);
     final prescriptionsAsync = ref.watch(prescriptionProvider);
+    final labReportsAsync = ref.watch(labReportsProvider);
 
     final upcomingAppointments = appointmentsAsync.whenData((list) {
       final upcoming = list
@@ -82,6 +96,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       upcoming.sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
 
       return upcoming;
+    });
+
+    final labReportsList = labReportsAsync.whenData((list) {
+      return list;
     });
 
     final prescriptionsList = prescriptionsAsync.whenData((list) {
@@ -161,11 +179,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   DashboardOutlinedCard(
                     color: Colors.green.shade100,
                     icon: LucideIcons.clipboard600,
-                    count: Text(
-                      "7",
-                      style: Theme.of(
-                        context,
-                      ).textTheme.displayMedium?.copyWith(fontSize: 30),
+                    count: labReportsList.when(
+                      data: (list) => Text(
+                        list.length.toString(),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.displayMedium?.copyWith(fontSize: 30),
+                      ),
+                      loading: () => const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2.5),
+                      ),
+                      error: (_, _) => Text(
+                        '0',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.displayMedium?.copyWith(fontSize: 30),
+                      ),
                     ),
                     text: "Reports",
                   ),
