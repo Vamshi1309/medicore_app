@@ -3,25 +3,27 @@ import 'package:frontend/core/network/api_client.dart';
 import 'package:frontend/core/network/api_constants.dart';
 import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/core/network/api_response.dart';
-import 'package:frontend/features/patient/dashboard/data/models/appointment_response.dart';
+import 'package:frontend/features/patient/dashboard/data/models/prescription_response.dart';
 
-class AppointmentRepository {
+class PrescriptionRepository {
   final ApiClient apiClient;
 
-  const AppointmentRepository({required this.apiClient});
+  const PrescriptionRepository({required this.apiClient});
 
-  Future<ApiResponse<List<AppointmentResponse>>> getPatientAppointments(
+  Future<ApiResponse<List<PrescriptionResponse>>> getPrescriptionsByPatientId(
     String patientId,
   ) async {
     try {
       final response = await apiClient.get(
-        ApiConstants.getAppointmentsByPatientId(patientId),
+        ApiConstants.getPrescriptionsByPatientId(patientId),
       );
 
       return ApiResponse.fromJson(
         response.data,
         (data) => (data as List)
-            .map((e) => AppointmentResponse.fromJson(e as Map<String, dynamic>))
+            .map(
+              (e) => PrescriptionResponse.fromJson(e as Map<String, dynamic>),
+            )
             .toList(),
       );
     } on DioException catch (e) {

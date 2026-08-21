@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
 import 'package:frontend/features/patient/dashboard/data/models/appointment_response.dart';
 import 'package:frontend/features/patient/dashboard/data/repos/appointment_repository.dart';
@@ -18,7 +19,7 @@ class PatientAppointmentNotifier
     );
 
     if (!response.success || response.data == null) {
-      throw Exception(response.message);
+      throw ApiException(message: response.message);
     }
 
     return response.data!;

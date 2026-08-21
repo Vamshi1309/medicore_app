@@ -3,7 +3,10 @@ import 'package:frontend/core/network/api_exception.dart';
 
 class ErrorInterceptor extends Interceptor {
   @override
-  void onError(DioException err, ErrorInterceptorHandler handler) {
+  void onError(
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) {
     ApiException exception;
 
     switch (err.type) {
@@ -13,21 +16,22 @@ class ErrorInterceptor extends Interceptor {
         exception = ApiException(
           message: "Connection timeout. Please try again.",
         );
-
         break;
 
       case DioExceptionType.connectionError:
-        exception = ApiException(message: "No internet connection.");
-
+        exception = ApiException(
+          message: "No internet connection.",
+        );
         break;
 
       case DioExceptionType.badResponse:
         exception = _handleStatusCode(err.response);
-
         break;
 
       default:
-        exception = ApiException(message: "Something went wrong.");
+        exception = ApiException(
+          message: "Something went wrong.",
+        );
     }
 
     handler.reject(
@@ -41,27 +45,37 @@ class ErrorInterceptor extends Interceptor {
   }
 
   ApiException _handleStatusCode(Response? response) {
-    switch (response?.statusCode) {
+    final statusCode = response?.statusCode;
+
+    final message = response?.data is Map<String, dynamic>
+        ? response?.data['message']?.toString()
+        : null;
+
+    return ApiException(
+      message: message ?? _defaultMessage(statusCode),
+      statusCode: statusCode,
+    );
+  }
+
+  String _defaultMessage(int? statusCode) {
+    switch (statusCode) {
       case 400:
-        return ApiException(message: "Invalid request", statusCode: 400);
+        return "Invalid request";
 
       case 401:
-        return ApiException(message: "Unauthorized", statusCode: 401);
+        return "Unauthorized";
 
       case 403:
-        return ApiException(message: "Access denied", statusCode: 403);
+        return "Access denied";
 
       case 404:
-        return ApiException(message: "Data not found", statusCode: 404);
+        return "Data not found";
 
       case 500:
-        return ApiException(message: "Server error", statusCode: 500);
+        return "Server error";
 
       default:
-        return ApiException(
-          message: "Unexpected error",
-          statusCode: response?.statusCode,
-        );
+        return "Unexpected error";
     }
   }
 }

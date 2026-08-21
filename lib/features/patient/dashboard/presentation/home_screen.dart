@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/core/network/api_exception.dart';
 // bottom nav moved to PatientShell
 import 'package:frontend/core/widgets/app_snackbar.dart';
 import 'package:frontend/core/widgets/empty_state.dart';
@@ -10,6 +11,7 @@ import 'package:frontend/core/widgets/status_badge.dart';
 import 'package:frontend/features/patient/appointments/widgets/appointment_card.dart';
 import 'package:frontend/features/patient/dashboard/data/models/appointment_response.dart';
 import 'package:frontend/features/patient/dashboard/presentation/providers/appointment_provider.dart';
+import 'package:frontend/features/patient/dashboard/presentation/providers/prescription_provider.dart';
 import 'package:frontend/features/patient/dashboard/widgets/custom_app_bar.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
 import 'package:frontend/features/patient/dashboard/widgets/dashboard_card.dart';
@@ -25,7 +27,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
-  initState() {
+  void initState() {
     super.initState();
 
     ref.listenManual(authProvider, (prev, next) {
@@ -37,11 +39,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         AppSnackBar.success(context, next.message!);
       }
     });
+
+    ref.listenManual(patientAppointmentsProvider, (previous, next) {
+      next.whenOrNull(
+        error: (error, _) {
+          final message = error is ApiException
+              ? error.message
+              : 'Something went wrong';
+
+          AppSnackBar.error(context, message);
+        },
+      );
+    });
+
+    ref.listenManual(prescriptionProvider, (previous, next) {
+      next.whenOrNull(
+        error: (error, _) {
+          final message = error is ApiException
+              ? error.message
+              : 'Something went wrong';
+
+          AppSnackBar.error(context, message);
+        },
+      );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final appointmentsAsync = ref.watch(patientAppointmentsProvider);
+    final prescriptionsAsync = ref.watch(prescriptionProvider);
 
     final upcomingAppointments = appointmentsAsync.whenData((list) {
       final upcoming = list
@@ -57,10 +84,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       return upcoming;
     });
 
+    final prescriptionsList = prescriptionsAsync.whenData((list) {
+      return list;
+    });
+
     final nextAppointment = upcomingAppointments.when(
       data: (list) => list.isNotEmpty ? list.first : null,
       loading: () => null,
-      error: (_, __) => null,
+      error: (_, _) => null,
     );
 
     return Scaffold(
@@ -83,22 +114,59 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     color: Colors.blue.shade100,
                     icon: LucideIcons.calendarCheck600Dir,
                     count: upcomingAppointments.when(
-                      data: (list) => list.length.toString(),
-                      loading: () => '...',
-                      error: (_, __) => '0',
+                      data: (list) => Text(
+                        list.length.toString(),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.displayMedium?.copyWith(fontSize: 30),
+                      ),
+                      loading: () => const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2.5),
+                      ),
+                      error: (_, _) => Text(
+                        '0',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.displayMedium?.copyWith(fontSize: 30),
+                      ),
                     ),
                     text: "Upcoming",
                   ),
                   DashboardOutlinedCard(
                     color: Colors.lightBlueAccent.shade200,
                     icon: LucideIcons.fileText600Dir,
-                    count: "3",
+                    count: prescriptionsList.when(
+                      data: (list) => Text(
+                        list.length.toString(),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.displayMedium?.copyWith(fontSize: 30),
+                      ),
+                      loading: () => const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2.5),
+                      ),
+                      error: (_, _) => Text(
+                        '0',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.displayMedium?.copyWith(fontSize: 30),
+                      ),
+                    ),
                     text: "Prescriptions",
                   ),
                   DashboardOutlinedCard(
                     color: Colors.green.shade100,
                     icon: LucideIcons.clipboard600,
-                    count: "7",
+                    count: Text(
+                      "7",
+                      style: Theme.of(
+                        context,
+                      ).textTheme.displayMedium?.copyWith(fontSize: 30),
+                    ),
                     text: "Reports",
                   ),
                 ],
@@ -136,8 +204,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               upcomingAppointments.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
 
-                error: (error, stack) =>
-                    const Text('Unable to load appointments'),
+                error: (_, _) => const SizedBox.shrink(),
 
                 data: (appointments) {
                   if (appointments.isEmpty) {
@@ -238,17 +305,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget displayDashboardCard(AppointmentResponse? nextAppointment) {
     if (nextAppointment == null) {
-      return EmptyState(
-        icon: LucideIcons.fileX,
-        title: 'No next Appointments',
-        subtitle: 'book an appointment to show next appointment',
-      );
+      return _buildNoNextAppointmentCard();
     }
 
     return DashboardCard(
       role: ref.read(authProvider).user?.role.name ?? "No user",
       color: Colors.blue.shade700,
-      buttonText: 'view',
+      buttonText: 'View',
       textFontColor: Colors.blue.shade700,
       textBgColor: Colors.white,
       onPressed: () {},
@@ -259,14 +322,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             context,
           ).textTheme.titleSmall?.copyWith(color: Colors.white70),
         ),
+
         const SizedBox(height: 5),
+
         Text(
           nextAppointment.doctorName,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(color: Colors.white),
         ),
+
         const SizedBox(height: 5),
+
         Row(
           children: [
             const Icon(
@@ -274,25 +341,97 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               color: Colors.white,
               size: 16,
             ),
+
             const SizedBox(width: 5),
+
             Text(
               nextAppointment.scheduledAt.toIso8601String().split('T')[0],
-              overflow: TextOverflow.ellipsis,
               style: Theme.of(
                 context,
               ).textTheme.titleSmall?.copyWith(color: Colors.white70),
             ),
-            const SizedBox(width: 5),
-            Text(
-              nextAppointment.doctorSpecialization ?? "General",
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(
-                context,
-              ).textTheme.titleSmall?.copyWith(color: Colors.white70),
+
+            const SizedBox(width: 8),
+
+            Expanded(
+              child: Text(
+                nextAppointment.doctorSpecialization ?? "General",
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(color: Colors.white70),
+              ),
             ),
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildNoNextAppointmentCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade700,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade200,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(
+              LucideIcons.calendarX,
+              size: 28,
+              color: Colors.blue.shade700,
+            ),
+          ),
+
+          const SizedBox(width: 16),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'No next appointment',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+
+                const SizedBox(height: 4),
+
+                Text(
+                  'Book an appointment to get started',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade200),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(width: 12),
+
+          IconButton(
+            onPressed: () {
+              // Navigate to booking screen
+            },
+            style: IconButton.styleFrom(
+              foregroundColor: Colors.blue.shade700,
+              backgroundColor: Colors.white,
+            ),
+            icon: const Icon(LucideIcons.arrowRight, size: 18),
+          ),
+        ],
+      ),
     );
   }
 }

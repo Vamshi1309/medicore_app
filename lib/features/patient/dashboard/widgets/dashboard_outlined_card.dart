@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class DashboardOutlinedCard extends ConsumerWidget {
   final Color color;
   final IconData icon;
-  final String count;
+  final Widget count;
   final String text;
 
   const DashboardOutlinedCard({
@@ -38,12 +38,7 @@ class DashboardOutlinedCard extends ConsumerWidget {
             ),
             child: Icon(icon, size: 20, color: Colors.black),
           ),
-          Text(
-            count,
-            style: Theme.of(
-              context,
-            ).textTheme.displayMedium?.copyWith(fontSize: 30),
-          ),
+          count,
           Text(
             text,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(

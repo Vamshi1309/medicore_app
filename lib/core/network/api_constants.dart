@@ -2,7 +2,7 @@ class ApiConstants {
   ApiConstants._();
 
   //baseUrl endpoint
-  static const String baseUrl = "http://192.168.1.2:8080/api";
+  static const String baseUrl = "http://localhost:8080/api";
 
   //auth endpoints
   static const String patientLogin = "/auth/login";
@@ -15,8 +15,12 @@ class ApiConstants {
   static const String verifyLoginOtp = "/auth/login/verify-otp";
   static const String me = "/auth/me";
 
-  //patient endpoints
+  //appointment endpoints
   static String getAppointmentsByPatientId(String patientId) =>
       "/appointments/patient/$patientId";
+
+  //prescriptions endpoints
+  static String getPrescriptionsByPatientId(String patiendId) =>
+      "/prescriptions/patient/$patiendId";
   
 }

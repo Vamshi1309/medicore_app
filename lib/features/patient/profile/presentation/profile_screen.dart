@@ -64,7 +64,7 @@ class ProfileScreen extends StatelessWidget {
                       text: 'Edit Profile',
                       icon: LucideIcons.pencil600,
                       onPressed: () {
-                        // TODO: navigate to edit profile screen
+                        
                       },
                     ),
                     const SizedBox(height: AppSizes.sm),
@@ -76,7 +76,7 @@ class ProfileScreen extends StatelessWidget {
                       width: double.infinity,
                       child: OutlinedButton.icon(
                         onPressed: () {
-                          // TODO: handle logout
+                          
                         },
                         icon: const Icon(LucideIcons.logOut600, color: Colors.red),
                         label: const Text(

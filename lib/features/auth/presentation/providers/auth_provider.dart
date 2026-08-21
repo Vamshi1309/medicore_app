@@ -1,5 +1,5 @@
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/core/storage/token_manager.dart';
 import 'package:frontend/features/auth/data/models/request/patient_login_request.dart';
 import 'package:frontend/features/auth/data/models/request/send_otp_request.dart';
@@ -26,7 +26,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
       final response = await repository.patientLogin(req);
 
-      if (!response.success) {
+      if (!response.success || response.data == null) {
         state = state.copyWith(isLoading: false, error: response.message);
         return;
       }
@@ -43,12 +43,10 @@ class AuthNotifier extends Notifier<AuthState> {
         isInitialized: true,
         message: response.message,
       );
-    } on DioException catch (e) {
-      final message = e.response?.data?['message'] ?? "Something went wrong";
-
-      state = state.copyWith(isLoading: false, error: message);
+    } on ApiException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: 'Something went wrong');
     }
   }
 
@@ -58,7 +56,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
       final response = await repository.staffLogin(req);
 
-      if (!response.success) {
+      if (!response.success || response.data == null) {
         state = state.copyWith(isLoading: false, error: response.message);
         return;
       }
@@ -75,12 +73,10 @@ class AuthNotifier extends Notifier<AuthState> {
         isInitialized: true,
         message: response.message,
       );
-    } on DioException catch (e) {
-      final message = e.response?.data?['message'] ?? "Something went wrong";
-
-      state = state.copyWith(isLoading: false, error: message);
+    } on ApiException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: 'Something went wrong');
     }
   }
 
@@ -90,19 +86,18 @@ class AuthNotifier extends Notifier<AuthState> {
 
       await repository.logout();
 
+      await TokenManager.clearTokens();
+
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: false,
-        message: "Logged out successfully",
+        user: null,
+        message: 'Logged out successfully',
       );
-
-      await TokenManager.clearTokens();
-    } on DioException catch (e) {
-      final message = e.response?.data?['message'] ?? "Something went wrong";
-
-      state = state.copyWith(isLoading: false, error: message);
+    } on ApiException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: 'Something went wrong');
     }
   }
 
@@ -118,6 +113,10 @@ class AuthNotifier extends Notifier<AuthState> {
       await getMe();
 
       state = state.copyWith(isInitialized: true);
+    } on ApiException {
+      await TokenManager.clearTokens();
+
+      state = state.copyWith(isAuthenticated: false, isInitialized: true);
     } catch (e) {
       await TokenManager.clearTokens();
 
@@ -133,7 +132,7 @@ class AuthNotifier extends Notifier<AuthState> {
         SendOtpRequest(phoneNumber: phoneNumber),
       );
 
-      if (!response.success) {
+      if (!response.success || response.data == null) {
         state = state.copyWith(isLoading: false, error: response.message);
         return false;
       }
@@ -141,8 +140,13 @@ class AuthNotifier extends Notifier<AuthState> {
       state = state.copyWith(isLoading: false, message: response.message);
 
       return true;
+    } on ApiException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
+
+      return false;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: 'Something went wrong');
+
       return false;
     }
   }
@@ -155,7 +159,7 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       final response = await repository.verifyRegistrationOtp(request);
 
-      if (!response.success) {
+      if (!response.success || response.data == null) {
         state = state.copyWith(isLoading: false, error: response.message);
         return false;
       }
@@ -163,8 +167,13 @@ class AuthNotifier extends Notifier<AuthState> {
       state = state.copyWith(isLoading: false, message: response.message);
 
       return true;
+    } on ApiException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
+
+      return false;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: 'Something went wrong');
+
       return false;
     }
   }
@@ -177,7 +186,7 @@ class AuthNotifier extends Notifier<AuthState> {
         SendOtpRequest(phoneNumber: phoneNumber),
       );
 
-      if (!response.success) {
+      if (!response.success || response.data == null) {
         state = state.copyWith(isLoading: false, error: response.message);
         return false;
       }
@@ -185,8 +194,13 @@ class AuthNotifier extends Notifier<AuthState> {
       state = state.copyWith(isLoading: false, message: response.message);
 
       return true;
+    } on ApiException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
+
+      return false;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: 'Something went wrong');
+
       return false;
     }
   }
@@ -197,7 +211,7 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       final response = await repository.verifyLoginOtp(request);
 
-      if (!response.success) {
+      if (!response.success || response.data == null) {
         state = state.copyWith(isLoading: false, error: response.message);
         return false;
       }
@@ -218,8 +232,13 @@ class AuthNotifier extends Notifier<AuthState> {
       );
 
       return true;
+    } on ApiException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
+
+      return false;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: 'Something went wrong');
+
       return false;
     }
   }
@@ -228,84 +247,13 @@ class AuthNotifier extends Notifier<AuthState> {
     final response = await repository.getMe();
 
     if (!response.success || response.data == null) {
-      state = state.copyWith(isAuthenticated: false, error: response.message);
-      return;
+      throw ApiException(message: response.message);
     }
 
     final user = response.data!.toEntity();
 
     state = state.copyWith(isAuthenticated: true, user: user);
   }
-
-  // Future<void> sendFirebaseOtp(String phoneNumber) async {
-  //   try {
-  //     state = state.copyWith(isLoading: true, error: null, message: null);
-
-  //     final verificationId = await firebaseAuthService.sendOtp(
-  //       phoneNumber: phoneNumber,
-  //     );
-
-  //     state = state.copyWith(
-  //       isLoading: false,
-  //       verificationId: verificationId,
-  //       message: "OTP sent successfully",
-  //     );
-  //   } catch (e) {
-  //     state = state.copyWith(isLoading: false, error: e.toString());
-  //   }
-  // }
-
-  // Future<bool> verifyFirebaseOtp(String otp) async {
-  //   try {
-  //     if (state.verificationId == null) {
-  //       state = state.copyWith(
-  //         error: "OTP session expired. Please request a new OTP.",
-  //       );
-  //       return false;
-  //     }
-
-  //     state = state.copyWith(isLoading: true, error: null, message: null);
-
-  //     await firebaseAuthService.verifyOtp(
-  //       verificationId: state.verificationId!,
-  //       otp: otp,
-  //     );
-
-  //     final idToken = await firebaseAuthService.getIdToken();
-
-  //     if (idToken == null) {
-  //       state = state.copyWith(
-  //         isLoading: false,
-  //         error: "Unable to get Firebase authentication token.",
-  //       );
-
-  //       return false;
-  //     }
-
-  //     debugPrint("Firebase ID token obtained successfully");
-
-  //     state = state.copyWith(
-  //       isLoading: false,
-  //       message: "OTP verified successfully",
-  //     );
-
-  //     return true;
-  //   } catch (e) {
-  //     state = state.copyWith(isLoading: false, error: e.toString());
-
-  //     return false;
-  //   }
-  // }
-
-  // Future<String?> getFirebaseIdToken() async {
-  //   try {
-  //     return await firebaseAuthService.getIdToken();
-  //   } catch (e) {
-  //     state = state.copyWith(error: e.toString());
-
-  //     return null;
-  //   }
-  // }
 }
 
 final authProvider = NotifierProvider<AuthNotifier, AuthState>(
