@@ -113,9 +113,39 @@ class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
                 ],
 
                 error: (_, __) => const [
-                  StatCard(count: Text("0"), heading: "upcoming"),
-                  StatCard(count: Text("0"), heading: "previous"),
-                  StatCard(count: Text("0"), heading: "cancelled"),
+                  StatCard(
+                    count: Text(
+                      "0",
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    heading: "upcoming",
+                  ),
+                  StatCard(
+                    count: Text(
+                      "0",
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    heading: "previous",
+                  ),
+                  StatCard(
+                    count: Text(
+                      "0",
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    heading: "cancelled",
+                  ),
                 ],
 
                 data: (appointments) {
@@ -192,14 +222,17 @@ class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
                     const Center(child: Text("Failed to load appointments")),
 
                 data: (appointments) {
-                  final filteredAppointments = getFilteredAppointments(appointments);
+                  final filteredAppointments = getFilteredAppointments(
+                    appointments,
+                  );
 
                   if (appointments.isEmpty || filteredAppointments.isEmpty) {
                     final emptyStateTitle = switch (selectedFilter) {
                       AppointmentFilter.all => 'No Appointments',
                       AppointmentFilter.upcoming => 'No Upcoming Appointments',
                       AppointmentFilter.previous => 'No Previous Appointments',
-                      AppointmentFilter.cancelled => 'No Cancelled Appointments',
+                      AppointmentFilter.cancelled =>
+                        'No Cancelled Appointments',
                     };
 
                     final emptyStateSubtitle = switch (selectedFilter) {

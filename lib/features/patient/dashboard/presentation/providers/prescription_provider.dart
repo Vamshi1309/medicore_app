@@ -24,6 +24,10 @@ class PrescriptionNotifier extends AsyncNotifier<List<PrescriptionResponse>> {
 
     return response.data!;
   }
+
+  Future<List<int>> downloadPrescriptionPdf(String prescriptionId) async {
+    return prescriptionRepository.downloadPrescriptionPdf(prescriptionId);
+  }
 }
 
 final prescriptionProvider =

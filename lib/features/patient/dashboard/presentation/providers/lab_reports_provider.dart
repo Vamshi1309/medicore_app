@@ -24,6 +24,16 @@ class LabReportsNotifier extends AsyncNotifier<List<LabReportResponse>> {
 
     return response.data!;
   }
+
+  Future<String> getDownloadUrl(String reportId) async {
+    final response = await labReportsRepository.getDownloadUrl(reportId);
+
+    if (!response.success || response.data == null) {
+      throw ApiException(message: response.message);
+    }
+
+    return response.data!;
+  }
 }
 
 final labReportsProvider =

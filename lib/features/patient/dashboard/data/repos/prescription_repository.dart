@@ -34,4 +34,29 @@ class PrescriptionRepository {
       throw ApiException(message: "Something went wrong");
     }
   }
+
+  Future<List<int>> downloadPrescriptionPdf(String prescriptionId) async {
+    try {
+      final response = await apiClient.get<List<int>>(
+        ApiConstants.downloadPrescription(prescriptionId),
+        options: Options(responseType: ResponseType.bytes),
+      );
+
+      return response.data!;
+    } on DioException catch (e) {
+      // If backend returned an ApiResponse with a message
+      if (e.response?.data != null) {
+        final data = e.response!.data;
+
+        throw ApiException(message: data['message'] ?? "Something went wrong");
+      }
+
+      // Already converted elsewhere
+      if (e.error is ApiException) {
+        throw e.error as ApiException;
+      }
+
+      throw ApiException(message: "Something went wrong");
+    }
+  }
 }

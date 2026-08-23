@@ -15,6 +15,9 @@ class ApiConstants {
   static const String verifyLoginOtp = "/auth/login/verify-otp";
   static const String me = "/auth/me";
 
+  //patient endpoints
+  static String getPatientProfile = "/patient/profile";
+
   //appointment endpoints
   static String getAppointmentsByPatientId(String patientId) =>
       "/appointments/patient/$patientId";
@@ -22,13 +25,13 @@ class ApiConstants {
   //prescriptions endpoints
   static String getPrescriptionsByPatientId(String patiendId) =>
       "/prescriptions/patient/$patiendId";
-  static String downloadPrescriptionPdf(String prescriptionId) =>
+  static String downloadPrescription(String prescriptionId) =>
       "/prescriptions/$prescriptionId/download";
 
   //lab-reports endpoints
   static String getLabReportsByPatientId(String patientId) =>
       "/lab-reports/patient/$patientId";
-  static String downloadLabReports(String reportId) =>
+  static String getLabReportDownloadUrl(String reportId) =>
       "/lab-reports/$reportId/download-url";
 
   //Pharmacy endpoints

@@ -1,57 +1,98 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/core/network/api_exception.dart';
+import 'package:frontend/core/widgets/app_snackbar.dart';
+import 'package:frontend/core/widgets/empty_state.dart';
+import 'package:frontend/features/patient/dashboard/presentation/providers/lab_reports_provider.dart';
 import 'package:frontend/features/patient/records/widgets/record_lab_report_card.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-class LabReportsScreen extends StatelessWidget {
+class LabReportsScreen extends ConsumerStatefulWidget {
   const LabReportsScreen({super.key});
 
   @override
+  ConsumerState<LabReportsScreen> createState() => _LabReportsScreenState();
+}
+
+class _LabReportsScreenState extends ConsumerState<LabReportsScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    ref.listenManual(labReportsProvider, (prev, next) {
+      next.whenOrNull(
+        error: (error, _) {
+          final message = error is ApiException
+              ? error.message
+              : "Something went wrong";
+
+          AppSnackBar.error(context, message);
+        },
+      );
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final labReports = [
-      {
-        'reportName': 'X-Ray',
-        'doctorName': 'Dr. Laxmi Dasari',
-        'date': 'Dec 15, 2024',
-        'notes': 'No significant abnormality detected.',
-      },
-      {
-        'reportName': 'MRI Brain',
-        'doctorName': 'Dr. Arjun Mehta',
-        'date': 'Nov 28, 2024',
-        'notes': 'MRI findings are within normal limits.',
-      },
-      {
-        'reportName': 'Blood Test',
-        'doctorName': 'Dr. Priya Sharma',
-        'date': 'Nov 10, 2024',
-        'notes': 'Blood parameters are within the normal range.',
-      },
-    ];
-    return ListView(
-      padding: const EdgeInsets.only(top: 12),
-      children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-            '3 reports available',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF6F7785),
-            ),
-          ),
+    final labReportsAsync = ref.watch(labReportsProvider);
+
+    return labReportsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+
+      error: (error, _) => Center(
+        child: Text(
+          error is ApiException ? error.message : "Something went wrong",
         ),
+      ),
 
-        const SizedBox(height: 8),
+      data: (labReports) {
+        if (labReports.isEmpty) {
+          return const Center(
+            child: EmptyState(
+              icon: LucideIcons.fileX,
+              title: "No lab reports available",
+              subtitle: "Your lab reports will appear here.",
+            ),
+          );
+        }
 
-        for (final item in labReports)
-          RecordlabReportCard(
-            reportName: item['reportName'] as String,
-            doctorName: item['doctorName'] as String,
-            date: item['date'] as String,
-            notes: item['notes'] as String,
-            onDownload: () {},
-          ),
-      ],
+        return ListView(
+          padding: const EdgeInsets.only(top: 12),
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                '${labReports.length} reports available',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF6F7785),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            ...labReports.map(
+              (item) => RecordlabReportCard(
+                reportName: item.reportType,
+                doctorName: item.radiologistName,
+                date: formatDate(item.createdAt),
+                notes: item.findings,
+                onDownload: () {
+                  //will added redirect link
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
+  }
+
+  String formatDate(DateTime dateTime) {
+    return '${dateTime.day.toString().padLeft(2, '0')}/'
+        '${dateTime.month.toString().padLeft(2, '0')}/'
+        '${dateTime.year}';
   }
 }
