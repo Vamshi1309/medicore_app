@@ -113,7 +113,7 @@ class AppHeader extends StatelessWidget {
 }
 
 class StatCard extends StatelessWidget {
-  final String count;
+  final Widget count;
   final String heading;
 
   const StatCard({
@@ -126,10 +126,10 @@ class StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 72,
-      height: 60,
+      height: 52,
       padding: const EdgeInsets.symmetric(
         horizontal: 8,
-        vertical: 6,
+        vertical: 4,
       ),
       decoration: BoxDecoration(
         color: Colors.white.withAlpha(60),
@@ -138,15 +138,9 @@ class StatCard extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            count,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          count,
 
-          const SizedBox(height: 3),
+          const SizedBox(height: 2),
 
           Text(
             heading,

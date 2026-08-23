@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/features/patient/profile/presentation/profile_screen.dart';
-import 'package:frontend/features/patient/records/presentation/records_screen.dart';
+import 'package:frontend/features/patient/records/presentation/screens/records_screen.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:frontend/features/patient/dashboard/presentation/home_screen.dart';
 import 'package:frontend/features/patient/appointments/presentation/appointment_screen.dart';

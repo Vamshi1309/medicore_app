@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/features/patient/appointments/mock%20data/appointment_model.dart';
+import 'package:frontend/core/network/api_exception.dart';
+import 'package:frontend/core/widgets/app_snackbar.dart';
+import 'package:frontend/core/widgets/empty_state.dart';
 import 'package:frontend/features/patient/appointments/widgets/appointment_card.dart';
+import 'package:frontend/features/patient/dashboard/data/models/appointment_response.dart';
+import 'package:frontend/features/patient/dashboard/presentation/providers/appointment_provider.dart';
 import 'package:frontend/features/patient/widgets/app_header.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 enum AppointmentFilter { all, upcoming, previous, cancelled }
 
@@ -16,45 +21,148 @@ class AppointmentScreen extends ConsumerStatefulWidget {
 class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
   AppointmentFilter selectedFilter = AppointmentFilter.all;
 
-  List<AppointmentModel> get upcomingAppointments {
-    final now = DateTime.now();
+  @override
+  void initState() {
+    super.initState();
 
+    ref.listenManual(patientAppointmentsProvider, (previous, next) {
+      next.whenOrNull(
+        error: (error, _) {
+          final message = error is ApiException
+              ? error.message
+              : "Something went wrong";
+
+          AppSnackBar.error(context, message);
+        },
+      );
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // FILTER HELPERS
+  // ---------------------------------------------------------------------------
+
+  List<AppointmentResponse> getUpcomingAppointments(
+    List<AppointmentResponse> appointments,
+  ) {
     return appointments.where((appointment) {
-      return appointment.appointmentDateTime.isAfter(now) &&
-          appointment.status != AppointmentStatus.cancelled;
+      return appointment.status == AppointmentStatus.pending ||
+          appointment.status == AppointmentStatus.confirmed;
     }).toList();
   }
 
-  List<AppointmentModel> get previousAppointments {
-    final now = DateTime.now();
-
+  List<AppointmentResponse> getPreviousAppointments(
+    List<AppointmentResponse> appointments,
+  ) {
     return appointments.where((appointment) {
-      return appointment.appointmentDateTime.isBefore(now) &&
-          appointment.status != AppointmentStatus.cancelled;
+      return appointment.status == AppointmentStatus.completed;
     }).toList();
   }
 
-  List<AppointmentModel> get cancelledAppointments {
+  List<AppointmentResponse> getCancelledAppointments(
+    List<AppointmentResponse> appointments,
+  ) {
     return appointments.where((appointment) {
-      return appointment.status == AppointmentStatus.cancelled;
+      return appointment.status == AppointmentStatus.cancelled ||
+          appointment.status == AppointmentStatus.noShow;
     }).toList();
   }
+
+  // ---------------------------------------------------------------------------
+  // BUILD
+  // ---------------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
+    final appointmentsAsync = ref.watch(patientAppointmentsProvider);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
       body: SafeArea(
         child: Column(
           children: [
+            // ========================= HEADER =========================
             AppHeader(
               title: "My Appointments",
-              statCards: [
-                StatCard(count: "4", heading: "upcoming"),
-                StatCard(count: "2", heading: "previous"),
-                StatCard(count: "1", heading: "cancelled"),
-              ],
+              statCards: appointmentsAsync.when(
+                loading: () => const [
+                  StatCard(
+                    count: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    heading: "upcoming",
+                  ),
+                  StatCard(
+                    count: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    heading: "previous",
+                  ),
+                  StatCard(
+                    count: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    heading: "cancelled",
+                  ),
+                ],
+
+                error: (_, __) => const [
+                  StatCard(count: Text("0"), heading: "upcoming"),
+                  StatCard(count: Text("0"), heading: "previous"),
+                  StatCard(count: Text("0"), heading: "cancelled"),
+                ],
+
+                data: (appointments) {
+                  final upcoming = getUpcomingAppointments(appointments);
+                  final previous = getPreviousAppointments(appointments);
+                  final cancelled = getCancelledAppointments(appointments);
+
+                  return [
+                    StatCard(
+                      count: Text(
+                        upcoming.length.toString(),
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      heading: "upcoming",
+                    ),
+                    StatCard(
+                      count: Text(
+                        previous.length.toString(),
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      heading: "previous",
+                    ),
+                    StatCard(
+                      count: Text(
+                        cancelled.length.toString(),
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      heading: "cancelled",
+                    ),
+                  ];
+                },
+              ),
             ),
+
+            // ========================= FILTER CHIPS =========================
             Container(
               width: double.infinity,
               color: const Color(0xFFF5F6F8),
@@ -63,32 +171,64 @@ class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _filterChip(label: 'All', filter: AppointmentFilter.all),
+                    _filterChip("All", AppointmentFilter.all),
                     const SizedBox(width: 8),
-                    _filterChip(
-                      label: 'Upcoming',
-                      filter: AppointmentFilter.upcoming,
-                    ),
+                    _filterChip("Upcoming", AppointmentFilter.upcoming),
                     const SizedBox(width: 8),
-                    _filterChip(
-                      label: 'Previous',
-                      filter: AppointmentFilter.previous,
-                    ),
+                    _filterChip("Previous", AppointmentFilter.previous),
                     const SizedBox(width: 8),
-                    _filterChip(
-                      label: 'Cancelled',
-                      filter: AppointmentFilter.cancelled,
-                    ),
+                    _filterChip("Cancelled", AppointmentFilter.cancelled),
                   ],
                 ),
               ),
             ),
+
+            // ========================= APPOINTMENTS =========================
             Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: buildSelectedContent(),
-                ),
+              child: appointmentsAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+
+                error: (_, __) =>
+                    const Center(child: Text("Failed to load appointments")),
+
+                data: (appointments) {
+                  final filteredAppointments = getFilteredAppointments(appointments);
+
+                  if (appointments.isEmpty || filteredAppointments.isEmpty) {
+                    final emptyStateTitle = switch (selectedFilter) {
+                      AppointmentFilter.all => 'No Appointments',
+                      AppointmentFilter.upcoming => 'No Upcoming Appointments',
+                      AppointmentFilter.previous => 'No Previous Appointments',
+                      AppointmentFilter.cancelled => 'No Cancelled Appointments',
+                    };
+
+                    final emptyStateSubtitle = switch (selectedFilter) {
+                      AppointmentFilter.all =>
+                        'You don’t have any appointments yet.',
+                      AppointmentFilter.upcoming =>
+                        'You have no upcoming appointments right now.',
+                      AppointmentFilter.previous =>
+                        'You have no previous appointments yet.',
+                      AppointmentFilter.cancelled =>
+                        'There are no cancelled appointments to show.',
+                    };
+
+                    return SizedBox.expand(
+                      child: Center(
+                        child: EmptyState(
+                          icon: LucideIcons.calendarX,
+                          title: emptyStateTitle,
+                          subtitle: emptyStateSubtitle,
+                        ),
+                      ),
+                    );
+                  }
+
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: buildSelectedContent(appointments),
+                  );
+                },
               ),
             ),
           ],
@@ -97,81 +237,96 @@ class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
     );
   }
 
-  Widget buildSelectedContent() {
+  List<AppointmentResponse> getFilteredAppointments(
+    List<AppointmentResponse> appointments,
+  ) {
+    switch (selectedFilter) {
+      case AppointmentFilter.all:
+        return appointments;
+      case AppointmentFilter.upcoming:
+        return getUpcomingAppointments(appointments);
+      case AppointmentFilter.previous:
+        return getPreviousAppointments(appointments);
+      case AppointmentFilter.cancelled:
+        return getCancelledAppointments(appointments);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // FILTERED CONTENT
+  // ---------------------------------------------------------------------------
+
+  Widget buildSelectedContent(List<AppointmentResponse> appointments) {
+    final upcoming = getUpcomingAppointments(appointments);
+    final previous = getPreviousAppointments(appointments);
+    final cancelled = getCancelledAppointments(appointments);
+
     switch (selectedFilter) {
       case AppointmentFilter.all:
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (upcomingAppointments.isNotEmpty) ...[
+            if (upcoming.isNotEmpty) ...[
               const Text(
-                'Upcoming',
+                "Upcoming",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 12),
-              buildAppointmentList(upcomingAppointments),
+              buildAppointmentList(upcoming),
             ],
 
-            if (previousAppointments.isNotEmpty) ...[
-              const SizedBox(height: 16),
+            if (previous.isNotEmpty) ...[
+              const SizedBox(height: 20),
               const Text(
-                'Previous',
+                "Previous",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 12),
-              buildAppointmentList(previousAppointments),
+              buildAppointmentList(previous),
             ],
 
-            if (cancelledAppointments.isNotEmpty) ...[
-              const SizedBox(height: 16),
+            if (cancelled.isNotEmpty) ...[
+              const SizedBox(height: 20),
               const Text(
-                'Cancelled',
+                "Cancelled",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 12),
-              buildAppointmentList(cancelledAppointments),
+              buildAppointmentList(cancelled),
             ],
           ],
         );
 
       case AppointmentFilter.upcoming:
-        return buildAppointmentList(upcomingAppointments);
+        return buildAppointmentList(upcoming);
 
       case AppointmentFilter.previous:
-        return buildAppointmentList(previousAppointments);
+        return buildAppointmentList(previous);
 
       case AppointmentFilter.cancelled:
-        return buildAppointmentList(cancelledAppointments);
+        return buildAppointmentList(cancelled);
     }
   }
 
-  Widget buildAppointmentList(List<AppointmentModel> appointmentList) {
-    if (appointmentList.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 40),
-        child: Center(
-          child: Text(
-            'No appointments found',
-            style: TextStyle(color: Colors.grey, fontSize: 14),
-          ),
-        ),
-      );
-    }
+  // ---------------------------------------------------------------------------
+  // APPOINTMENT LIST
+  // ---------------------------------------------------------------------------
 
+  Widget buildAppointmentList(List<AppointmentResponse> appointments) {
     return ListView.builder(
-      itemCount: appointmentList.length,
+      itemCount: appointments.length,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
-        final appointment = appointmentList[index];
+        final appointment = appointments[index];
 
         return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.only(bottom: 10),
           child: AppointmentCard(
             name: appointment.doctorName,
-            subtitle: appointment.specialty,
-            date: formatDate(appointment.appointmentDateTime),
-            time: formatTime(appointment.appointmentDateTime),
+            subtitle: appointment.doctorSpecialization ?? "",
+            date: formatDate(appointment.scheduledAt),
+            time: formatTime(appointment.scheduledAt),
             status: appointment.status,
           ),
         );
@@ -179,10 +334,11 @@ class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
     );
   }
 
-  Widget _filterChip({
-    required String label,
-    required AppointmentFilter filter,
-  }) {
+  // ---------------------------------------------------------------------------
+  // FILTER CHIP
+  // ---------------------------------------------------------------------------
+
+  Widget _filterChip(String label, AppointmentFilter filter) {
     final isSelected = selectedFilter == filter;
 
     return ChoiceChip(
@@ -208,6 +364,10 @@ class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
   }
 }
 
+// -----------------------------------------------------------------------------
+// FORMATTERS
+// -----------------------------------------------------------------------------
+
 String formatDate(DateTime dateTime) {
   return '${dateTime.day.toString().padLeft(2, '0')}/'
       '${dateTime.month.toString().padLeft(2, '0')}/'
@@ -222,71 +382,7 @@ String formatTime(DateTime dateTime) {
       : dateTime.hour;
 
   final minute = dateTime.minute.toString().padLeft(2, '0');
-
   final period = dateTime.hour >= 12 ? 'PM' : 'AM';
 
   return '$hour:$minute $period';
 }
-
-final List<AppointmentModel> appointments = [
-  AppointmentModel(
-    doctorName: 'Dr. Anil Reddy',
-    specialty: 'Cardiology',
-    appointmentDateTime: DateTime(2026, 8, 20, 10, 0),
-    status: AppointmentStatus.confirmed,
-  ),
-  AppointmentModel(
-    doctorName: 'Dr. Lakshmi Devi',
-    specialty: 'General Medicine',
-    appointmentDateTime: DateTime(2026, 8, 21, 11, 30),
-    status: AppointmentStatus.pending,
-  ),
-  AppointmentModel(
-    doctorName: 'Dr. Srinivas Rao',
-    specialty: 'Dermatology',
-    appointmentDateTime: DateTime(2026, 8, 22, 14, 0),
-    status: AppointmentStatus.confirmed,
-  ),
-  AppointmentModel(
-    doctorName: 'Dr. Kiran Kumar',
-    specialty: 'Orthopedics',
-    appointmentDateTime: DateTime(2026, 8, 18, 15, 30),
-    status: AppointmentStatus.cancelled,
-  ),
-  AppointmentModel(
-    doctorName: 'Dr. Priya Reddy',
-    specialty: 'Neurology',
-    appointmentDateTime: DateTime(2026, 8, 15, 9, 0),
-    status: AppointmentStatus.completed,
-  ),
-  AppointmentModel(
-    doctorName: 'Dr. Mahesh Babu',
-    specialty: 'Pediatrics',
-    appointmentDateTime: DateTime(2026, 8, 25, 13, 30),
-    status: AppointmentStatus.pending,
-  ),
-  AppointmentModel(
-    doctorName: 'Dr. Anusha Varma',
-    specialty: 'Gynecology',
-    appointmentDateTime: DateTime(2026, 8, 28, 10, 0),
-    status: AppointmentStatus.confirmed,
-  ),
-  AppointmentModel(
-    doctorName: 'Dr. Sai Kishor',
-    specialty: 'ENT',
-    appointmentDateTime: DateTime(2026, 8, 10, 16, 0),
-    status: AppointmentStatus.completed,
-  ),
-  AppointmentModel(
-    doctorName: 'Dr. Swathi Reddy',
-    specialty: 'Ophthalmology',
-    appointmentDateTime: DateTime(2026, 8, 30, 11, 0),
-    status: AppointmentStatus.confirmed,
-  ),
-  AppointmentModel(
-    doctorName: 'Dr. Venkatesh Goud',
-    specialty: 'Gastroenterology',
-    appointmentDateTime: DateTime(2026, 8, 12, 12, 30),
-    status: AppointmentStatus.completed,
-  ),
-];

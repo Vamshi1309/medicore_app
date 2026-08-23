@@ -22,8 +22,16 @@ class ApiConstants {
   //prescriptions endpoints
   static String getPrescriptionsByPatientId(String patiendId) =>
       "/prescriptions/patient/$patiendId";
+  static String downloadPrescriptionPdf(String prescriptionId) =>
+      "/prescriptions/$prescriptionId/download";
 
   //lab-reports endpoints
   static String getLabReportsByPatientId(String patientId) =>
       "/lab-reports/patient/$patientId";
+  static String downloadLabReports(String reportId) =>
+      "/lab-reports/$reportId/download-url";
+
+  //Pharmacy endpoints
+  static String getDispenseHistoryByPatientId(String patientId) =>
+      "/pharmacy/history/patient/$patientId";
 }
