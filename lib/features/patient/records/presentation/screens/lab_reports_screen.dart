@@ -6,6 +6,7 @@ import 'package:frontend/core/widgets/empty_state.dart';
 import 'package:frontend/features/patient/dashboard/presentation/providers/lab_reports_provider.dart';
 import 'package:frontend/features/patient/records/widgets/record_lab_report_card.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class LabReportsScreen extends ConsumerStatefulWidget {
   const LabReportsScreen({super.key});
@@ -79,9 +80,7 @@ class _LabReportsScreenState extends ConsumerState<LabReportsScreen> {
                 doctorName: item.radiologistName,
                 date: formatDate(item.createdAt),
                 notes: item.findings,
-                onDownload: () {
-                  //will added redirect link
-                },
+                onDownload: () => _openLabReport(item.reportId),
               ),
             ),
           ],
@@ -94,5 +93,32 @@ class _LabReportsScreenState extends ConsumerState<LabReportsScreen> {
     return '${dateTime.day.toString().padLeft(2, '0')}/'
         '${dateTime.month.toString().padLeft(2, '0')}/'
         '${dateTime.year}';
+  }
+
+  Future<void> _openLabReport(String reportId) async {
+    try {
+      final url = await ref
+          .read(labReportsProvider.notifier)
+          .getDownloadUrl(reportId);
+
+      final uri = Uri.parse(url);
+
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched && mounted) {
+        AppSnackBar.error(context, "Unable to open lab report");
+      }
+    } catch (error) {
+      if (!mounted) return;
+
+      final message = error is ApiException
+          ? error.message
+          : "Unable to open lab report";
+
+      AppSnackBar.error(context, message);
+    }
   }
 }

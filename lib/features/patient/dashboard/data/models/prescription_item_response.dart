@@ -1,12 +1,4 @@
-enum MedicineFrequency {
-  morning,
-  afternoon,
-  night,
-  morningNight,
-  morningAfternoon,
-  afternoonNight,
-  morningAfternoonNight,
-}
+import 'package:frontend/features/patient/dashboard/data/models/medicine_frequency.dart';
 
 class PrescriptionItemResponse {
   final String itemId;
@@ -25,14 +17,16 @@ class PrescriptionItemResponse {
     required this.instructions,
   });
 
-  factory PrescriptionItemResponse.fromJson(Map<String, dynamic> json) {
+  factory PrescriptionItemResponse.fromJson(
+    Map<String, dynamic> json,
+  ) {
     return PrescriptionItemResponse(
       itemId: json['itemId'] as String,
       medicineName: json['medicineName'] as String,
       dosage: json['dosage'] as String,
       durationInDays: json['durationInDays'] as int,
-      frequency: MedicineFrequency.values.firstWhere(
-        (frequency) => frequency.name == json['frequency'],
+      frequency: MedicineFrequencyExtension.fromApiValue(
+        json['frequency'] as String,
       ),
       instructions: json['instructions'] ?? '',
     );
@@ -44,7 +38,7 @@ class PrescriptionItemResponse {
       'medicineName': medicineName,
       'dosage': dosage,
       'durationInDays': durationInDays,
-      'frequency': frequency.name,
+      'frequency': frequency.apiValue,
       'instructions': instructions,
     };
   }
