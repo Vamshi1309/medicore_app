@@ -2,6 +2,7 @@ import 'package:frontend/features/patient/dashboard/data/models/medicine_frequen
 
 class PrescriptionItemResponse {
   final String itemId;
+  final String medicineId;
   final String medicineName;
   final String dosage;
   final int durationInDays;
@@ -10,6 +11,7 @@ class PrescriptionItemResponse {
 
   const PrescriptionItemResponse({
     required this.itemId,
+    required this.medicineId,
     required this.medicineName,
     required this.dosage,
     required this.durationInDays,
@@ -17,11 +19,10 @@ class PrescriptionItemResponse {
     required this.instructions,
   });
 
-  factory PrescriptionItemResponse.fromJson(
-    Map<String, dynamic> json,
-  ) {
+  factory PrescriptionItemResponse.fromJson(Map<String, dynamic> json) {
     return PrescriptionItemResponse(
       itemId: json['itemId'] as String,
+      medicineId: json['medicineId'] as String,
       medicineName: json['medicineName'] as String,
       dosage: json['dosage'] as String,
       durationInDays: json['durationInDays'] as int,
@@ -35,6 +36,7 @@ class PrescriptionItemResponse {
   Map<String, dynamic> toJson() {
     return {
       'itemId': itemId,
+      'medicineId': medicineId,
       'medicineName': medicineName,
       'dosage': dosage,
       'durationInDays': durationInDays,
@@ -45,6 +47,7 @@ class PrescriptionItemResponse {
 
   PrescriptionItemResponse copyWith({
     String? itemId,
+    String? medicineId,
     String? medicineName,
     String? dosage,
     int? durationInDays,
@@ -53,6 +56,7 @@ class PrescriptionItemResponse {
   }) {
     return PrescriptionItemResponse(
       itemId: itemId ?? this.itemId,
+      medicineId: medicineId ?? this.medicineId,
       medicineName: medicineName ?? this.medicineName,
       dosage: dosage ?? this.dosage,
       durationInDays: durationInDays ?? this.durationInDays,

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/constants/app_sizes.dart';
 import 'package:frontend/core/network/api_exception.dart';
+import 'package:frontend/core/providers/go_router_provider.dart';
+import 'package:frontend/core/router/app_routes.dart';
 import 'package:frontend/core/widgets/app_snackbar.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
@@ -64,6 +66,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ProfileHeader(
                 name: user?.name ?? 'Patient',
                 role: user?.role.name ?? 'Patient',
+                isEditable: false,
               ),
 
               Padding(
@@ -151,7 +154,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       text: 'Edit Profile',
                       icon: LucideIcons.pencil600,
                       onPressed: () {
-                        // Implement in next phase
+                        ref
+                            .read(goRouterProvider)
+                            .push(AppRoutes.editPatientProfile);
                       },
                     ),
 
