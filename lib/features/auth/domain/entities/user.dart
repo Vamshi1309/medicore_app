@@ -12,4 +12,18 @@ class User {
     this.phoneNumber,
     required this.role,
   });
+
+  User copyWith({
+    String? id,
+    String? name,
+    String? phoneNumber,
+    UserRole? role,
+  }) {
+    return User(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      role: role ?? this.role,
+    );
+  }
 }

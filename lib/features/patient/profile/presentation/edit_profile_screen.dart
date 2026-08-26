@@ -6,6 +6,7 @@ import 'package:frontend/core/widgets/app_card.dart';
 import 'package:frontend/core/widgets/app_snackbar.dart';
 import 'package:frontend/core/widgets/app_text_field.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
+import 'package:frontend/features/patient/profile/data/models/update_patient_profile_request.dart';
 import 'package:frontend/features/patient/profile/presentation/provider/patient_profile_provider.dart';
 import 'package:frontend/features/patient/profile/widgets/profile_header.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -20,13 +21,26 @@ class EditProfileScreen extends ConsumerStatefulWidget {
 class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
 
   final TextEditingController _dateOfBirthController = TextEditingController();
-  final TextEditingController _bloodGroupController = TextEditingController();
   final TextEditingController _emergencyContactController =
       TextEditingController();
   final TextEditingController _insuranceInfoController =
       TextEditingController();
+
+  String? _selectedBloodGroup;
+
+  final List<String> _bloodGroups = [
+    'A+',
+    'A-',
+    'B+',
+    'B-',
+    'AB+',
+    'AB-',
+    'O+',
+    'O-',
+  ];
 
   @override
   void initState() {
@@ -43,7 +57,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       next.whenOrNull(
         data: (profile) {
           _dateOfBirthController.text = profile.dateOfBirth;
-          _bloodGroupController.text = profile.bloodGroup;
+          _selectedBloodGroup = profile.bloodGroup;
+          _emailController.text = profile.email;
           _emergencyContactController.text = profile.emergencyContact;
           _insuranceInfoController.text = profile.insuranceInfo;
         },
@@ -73,7 +88,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     _nameController.dispose();
     _phoneNumberController.dispose();
     _dateOfBirthController.dispose();
-    _bloodGroupController.dispose();
     _emergencyContactController.dispose();
     _insuranceInfoController.dispose();
 
@@ -129,6 +143,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         controller: _phoneNumberController,
                         keyboardType: TextInputType.phone,
                       ),
+
+                      const SizedBox(height: 8),
+
+                      _editTextRow(
+                        title: 'Email',
+                        controller: _emailController,
+                      ),
                     ],
                   ),
                 ),
@@ -148,10 +169,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
                       const SizedBox(height: 18),
 
-                      _editTextRow(
-                        title: 'Blood Group',
-                        controller: _bloodGroupController,
-                      ),
+                      _bloodGroupDropdown(),
 
                       const SizedBox(height: 8),
 
@@ -186,9 +204,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Save changes
-                    },
+                    onPressed: () => _saveChanges(),
                     child: const Text('Save Changes'),
                   ),
                 ),
@@ -289,6 +305,88 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           '${pickedDate.day.toString().padLeft(2, '0')}-'
           '${pickedDate.month.toString().padLeft(2, '0')}-'
           '${pickedDate.year}';
+    }
+  }
+
+  Widget _bloodGroupDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(left: 5),
+          child: Text(
+            'Blood Group',
+            style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+          ),
+        ),
+
+        const SizedBox(height: 5),
+
+        DropdownButtonFormField<String>(
+          initialValue: _selectedBloodGroup,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            hintText: 'Select blood group',
+            hintStyle: TextStyle(
+              fontWeight: FontWeight.normal,
+              color: Colors.grey,
+            ),
+          ),
+          items: _bloodGroups.map((bloodGroup) {
+            return DropdownMenuItem<String>(
+              value: bloodGroup,
+              child: Text(
+                bloodGroup,
+                style: TextStyle(fontWeight: FontWeight.normal),
+              ),
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              _selectedBloodGroup = value;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Future<void> _saveChanges() async {
+    final profile = ref.read(patientProfileProvider).value;
+
+    if (profile == null) {
+      AppSnackBar.error(context, 'Unable to load your profile');
+      return;
+    }
+
+    final request = UpdatePatientProfileRequest(
+      name: _nameController.text.trim(),
+      email: _emailController.text.trim(),
+      phoneNumber: _phoneNumberController.text.trim(),
+      dateOfBirth: _dateOfBirthController.text.trim(),
+      bloodGroup: _selectedBloodGroup ?? '',
+      emergencyContact: _emergencyContactController.text.trim(),
+      insuranceInfo: _insuranceInfoController.text.trim(),
+    );
+
+    try {
+      final message = await ref
+          .read(patientProfileProvider.notifier)
+          .updatePatientProfile(request);
+
+      if (!mounted) return;
+
+      AppSnackBar.success(context, message);
+
+      ref.read(goRouterProvider).pop();
+    } on ApiException catch (e) {
+      if (!mounted) return;
+
+      AppSnackBar.error(context, e.message);
+    } catch (e) {
+      if (!mounted) return;
+
+      AppSnackBar.error(context, 'Something went wrong');
     }
   }
 }

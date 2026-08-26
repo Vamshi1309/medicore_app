@@ -243,6 +243,16 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
+  void updateUserProfile({required String name, required String phoneNumber}) {
+    final currentUser = state.user;
+
+    if (currentUser == null) return;
+
+    state = state.copyWith(
+      user: currentUser.copyWith(name: name, phoneNumber: phoneNumber),
+    );
+  }
+
   Future<void> getMe() async {
     final response = await repository.getMe();
 
