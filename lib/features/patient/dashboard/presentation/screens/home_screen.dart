@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/network/api_exception.dart';
+import 'package:frontend/core/providers/go_router_provider.dart';
+import 'package:frontend/core/router/app_routes.dart';
 // bottom nav moved to PatientShell
 import 'package:frontend/core/widgets/app_snackbar.dart';
 import 'package:frontend/core/widgets/empty_state.dart';
@@ -207,9 +209,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               SizedBox(height: 15),
               PrimaryButton(
                 text: "Book Appointment",
-                icon: LucideIcons.calendarPlus300Dir,
+                prefixIcon: LucideIcons.calendarPlus300Dir,
                 color: Colors.blue.shade700,
-                onPressed: () {},
+                onPressed: () {
+                  ref.read(goRouterProvider).push(AppRoutes.bookAppointment);
+                },
               ),
               SizedBox(height: 20),
               Row(

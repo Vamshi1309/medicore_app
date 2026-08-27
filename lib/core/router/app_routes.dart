@@ -9,4 +9,5 @@ class AppRoutes {
   static const patientRecord = '/patient-records';
   static const patientProfile = '/patient-profile';
   static const editPatientProfile = '/patient-profile/edit';
+  static const bookAppointment = '/book-appointment';
 }

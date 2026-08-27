@@ -152,7 +152,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
                     PrimaryButton(
                       text: 'Edit Profile',
-                      icon: LucideIcons.pencil600,
+                      prefixIcon: LucideIcons.pencil600,
                       onPressed: () {
                         ref
                             .read(goRouterProvider)

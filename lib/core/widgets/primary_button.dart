@@ -4,21 +4,25 @@ import 'package:frontend/core/theme/app_colors.dart';
 
 class PrimaryButton extends StatelessWidget {
   final String text;
+  final bool isTextBold;
   final VoidCallback? onPressed;
   final bool isLoading;
   final bool enabled;
-  final IconData? icon;
+  final IconData? prefixIcon;
+  final IconData? suffixIcon;
   final Color color;
   final bool outlined;
 
   const PrimaryButton({
     super.key,
     required this.text,
+    this.isTextBold = true,
     required this.onPressed,
     this.isLoading = false,
     this.enabled = true,
     this.color = AppColors.primary,
-    this.icon,
+    this.prefixIcon,
+    this.suffixIcon,
     this.outlined = false,
   });
 
@@ -37,11 +41,29 @@ class PrimaryButton extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (icon != null) ...[
-                Icon(icon),
+              if (prefixIcon != null) ...[
+                Icon(
+                  prefixIcon,
+                  fontWeight: isTextBold ? FontWeight.bold : null,
+                  size: 16,
+                ),
                 const SizedBox(width: AppSizes.sm),
               ],
-              Text(text),
+              Text(
+                text,
+                style: TextStyle(
+                  fontWeight: isTextBold ? FontWeight.bold : null,
+                  fontSize: 18
+                ),
+              ),
+              if (suffixIcon != null) ...[
+                const SizedBox(width: AppSizes.sm),
+                Icon(
+                  suffixIcon,
+                  fontWeight: isTextBold ? FontWeight.bold : null,
+                  size: 16,
+                ),
+              ],
             ],
           );
 

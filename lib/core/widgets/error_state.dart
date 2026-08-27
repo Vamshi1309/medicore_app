@@ -51,7 +51,7 @@ class ErrorState extends StatelessWidget {
 
               PrimaryButton(
                 text: "Retry",
-                icon: Icons.refresh,
+                prefixIcon: Icons.refresh,
                 onPressed: onRetry,
               ),
             ],

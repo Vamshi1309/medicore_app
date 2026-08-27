@@ -5,6 +5,7 @@ import 'package:frontend/core/screens/splash_screen.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
 import 'package:frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:frontend/features/auth/presentation/screens/register_screen.dart';
+import 'package:frontend/features/patient/dashboard/presentation/screens/book_appointment_screen.dart';
 import 'package:frontend/features/patient/profile/presentation/edit_profile_screen.dart';
 import 'package:frontend/features/patient/widgets/patient_shell.dart';
 import 'package:go_router/go_router.dart';
@@ -73,6 +74,10 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.editPatientProfile,
           builder: ((context, state) => const EditProfileScreen()),
+        ),
+        GoRoute(
+          path: AppRoutes.bookAppointment,
+          builder: (context, state) => const BookAppointmentScreen(),
         ),
       ],
     );
