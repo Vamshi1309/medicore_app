@@ -17,6 +17,7 @@ class AppTextField extends StatefulWidget {
   final bool isPassword;
   final int maxLines;
   final bool autofocus;
+  final int? maxLength;
 
   const AppTextField({
     super.key,
@@ -35,6 +36,7 @@ class AppTextField extends StatefulWidget {
     this.enabled = true,
     this.autofocus = false,
     this.maxLines = 1,
+    this.maxLength,
   });
 
   @override
@@ -61,13 +63,14 @@ class _AppTextFieldState extends State<AppTextField> {
       enabled: widget.enabled,
       maxLines: widget.maxLines,
       onChanged: widget.onChanged,
+      maxLength: widget.maxLength,
       autofocus: widget.autofocus,
       onTap: widget.onTap,
       decoration: InputDecoration(
         labelText: widget.label,
         hintText: widget.hintText,
         prefixIcon: widget.prefixIcon != null ? Icon(widget.prefixIcon) : null,
-
+        alignLabelWithHint: widget.maxLines > 1,
         // Password field
         suffixIcon: widget.isPassword
             ? IconButton(

@@ -24,6 +24,7 @@ class ApiConstants {
   //appointment endpoints
   static String getAppointmentsByPatientId(String patientId) =>
       "/appointments/patient/$patientId";
+  static const String createAppointment = "/appointments";
 
   //prescriptions endpoints
   static String getPrescriptionsByPatientId(String patiendId) =>

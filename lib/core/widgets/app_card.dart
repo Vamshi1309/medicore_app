@@ -6,6 +6,7 @@ class AppCard extends StatelessWidget {
   final BorderRadiusGeometry? borderRadius;
   final EdgeInsetsGeometry? padding;
   final VoidCallback? onTap;
+  final BorderSide? border;
   final Color? bgColor;
   final EdgeInsetsGeometry? margin;
 
@@ -16,6 +17,7 @@ class AppCard extends StatelessWidget {
     this.padding,
     this.bgColor,
     this.onTap,
+    this.border,
     this.margin,
   });
 
@@ -25,7 +27,10 @@ class AppCard extends StatelessWidget {
       width: double.infinity,
       child: Card(
         color: bgColor,
-        shape: RoundedRectangleBorder(borderRadius: borderRadius ?? AppRadius.md),
+        shape: RoundedRectangleBorder(
+          borderRadius: borderRadius ?? AppRadius.md,
+          side: border ?? BorderSide.none,
+          ),
         child: InkWell(
           onTap: onTap,
           borderRadius: AppRadius.md,

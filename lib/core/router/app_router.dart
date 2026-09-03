@@ -5,10 +5,16 @@ import 'package:frontend/core/screens/splash_screen.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
 import 'package:frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:frontend/features/auth/presentation/screens/register_screen.dart';
-import 'package:frontend/features/patient/dashboard/presentation/screens/book_appointment_screen.dart';
+import 'package:frontend/features/patient/dashboard/presentation/screens/booking/select_doctor_step.dart';
 import 'package:frontend/features/patient/profile/presentation/edit_profile_screen.dart';
 import 'package:frontend/features/patient/widgets/patient_shell.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/features/patient/dashboard/presentation/screens/booking/booking_shell.dart';
+import 'package:frontend/features/patient/dashboard/presentation/screens/booking/select_doctor_step.dart';
+import 'package:frontend/features/patient/dashboard/presentation/screens/booking/select_date_step.dart';
+import 'package:frontend/features/patient/dashboard/presentation/screens/booking/select_time_step.dart';
+import 'package:frontend/features/patient/dashboard/presentation/screens/booking/notes_step.dart';
+import 'package:frontend/features/patient/dashboard/presentation/screens/booking/confirm_step.dart';
 
 class AppRouter {
   AppRouter._();
@@ -75,11 +81,44 @@ class AppRouter {
           path: AppRoutes.editPatientProfile,
           builder: ((context, state) => const EditProfileScreen()),
         ),
-        GoRoute(
-          path: AppRoutes.bookAppointment,
-          builder: (context, state) => const BookAppointmentScreen(),
+        ShellRoute(
+          builder: (context, state, child) {
+            final step = _stepIndexForLocation(state.uri.path);
+            return BookingShell(currentStep: step, child: child);
+          },
+          routes: [
+            GoRoute(
+              path: AppRoutes.bookAppointment,
+              builder: (_, _) => const SelectDoctorStep(),
+            ),
+            GoRoute(
+              path: AppRoutes.bookAppointmentDate,
+              builder: (_, _) => const SelectDateStep(),
+            ),
+            GoRoute(
+              path: AppRoutes.bookAppointmentTime,
+              builder: (_, _) => const SelectTimeStep(),
+            ),
+            GoRoute(
+              path: AppRoutes.bookAppointmentNotes,
+              builder: (_, _) => const NotesStep(),
+            ),
+            GoRoute(
+              path: AppRoutes.bookAppointmentConfirm,
+              builder: (_, _) => const ConfirmStep(),
+            ),
+          ],
         ),
       ],
     );
+  }
+
+  static int _stepIndexForLocation(String location) {
+    const order = ["", "/date", "/time", "/notes", "/confirm"];
+
+    for (var i = 0; i < order.length; i++) {
+      if (location.endsWith(order[i]) && order[i].isNotEmpty) return i;
+    }
+    return 0;
   }
 }
