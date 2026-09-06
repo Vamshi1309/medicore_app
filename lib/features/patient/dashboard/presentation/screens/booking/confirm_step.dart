@@ -309,7 +309,7 @@ class _SuccessView extends StatelessWidget {
           PrimaryButton(
             text: "Back to Home",
             onPressed: () {
-              context.go(AppRoutes.home);
+              context.go(AppRoutes.patientHome);
             },
           ),
         ],

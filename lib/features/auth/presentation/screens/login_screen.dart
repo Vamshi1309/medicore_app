@@ -253,7 +253,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (success) {
       final goRouter = ref.read(goRouterProvider);
 
-      goRouter.go(AppRoutes.home);
+      goRouter.go(AppRoutes.patientHome);
     }
   }
 }

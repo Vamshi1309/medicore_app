@@ -5,12 +5,13 @@ import 'package:frontend/core/screens/splash_screen.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
 import 'package:frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:frontend/features/auth/presentation/screens/register_screen.dart';
+import 'package:frontend/features/doctor/dashboard/presentation/doctor_dashboard.dart';
 import 'package:frontend/features/patient/dashboard/presentation/screens/booking/select_doctor_step.dart';
 import 'package:frontend/features/patient/profile/presentation/edit_profile_screen.dart';
 import 'package:frontend/features/patient/widgets/patient_shell.dart';
+import 'package:frontend/shared/enums/user_role.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/features/patient/dashboard/presentation/screens/booking/booking_shell.dart';
-import 'package:frontend/features/patient/dashboard/presentation/screens/booking/select_doctor_step.dart';
 import 'package:frontend/features/patient/dashboard/presentation/screens/booking/select_date_step.dart';
 import 'package:frontend/features/patient/dashboard/presentation/screens/booking/select_time_step.dart';
 import 'package:frontend/features/patient/dashboard/presentation/screens/booking/notes_step.dart';
@@ -43,7 +44,7 @@ class AppRouter {
         // Authenticated user — keep them off splash/login/register
         final authRoutes = {AppRoutes.splash, ...publicRoutes};
         if (authRoutes.contains(location)) {
-          return AppRoutes.home;
+          return _getHomeRoute(authState.user?.role);
         }
 
         return null;
@@ -62,7 +63,7 @@ class AppRouter {
           builder: (context, state) => const RegisterScreen(),
         ),
         GoRoute(
-          path: AppRoutes.home,
+          path: AppRoutes.patientHome,
           builder: (context, state) => const PatientShell(initialIndex: 0),
         ),
         GoRoute(
@@ -109,6 +110,11 @@ class AppRouter {
             ),
           ],
         ),
+
+        GoRoute(
+          path: AppRoutes.doctorHome,
+          builder: (_, _) => const DoctorDashboard(),
+        ),
       ],
     );
   }
@@ -120,5 +126,21 @@ class AppRouter {
       if (location.endsWith(order[i]) && order[i].isNotEmpty) return i;
     }
     return 0;
+  }
+
+  static String _getHomeRoute(UserRole? role) {
+    switch (role) {
+      case UserRole.patient:
+        return AppRoutes.patientHome;
+
+      case UserRole.doctor:
+        return AppRoutes.doctorHome;
+
+      // case UserRole.admin:
+      //   return AppRoutes.adminHome;
+
+      default:
+        return AppRoutes.login;
+    }
   }
 }

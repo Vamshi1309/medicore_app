@@ -1,14 +1,20 @@
 class AppRoutes {
   AppRoutes._();
 
+  // auth routes
   static const splash = '/';
   static const login = '/login';
   static const register = '/register';
-  static const home = '/home';
+
+  //patient routes
+  static const patientHome = '/home';
   static const patientAppointment = '/patient-appointment';
   static const patientRecord = '/patient-records';
   static const patientProfile = '/patient-profile';
   static const editPatientProfile = '/patient-profile/edit';
+
+  //doctor routes
+   static const doctorHome = '/doctor-home';
 
   //create appointment routes
   static const bookAppointment = '/book-appointment';

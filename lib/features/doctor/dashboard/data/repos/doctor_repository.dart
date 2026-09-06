@@ -3,7 +3,7 @@ import 'package:frontend/core/network/api_client.dart';
 import 'package:frontend/core/network/api_constants.dart';
 import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/core/network/api_response.dart';
-import 'package:frontend/features/doctor/data/models/doctor_profile_response.dart';
+import 'package:frontend/features/doctor/dashboard/data/models/doctor_profile_response.dart';
 
 class GetAllDoctorsRepository {
   final ApiClient apiClient;

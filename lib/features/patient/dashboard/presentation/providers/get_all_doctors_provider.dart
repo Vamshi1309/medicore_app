@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/network/api_exception.dart';
-import 'package:frontend/features/doctor/data/models/doctor_profile_response.dart';
-import 'package:frontend/features/doctor/data/repos/doctor_repository.dart';
-import 'package:frontend/features/doctor/providers/get_all_doctors_repo.dart';
+import 'package:frontend/features/doctor/dashboard/data/models/doctor_profile_response.dart';
+import 'package:frontend/features/doctor/dashboard/data/repos/doctor_repository.dart';
+import 'package:frontend/features/doctor/dashboard/providers/get_all_doctors_repo.dart';
 
 class GetAllDoctorsNotifier extends AsyncNotifier<List<DoctorProfileResponse>> {
   late GetAllDoctorsRepository getAllDoctorsRepository;
