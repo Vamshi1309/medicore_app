@@ -6,6 +6,7 @@ import 'package:frontend/features/auth/presentation/providers/auth_provider.dart
 import 'package:frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:frontend/features/auth/presentation/screens/register_screen.dart';
 import 'package:frontend/features/doctor/dashboard/presentation/doctor_dashboard.dart';
+import 'package:frontend/features/doctor/widgets/doctor_shell.dart';
 import 'package:frontend/features/patient/dashboard/presentation/screens/booking/select_doctor_step.dart';
 import 'package:frontend/features/patient/profile/presentation/edit_profile_screen.dart';
 import 'package:frontend/features/patient/widgets/patient_shell.dart';
@@ -109,6 +110,26 @@ class AppRouter {
               builder: (_, _) => const ConfirmStep(),
             ),
           ],
+        ),
+        GoRoute(
+          path: AppRoutes.doctorHome,
+          builder: (_, _) => const DoctorShell(initialIndex: 0),
+        ),
+        GoRoute(
+          path: AppRoutes.doctorAppointments,
+          builder: (_, _) => const DoctorShell(initialIndex: 1),
+        ),
+        GoRoute(
+          path: AppRoutes.doctorPatients,
+          builder: (_, _) => const DoctorShell(initialIndex: 2),
+        ),
+        GoRoute(
+          path: AppRoutes.doctorPrescriptions,
+          builder: (_, _) => const DoctorShell(initialIndex: 3),
+        ),
+        GoRoute(
+          path: AppRoutes.doctorProfile,
+          builder: (_, _) => const DoctorShell(initialIndex: 4),
         ),
 
         GoRoute(

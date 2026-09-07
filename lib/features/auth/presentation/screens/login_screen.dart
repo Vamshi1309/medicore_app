@@ -6,6 +6,7 @@ import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/widgets/app_card.dart';
 import 'package:frontend/core/widgets/app_snackbar.dart';
 import 'package:frontend/features/auth/data/models/request/patient_login_request.dart';
+import 'package:frontend/features/auth/data/models/request/staff_login_request.dart';
 import 'package:frontend/features/auth/data/models/request/verify_login_otp.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
 import 'package:frontend/features/auth/presentation/widgets/patient_login_form.dart';
@@ -61,11 +62,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       AppCard(
                         child: isStaff
                             ? StaffLoginForm(
-                                onLogin: () {
-                                  debugPrint(
-                                    "+++++++++++++++ Will implement Navigation +++++++++++++",
-                                  );
-                                },
+                                onLogin: onTapStaffLogin,
                               )
                             : PatientLoginForm(
                                 showOtp: showOtp,
@@ -216,6 +213,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         .patientLogin(
           PatientLoginRequest(phoneNumber: phoneNumber, password: password),
         );
+  }
+
+  void onTapStaffLogin(String staffId, String password) {
+    ref
+        .read(authProvider.notifier)
+        .staffLogin(StaffLoginRequest(staffId: staffId, password: password));
   }
 
   Future<void> sendOtp(String phoneNumber) async {
