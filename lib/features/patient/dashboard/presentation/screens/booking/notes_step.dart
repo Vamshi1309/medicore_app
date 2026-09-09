@@ -104,7 +104,7 @@ class _NotesStepState extends ConsumerState<NotesStep> {
             keyboardType: TextInputType.multiline,
           ),
           Spacer(),
-          PrimaryButton(
+          PrimaryButton.primary(
             text: "Review Booking",
             suffixIcon: LucideIcons.chevronRight,
             onPressed: () {

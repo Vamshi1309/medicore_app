@@ -207,7 +207,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               SizedBox(height: 20),
               Text("Actions", style: Theme.of(context).textTheme.titleLarge),
               SizedBox(height: 15),
-              PrimaryButton(
+              PrimaryButton.primary(
                 text: "Book Appointment",
                 prefixIcon: LucideIcons.calendarPlus300Dir,
                 color: Colors.blue.shade700,

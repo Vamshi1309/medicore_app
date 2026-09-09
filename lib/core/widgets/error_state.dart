@@ -49,7 +49,7 @@ class ErrorState extends StatelessWidget {
             if (onRetry != null) ...[
               const SizedBox(height: AppSizes.xl),
 
-              PrimaryButton(
+              PrimaryButton.outlined(
                 text: "Retry",
                 prefixIcon: Icons.refresh,
                 onPressed: onRetry,

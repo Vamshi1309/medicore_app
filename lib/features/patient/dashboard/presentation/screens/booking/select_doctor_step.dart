@@ -93,7 +93,7 @@ class _SelectDoctorStepState extends ConsumerState<SelectDoctorStep> {
           Container(
             height: 60,
             padding: const EdgeInsets.only(top: 10),
-            child: PrimaryButton(
+            child: PrimaryButton.primary(
               text: "Continue",
               isTextBold: true,
               suffixIcon: LucideIcons.chevronRight,

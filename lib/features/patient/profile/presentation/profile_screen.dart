@@ -150,7 +150,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
                     const SizedBox(height: AppSizes.lg),
 
-                    PrimaryButton(
+                    PrimaryButton.primary(
                       text: 'Edit Profile',
                       prefixIcon: LucideIcons.pencil600,
                       onPressed: () {

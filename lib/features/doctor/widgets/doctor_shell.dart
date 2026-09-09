@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:frontend/core/router/app_routes.dart';
 import 'package:frontend/features/doctor/appointments/presentation/doctor_appointment_screen.dart';
 import 'package:frontend/features/doctor/dashboard/presentation/doctor_dashboard.dart';
+import 'package:frontend/features/doctor/patients/presentation/doctor_patient_screen.dart';
+import 'package:frontend/features/doctor/prescriptions/presentation/doctors_appointments_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -27,8 +29,8 @@ class DoctorShell extends StatelessWidget {
   static const List<Widget> _tabs = [
     DoctorDashboard(),
     DoctorAppointmentScreen(),
-    _PlaceholderScreen(title: 'Patients'),
-    _PlaceholderScreen(title: 'Prescriptions'),
+    DoctorPatientScreen(),
+    DoctorsAppointmentsScreen(),
     _PlaceholderScreen(title: 'Profile'),
   ];
 

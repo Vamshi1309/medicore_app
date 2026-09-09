@@ -72,7 +72,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ),
                       SizedBox(height: 30),
                       if (!showOTP) ...[
-                        PrimaryButton(text: "Send OTP", onPressed: sendOtp),
+                        PrimaryButton.primary(text: "Send OTP", onPressed: sendOtp),
                       ] else ...[
                         OtpVerificationSection(
                           onGoBack: () {

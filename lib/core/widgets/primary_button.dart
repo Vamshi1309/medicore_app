@@ -11,30 +11,58 @@ class PrimaryButton extends StatelessWidget {
   final IconData? prefixIcon;
   final IconData? suffixIcon;
   final Color color;
-  final bool outlined;
 
-  const PrimaryButton({
+  // Internal button type
+  final _ButtonType _type;
+
+  // Primary
+  const PrimaryButton.primary({
     super.key,
     required this.text,
-    this.isTextBold = true,
     required this.onPressed,
+    this.isTextBold = true,
     this.isLoading = false,
     this.enabled = true,
-    this.color = AppColors.primary,
     this.prefixIcon,
     this.suffixIcon,
-    this.outlined = false,
-  });
+    this.color = AppColors.primary,
+  }) : _type = _ButtonType.primary;
+
+  // Outlined
+  const PrimaryButton.outlined({
+    super.key,
+    required this.text,
+    required this.onPressed,
+    this.isTextBold = true,
+    this.isLoading = false,
+    this.enabled = true,
+    this.prefixIcon,
+    this.suffixIcon,
+    this.color = AppColors.primary,
+  }) : _type = _ButtonType.outlined;
+
+  // Outlined + filled
+  const PrimaryButton.outlinedFilled({
+    super.key,
+    required this.text,
+    required this.onPressed,
+    this.isTextBold = true,
+    this.isLoading = false,
+    this.enabled = true,
+    this.prefixIcon,
+    this.suffixIcon,
+    this.color = AppColors.primary,
+  }) : _type = _ButtonType.outlinedFilled;
 
   @override
   Widget build(BuildContext context) {
     final child = isLoading
-        ? const SizedBox(
+        ? SizedBox(
             width: 22,
             height: 22,
             child: CircularProgressIndicator(
               strokeWidth: 2.5,
-              color: AppColors.primary,
+              color: _type == _ButtonType.primary ? Colors.white : color,
             ),
           )
         : Row(
@@ -42,37 +70,49 @@ class PrimaryButton extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (prefixIcon != null) ...[
-                Icon(
-                  prefixIcon,
-                  fontWeight: isTextBold ? FontWeight.bold : null,
-                  size: 16,
-                ),
+                Icon(prefixIcon, size: 16),
                 const SizedBox(width: AppSizes.sm),
               ],
+
               Text(
                 text,
                 style: TextStyle(
                   fontWeight: isTextBold ? FontWeight.bold : null,
-                  fontSize: 18
+                  fontSize: 18,
                 ),
               ),
+
               if (suffixIcon != null) ...[
                 const SizedBox(width: AppSizes.sm),
-                Icon(
-                  suffixIcon,
-                  fontWeight: isTextBold ? FontWeight.bold : null,
-                  size: 16,
-                ),
+                Icon(suffixIcon, size: 16),
               ],
             ],
           );
 
-    if (outlined) {
+    if (_type == _ButtonType.outlined) {
       return SizedBox(
         width: double.infinity,
         child: OutlinedButton(
           onPressed: enabled && !isLoading ? onPressed : null,
-          style: OutlinedButton.styleFrom(backgroundColor: color),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: color,
+            side: BorderSide(color: color, width: 1.5),
+          ),
+          child: child,
+        ),
+      );
+    }
+
+    if (_type == _ButtonType.outlinedFilled) {
+      return SizedBox(
+        width: double.infinity,
+        child: OutlinedButton(
+          onPressed: enabled && !isLoading ? onPressed : null,
+          style: OutlinedButton.styleFrom(
+            foregroundColor: color,
+            backgroundColor: color.withOpacity(0.08),
+            side: BorderSide(color: color.withOpacity(0.3), width: 1),
+          ),
           child: child,
         ),
       );
@@ -82,9 +122,14 @@ class PrimaryButton extends StatelessWidget {
       width: double.infinity,
       child: ElevatedButton(
         onPressed: enabled && !isLoading ? onPressed : null,
-        style: OutlinedButton.styleFrom(backgroundColor: color),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          foregroundColor: Colors.white,
+        ),
         child: child,
       ),
     );
   }
 }
+
+enum _ButtonType { primary, outlined, outlinedFilled }

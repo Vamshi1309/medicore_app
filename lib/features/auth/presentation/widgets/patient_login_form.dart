@@ -66,7 +66,7 @@ class _PatientLoginFormState extends State<PatientLoginForm> {
           ),
           const SizedBox(height: 24),
 
-          PrimaryButton(
+          PrimaryButton.primary(
             text: "Login",
             onPressed: () {
               if (!_isValidPhoneNumber()) return;
@@ -97,7 +97,7 @@ class _PatientLoginFormState extends State<PatientLoginForm> {
 
           const SizedBox(height: 24),
 
-          PrimaryButton(
+          PrimaryButton.primary(
             text: "Send OTP",
             onPressed: () {
               if (!_isValidPhoneNumber()) return;

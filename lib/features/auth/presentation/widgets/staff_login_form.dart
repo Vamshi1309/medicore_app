@@ -51,7 +51,7 @@ class _StaffLoginFormState extends State<StaffLoginForm> {
           suffixIcon: Icons.remove_red_eye_outlined,
         ),
         const SizedBox(height: 24),
-        PrimaryButton(
+        PrimaryButton.primary(
           text: "Login",
           onPressed: () {
             if (staffIdController.text.isEmpty &&

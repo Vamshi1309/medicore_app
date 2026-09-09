@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/features/doctor/appointments/widgets/doctor_appointment_card.dart';
+import 'package:frontend/features/doctor/widgets/doctor_header.dart';
 import 'package:frontend/features/patient/appointments/widgets/appointment_card.dart';
 
 class DoctorAppointmentScreen extends StatefulWidget {
@@ -83,76 +84,25 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen> {
             // ============================================================
             // HEADER
             // ============================================================
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.only(
-                top: 30,
-                left: 16,
-                right: 16,
-                bottom: 16,
-              ),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.blue.shade700,
-                    Colors.blue.shade600,
-                    Colors.blue.shade500,
+            DoctorHeader(
+              header: "Appointments",
+              subHeader: "6 Total . 3 Today",
+              child: Container(
+                height: 42,
+                width: double.infinity,
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade800,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  children: [
+                    _buildSegment('all', 'All'),
+                    _buildSegment('today', 'Today'),
+                    _buildSegment('upcoming', 'Upcoming'),
+                    _buildSegment('completed', 'Completed'),
                   ],
                 ),
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(24),
-                  bottomRight: Radius.circular(24),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ========================================================
-                  // TITLE
-                  // ========================================================
-                  Text(
-                    'Appointments',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.headlineMedium?.copyWith(color: Colors.white),
-                  ),
-
-                  const SizedBox(height: 6),
-
-                  // ========================================================
-                  // SUBTITLE
-                  // ========================================================
-                  Text(
-                    '6 Total · 3 Today',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Colors.white60,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // ========================================================
-                  // SEGMENTED BUTTON
-                  // ========================================================
-                  Container(
-                    height: 42,
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade800,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Row(
-                      children: [
-                        _buildSegment('all', 'All'),
-                        _buildSegment('today', 'Today'),
-                        _buildSegment('upcoming', 'Upcoming'),
-                        _buildSegment('completed', 'Completed'),
-                      ],
-                    ),
-                  ),
-                ],
               ),
             ),
 

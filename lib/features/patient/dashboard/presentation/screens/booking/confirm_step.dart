@@ -170,7 +170,7 @@ class _ConfirmStepState extends ConsumerState<ConfirmStep> {
           ),
 
           Spacer(),
-          PrimaryButton(
+          PrimaryButton.primary(
             text: "Confirm Appointment",
             isTextBold: true,
             suffixIcon: LucideIcons.chevronRight,
@@ -306,7 +306,7 @@ class _SuccessView extends StatelessWidget {
 
           const Spacer(),
 
-          PrimaryButton(
+          PrimaryButton.primary(
             text: "Back to Home",
             onPressed: () {
               context.go(AppRoutes.patientHome);
