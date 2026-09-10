@@ -4,6 +4,7 @@ import 'package:frontend/features/doctor/appointments/presentation/doctor_appoin
 import 'package:frontend/features/doctor/dashboard/presentation/doctor_dashboard.dart';
 import 'package:frontend/features/doctor/patients/presentation/doctor_patient_screen.dart';
 import 'package:frontend/features/doctor/prescriptions/presentation/doctors_appointments_screen.dart';
+import 'package:frontend/features/doctor/profile/presentation/doctor_profile_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -31,7 +32,7 @@ class DoctorShell extends StatelessWidget {
     DoctorAppointmentScreen(),
     DoctorPatientScreen(),
     DoctorsAppointmentsScreen(),
-    _PlaceholderScreen(title: 'Profile'),
+    DoctorProfileScreen(),
   ];
 
   @override
@@ -76,15 +77,5 @@ class DoctorShell extends StatelessWidget {
         ],
       ),
     );
-  }
-}
-
-class _PlaceholderScreen extends StatelessWidget {
-  final String title;
-  const _PlaceholderScreen({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(child: Center(child: Text('$title — coming soon')));
   }
 }

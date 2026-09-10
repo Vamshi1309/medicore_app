@@ -8,8 +8,8 @@ import 'package:frontend/core/widgets/app_snackbar.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
 import 'package:frontend/features/patient/profile/presentation/provider/patient_profile_provider.dart';
-import 'package:frontend/features/patient/profile/widgets/info_section.dart';
-import 'package:frontend/features/patient/profile/widgets/profile_header.dart';
+import 'package:frontend/features/widgets/profile/info_section.dart';
+import 'package:frontend/features/widgets/profile/profile_header.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -162,34 +162,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
                     const SizedBox(height: AppSizes.sm),
 
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          ref.read(authProvider.notifier).logout();
-                        },
-                        icon: const Icon(
-                          LucideIcons.logOut600,
-                          color: Colors.red,
-                        ),
-                        label: const Text(
-                          'Logout',
-                          style: TextStyle(
-                            color: Colors.red,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          backgroundColor: Colors.red.shade50,
-                          side: BorderSide(color: Colors.red.shade100),
-                          padding: const EdgeInsets.symmetric(
-                            vertical: AppSizes.md,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppSizes.sm),
-                          ),
-                        ),
-                      ),
+                    PrimaryButton.outlinedFilled(
+                      text: 'Logout',
+                      prefixIcon: LucideIcons.logOut600,
+                      color: Colors.red,
+                      onPressed: () => ref.read(authProvider.notifier).logout(),
                     ),
                   ],
                 ),

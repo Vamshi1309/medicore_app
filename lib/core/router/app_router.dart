@@ -6,6 +6,7 @@ import 'package:frontend/features/auth/presentation/providers/auth_provider.dart
 import 'package:frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:frontend/features/auth/presentation/screens/register_screen.dart';
 import 'package:frontend/features/doctor/dashboard/presentation/doctor_dashboard.dart';
+import 'package:frontend/features/doctor/profile/presentation/edit_doctor_profile_screen.dart';
 import 'package:frontend/features/doctor/widgets/doctor_shell.dart';
 import 'package:frontend/features/patient/dashboard/presentation/screens/booking/select_doctor_step.dart';
 import 'package:frontend/features/patient/profile/presentation/edit_profile_screen.dart';
@@ -135,6 +136,11 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.doctorHome,
           builder: (_, _) => const DoctorDashboard(),
+        ),
+
+        GoRoute(
+          path: AppRoutes.editDoctorProfile,
+          builder: (_, _) => const EditDoctorProfileScreen(),
         ),
       ],
     );

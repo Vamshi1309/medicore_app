@@ -8,7 +8,7 @@ import 'package:frontend/core/widgets/app_text_field.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
 import 'package:frontend/features/patient/profile/data/models/update_patient_profile_request.dart';
 import 'package:frontend/features/patient/profile/presentation/provider/patient_profile_provider.dart';
-import 'package:frontend/features/patient/profile/widgets/profile_header.dart';
+import 'package:frontend/features/widgets/profile/profile_header.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {

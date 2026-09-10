@@ -110,8 +110,8 @@ class PrimaryButton extends StatelessWidget {
           onPressed: enabled && !isLoading ? onPressed : null,
           style: OutlinedButton.styleFrom(
             foregroundColor: color,
-            backgroundColor: color.withOpacity(0.08),
-            side: BorderSide(color: color.withOpacity(0.3), width: 1),
+            backgroundColor: color.withValues(alpha: 0.08),
+            side: BorderSide(color: color.withValues(alpha: 0.3), width: 1),
           ),
           child: child,
         ),

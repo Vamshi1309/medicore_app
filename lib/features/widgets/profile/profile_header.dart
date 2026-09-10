@@ -41,12 +41,14 @@ class ProfileHeader extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(
-            "Edit Profile",
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(color: Colors.white),
-          ),
+          if (isEditable) ...[
+            Text(
+              "Edit Profile",
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(color: Colors.white),
+            ),
+          ],
           SizedBox(height: 10),
           Stack(
             alignment: Alignment.center,
