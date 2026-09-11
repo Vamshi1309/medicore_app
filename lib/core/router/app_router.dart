@@ -5,6 +5,7 @@ import 'package:frontend/core/screens/splash_screen.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
 import 'package:frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:frontend/features/auth/presentation/screens/register_screen.dart';
+import 'package:frontend/features/doctor/appointments/presentation/write_prescription/write_prescription_screen.dart';
 import 'package:frontend/features/doctor/dashboard/presentation/doctor_dashboard.dart';
 import 'package:frontend/features/doctor/profile/presentation/edit_doctor_profile_screen.dart';
 import 'package:frontend/features/doctor/widgets/doctor_shell.dart';
@@ -119,6 +120,12 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.doctorAppointments,
           builder: (_, _) => const DoctorShell(initialIndex: 1),
+          routes: [
+            GoRoute(
+              path: 'write-prescription',
+              builder: (_, _) => const WritePrescriptionScreen(),
+            ),
+          ],
         ),
         GoRoute(
           path: AppRoutes.doctorPatients,

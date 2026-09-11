@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/core/router/app_routes.dart';
 import 'package:frontend/features/doctor/appointments/widgets/doctor_appointment_card.dart';
 import 'package:frontend/features/doctor/widgets/doctor_header.dart';
 import 'package:frontend/features/patient/appointments/widgets/appointment_card.dart';
+import 'package:go_router/go_router.dart';
 
 class DoctorAppointmentScreen extends StatefulWidget {
   const DoctorAppointmentScreen({super.key});
@@ -125,6 +127,9 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen> {
                       date: appointment.date,
                       time: appointment.time,
                       status: appointment.status,
+                      onPrescribe: () {
+                        context.push(AppRoutes.writePrescription);
+                      },
                     );
                   }).toList(),
                 ),
