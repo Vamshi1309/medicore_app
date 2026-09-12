@@ -4,8 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/core/widgets/empty_state.dart';
 import 'package:frontend/features/patient/appointments/presentation/appointment_screen.dart';
 import 'package:frontend/features/patient/appointments/widgets/appointment_card.dart';
-import 'package:frontend/features/patient/dashboard/data/models/appointment_response.dart';
-import 'package:frontend/features/patient/dashboard/presentation/providers/appointment_provider.dart';
+import 'package:frontend/features/appointment/data/models/appointment_response.dart';
+import 'package:frontend/features/appointment/providers/appointment_provider.dart';
 
 class FakePatientAppointmentsNotifier
     extends PatientAppointmentNotifier {

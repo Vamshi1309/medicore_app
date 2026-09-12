@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/core/widgets/app_snackbar.dart';
 import 'package:frontend/core/widgets/empty_state.dart';
-import 'package:frontend/features/patient/dashboard/presentation/providers/lab_reports_provider.dart';
+import 'package:frontend/features/labReports/providers/lab_reports_provider.dart';
 import 'package:frontend/features/patient/records/widgets/record_lab_report_card.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:url_launcher/url_launcher.dart';

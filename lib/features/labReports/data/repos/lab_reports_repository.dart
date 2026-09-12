@@ -3,7 +3,7 @@ import 'package:frontend/core/network/api_client.dart';
 import 'package:frontend/core/network/api_constants.dart';
 import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/core/network/api_response.dart';
-import 'package:frontend/features/patient/dashboard/data/models/lab_report_response.dart';
+import 'package:frontend/features/labReports/data/models/lab_report_response.dart';
 
 class LabReportsRepository {
   final ApiClient apiClient;

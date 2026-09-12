@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
-import 'package:frontend/features/patient/dashboard/data/models/appointment_response.dart';
-import 'package:frontend/features/patient/dashboard/data/repos/appointment_repository.dart';
+import 'package:frontend/features/appointment/data/models/appointment_response.dart';
+import 'package:frontend/features/appointment/data/repo/appointment_repository.dart';
 import 'package:frontend/features/patient/dashboard/presentation/state/appointment_state.dart';
-import 'package:frontend/features/patient/dashboard/providers/appointment_repo_provider.dart';
+import 'package:frontend/features/appointment/providers/appointment_repo_provider.dart';
 
 class PatientAppointmentNotifier
     extends AsyncNotifier<List<AppointmentResponse>> {

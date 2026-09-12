@@ -1,4 +1,4 @@
-import 'package:frontend/features/patient/dashboard/data/models/medicine_frequency.dart';
+import 'package:frontend/features/prescription/data/models/medicine_frequency.dart';
 
 class PrescriptionItemResponse {
   final String itemId;

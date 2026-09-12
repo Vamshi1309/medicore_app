@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/core/widgets/app_snackbar.dart';
 import 'package:frontend/core/widgets/empty_state.dart';
-import 'package:frontend/features/patient/dashboard/presentation/providers/prescription_provider.dart';
+import 'package:frontend/features/prescription/providers/prescription_provider.dart';
 import 'package:frontend/features/patient/records/widgets/record_prescription_card.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:open_filex/open_filex.dart';

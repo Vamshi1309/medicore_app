@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
-import 'package:frontend/features/patient/dashboard/data/models/lab_report_response.dart';
-import 'package:frontend/features/patient/dashboard/data/repos/lab_reports_repository.dart';
-import 'package:frontend/features/patient/dashboard/providers/lab_reports_repo_provider.dart';
+import 'package:frontend/features/labReports/data/models/lab_report_response.dart';
+import 'package:frontend/features/labReports/data/repos/lab_reports_repository.dart';
+import 'package:frontend/features/labReports/providers/lab_reports_repo_provider.dart';
 
 class LabReportsNotifier extends AsyncNotifier<List<LabReportResponse>> {
   late LabReportsRepository labReportsRepository;

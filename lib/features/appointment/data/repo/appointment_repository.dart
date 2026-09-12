@@ -3,30 +3,34 @@ import 'package:frontend/core/network/api_client.dart';
 import 'package:frontend/core/network/api_constants.dart';
 import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/core/network/api_response.dart';
-import 'package:frontend/features/patient/dashboard/data/models/prescription_response.dart';
+import 'package:frontend/features/appointment/data/models/appointment_response.dart';
+import 'package:frontend/features/patient/dashboard/presentation/state/appointment_state.dart';
 
-class PrescriptionRepository {
+class AppointmentRepository {
   final ApiClient apiClient;
 
-  const PrescriptionRepository({required this.apiClient});
+  const AppointmentRepository({required this.apiClient});
 
-  Future<ApiResponse<List<PrescriptionResponse>>> getPrescriptionsByPatientId(
+  Future<ApiResponse<List<AppointmentResponse>>> getPatientAppointments(
     String patientId,
   ) async {
     try {
       final response = await apiClient.get(
-        ApiConstants.getPrescriptionsByPatientId(patientId),
+        ApiConstants.getAppointmentsByPatientId(patientId),
       );
 
       return ApiResponse.fromJson(
         response.data,
         (data) => (data as List)
-            .map(
-              (e) => PrescriptionResponse.fromJson(e as Map<String, dynamic>),
-            )
+            .map((e) => AppointmentResponse.fromJson(e as Map<String, dynamic>))
             .toList(),
       );
     } on DioException catch (e) {
+      if (e.response?.data != null) {
+        final data = e.response!.data;
+
+        throw ApiException(message: data['message'] ?? "Something went wrong");
+      }
       if (e.error is ApiException) {
         throw e.error as ApiException;
       }
@@ -35,23 +39,27 @@ class PrescriptionRepository {
     }
   }
 
-  Future<List<int>> downloadPrescriptionPdf(String prescriptionId) async {
+  Future<ApiResponse<AppointmentResponse>> createAppointment(
+    AppointmentBookingState booking,
+    String patientId,
+  ) async {
     try {
-      final response = await apiClient.get<List<int>>(
-        ApiConstants.downloadPrescription(prescriptionId),
-        options: Options(responseType: ResponseType.bytes),
+      final response = await apiClient.post(
+        ApiConstants.createAppointment,
+        data: booking.toJson(patientId),
       );
 
-      return response.data!;
+      return ApiResponse.fromJson(
+        response.data,
+        (data) => AppointmentResponse.fromJson(data as Map<String, dynamic>),
+      );
     } on DioException catch (e) {
-      // If backend returned an ApiResponse with a message
       if (e.response?.data != null) {
         final data = e.response!.data;
 
         throw ApiException(message: data['message'] ?? "Something went wrong");
       }
 
-      // Already converted elsewhere
       if (e.error is ApiException) {
         throw e.error as ApiException;
       }

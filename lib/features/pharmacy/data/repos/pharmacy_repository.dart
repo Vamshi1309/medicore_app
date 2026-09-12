@@ -3,7 +3,7 @@ import 'package:frontend/core/network/api_client.dart';
 import 'package:frontend/core/network/api_constants.dart';
 import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/core/network/api_response.dart';
-import 'package:frontend/features/patient/records/data/models/dispense_response.dart';
+import 'package:frontend/features/pharmacy/data/models/dispense_response.dart';
 
 class PharmacyRepository {
   final ApiClient apiClient;

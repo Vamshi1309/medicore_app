@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/core/widgets/app_card.dart';
 import 'package:frontend/core/widgets/app_text_field.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
-import 'package:frontend/features/patient/dashboard/data/models/medicine_frequency.dart';
+import 'package:frontend/features/prescription/data/models/medicine_frequency.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class MedicineData {

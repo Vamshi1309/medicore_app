@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
-import 'package:frontend/features/patient/dashboard/data/models/prescription_response.dart';
-import 'package:frontend/features/patient/dashboard/data/repos/prescription_repository.dart';
-import 'package:frontend/features/patient/dashboard/providers/prescription_repo_provider.dart';
+import 'package:frontend/features/prescription/data/models/prescription_response.dart';
+import 'package:frontend/features/prescription/data/repo/prescription_repository.dart';
+import 'package:frontend/features/prescription/providers/prescription_repo_provider.dart';
 
 class PrescriptionNotifier extends AsyncNotifier<List<PrescriptionResponse>> {
   late PrescriptionRepository prescriptionRepository;
