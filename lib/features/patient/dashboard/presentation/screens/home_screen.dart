@@ -43,7 +43,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       }
     });
 
-    ref.listenManual(patientAppointmentsProvider, (previous, next) {
+    ref.listenManual(appointmentsProvider, (previous, next) {
       next.whenOrNull(
         error: (error, _) {
           final message = error is ApiException
@@ -82,7 +82,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final appointmentsAsync = ref.watch(patientAppointmentsProvider);
+    final appointmentsAsync = ref.watch(appointmentsProvider);
     final prescriptionsAsync = ref.watch(prescriptionProvider);
     final labReportsAsync = ref.watch(labReportsProvider);
 

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
+import 'package:frontend/features/prescription/data/models/create_prescription_request.dart';
 import 'package:frontend/features/prescription/data/models/prescription_response.dart';
 import 'package:frontend/features/prescription/data/repo/prescription_repository.dart';
 import 'package:frontend/features/prescription/providers/prescription_repo_provider.dart';
@@ -27,6 +28,18 @@ class PrescriptionNotifier extends AsyncNotifier<List<PrescriptionResponse>> {
 
   Future<List<int>> downloadPrescriptionPdf(String prescriptionId) async {
     return prescriptionRepository.downloadPrescriptionPdf(prescriptionId);
+  }
+
+  Future<PrescriptionResponse> createPrescription(
+    CreatePrescriptionRequest req,
+  ) async {
+    final response = await prescriptionRepository.createPrescription(req);
+
+    if (!response.success || response.data == null) {
+      throw ApiException(message: response.message);
+    }
+
+    return response.data!;
   }
 }
 

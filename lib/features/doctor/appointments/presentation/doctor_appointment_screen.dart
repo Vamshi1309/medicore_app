@@ -1,48 +1,84 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/core/router/app_routes.dart';
+import 'package:frontend/core/widgets/app_snackbar.dart';
+import 'package:frontend/core/widgets/empty_state.dart';
+import 'package:frontend/core/widgets/error_state.dart';
+import 'package:frontend/features/appointment/data/models/appointment_response.dart';
+import 'package:frontend/features/appointment/providers/appointment_provider.dart';
 import 'package:frontend/features/doctor/appointments/widgets/doctor_appointment_card.dart';
 import 'package:frontend/features/doctor/widgets/doctor_header.dart';
 import 'package:frontend/features/patient/appointments/widgets/appointment_card.dart';
 import 'package:go_router/go_router.dart';
 
-class DoctorAppointmentScreen extends StatefulWidget {
+class DoctorAppointmentScreen extends ConsumerStatefulWidget {
   const DoctorAppointmentScreen({super.key});
 
   @override
-  State<DoctorAppointmentScreen> createState() =>
+  ConsumerState<DoctorAppointmentScreen> createState() =>
       _DoctorAppointmentScreenState();
 }
 
-class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen> {
+class _DoctorAppointmentScreenState
+    extends ConsumerState<DoctorAppointmentScreen> {
   final List<String> tabBarOptions = ['all', 'today', 'upcoming', 'completed'];
 
-  List<DoctorAppointment> get filteredAppointments {
+  String selectedOption = 'all';
+
+  @override
+  void initState() {
+    super.initState();
+
+    Future.microtask(() {
+      ref.read(appointmentsProvider.notifier).getAppointmentsByDoctorId();
+    });
+
+    ref.listenManual(appointmentsProvider, (previous, next) {
+      if (!mounted) return;
+
+      next.whenOrNull(
+        error: (error, _) {
+          final message = error is ApiException
+              ? error.message
+              : "Something went wrong";
+
+          AppSnackBar.error(context, message);
+        },
+      );
+    });
+  }
+
+  List<AppointmentResponse> _filterAppointments(
+    List<AppointmentResponse> appointments,
+  ) {
+    final now = DateTime.now();
+
     switch (selectedOption) {
       case 'today':
-        return appointments
-            .where((appointment) => appointment.date == 'Today')
-            .toList();
+        return appointments.where((appointment) {
+          final date = appointment.scheduledAt;
+
+          return date.year == now.year &&
+              date.month == now.month &&
+              date.day == now.day;
+        }).toList();
 
       case 'upcoming':
-        return appointments
-            .where((appointment) => appointment.date != 'Today')
-            .toList();
+        return appointments.where((appointment) {
+          return appointment.scheduledAt.isAfter(now);
+        }).toList();
 
       case 'completed':
-        return appointments
-            .where(
-              (appointment) =>
-                  appointment.status == AppointmentStatus.completed,
-            )
-            .toList();
+        return appointments.where((appointment) {
+          return appointment.status == AppointmentStatus.completed;
+        }).toList();
 
       case 'all':
       default:
         return appointments;
     }
   }
-
-  String selectedOption = 'all';
 
   Widget _buildSegment(String value, String label) {
     final isSelected = selectedOption == value;
@@ -79,16 +115,29 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final appointmentState = ref.watch(appointmentsProvider);
+
+    final appointments = appointmentState.value ?? [];
+
+    final filteredAppointments = _filterAppointments(appointments);
+
+    final now = DateTime.now();
+
+    final todayCount = appointments.where((appointment) {
+      final date = appointment.scheduledAt;
+
+      return date.year == now.year &&
+          date.month == now.month &&
+          date.day == now.day;
+    }).length;
+
     return SafeArea(
       child: Scaffold(
         body: Column(
           children: [
-            // ============================================================
-            // HEADER
-            // ============================================================
             DoctorHeader(
               header: "Appointments",
-              subHeader: "6 Total . 3 Today",
+              subHeader: "${appointments.length} Total . $todayCount Today",
               child: Container(
                 height: 42,
                 width: double.infinity,
@@ -108,118 +157,102 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen> {
               ),
             ),
 
-            // ============================================================
-            // APPOINTMENTS
-            // ============================================================
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
+            if (appointmentState.isLoading)
+              const Expanded(child: Center(child: CircularProgressIndicator()))
+            else if (appointmentState.hasError)
+              Expanded(
+                child: ErrorState(
+                  title: "Failed to load appointments",
+                  subtitle:
+                      "We couldn't load your appointments. Please try again.",
+                  onRetry: () {
+                    ref
+                        .read(appointmentsProvider.notifier)
+                        .getAppointmentsByDoctorId();
+                  },
                 ),
-                child: Column(
-                  children: filteredAppointments.map((appointment) {
-                    return DoctorAppointmentCard(
-                      patientName: appointment.patientName,
-                      initials: appointment.initials,
-                      appointmentType: appointment.appointmentType,
-                      age: appointment.age,
-                      date: appointment.date,
-                      time: appointment.time,
-                      status: appointment.status,
-                      onPrescribe: () {
-                        context.push(AppRoutes.writePrescription);
-                      },
-                    );
-                  }).toList(),
-                ),
+              )
+            else
+              Expanded(
+                child: filteredAppointments.isEmpty
+                    ? EmptyState(
+                        icon: Icons.calendar_month_outlined,
+                        title: "No Appointments",
+                        subtitle: "There are no appointments to display.",
+                      )
+                    : SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        child: Column(
+                          children: filteredAppointments.map((appointment) {
+                            return DoctorAppointmentCard(
+                              patientName: appointment.patientName,
+
+                              initials: _getInitials(appointment.patientName),
+
+                              // Your AppointmentResponse does not
+                              // contain appointmentType.
+                              appointmentType: appointment.notes.isNotEmpty
+                                  ? appointment.notes
+                                  : "Appointment",
+
+                              // Your AppointmentResponse does not
+                              // contain age.
+                              age: 0,
+
+                              date: _formatDate(appointment.scheduledAt),
+
+                              time: _formatTime(appointment.scheduledAt),
+
+                              status: appointment.status,
+
+                              onPrescribe: () {
+                                context.push(
+                                  AppRoutes.writePrescription,
+                                  extra: appointment.appointmentId,
+                                );
+                              },
+                            );
+                          }).toList(),
+                        ),
+                      ),
               ),
-            ),
           ],
         ),
       ),
     );
   }
-}
 
-final List<DoctorAppointment> appointments = [
-  DoctorAppointment(
-    patientName: 'Ravi Kumar',
-    initials: 'RK',
-    appointmentType: 'General Checkup',
-    age: 34,
-    date: 'Today',
-    time: '09:00 AM',
-    status: AppointmentStatus.pending,
-  ),
+  String _getInitials(String name) {
+    final parts = name.trim().split(RegExp(r'\s+'));
 
-  DoctorAppointment(
-    patientName: 'Anjali Sharma',
-    initials: 'AS',
-    appointmentType: 'Follow-up',
-    age: 28,
-    date: 'Today',
-    time: '11:00 AM',
-    status: AppointmentStatus.confirmed,
-  ),
+    if (parts.isEmpty || parts.first.isEmpty) {
+      return '';
+    }
 
-  DoctorAppointment(
-    patientName: 'Rahul Reddy',
-    initials: 'RR',
-    appointmentType: 'Dental Consultation',
-    age: 41,
-    date: 'Today',
-    time: '03:00 PM',
-    status: AppointmentStatus.completed,
-  ),
+    if (parts.length == 1) {
+      return parts.first[0].toUpperCase();
+    }
 
-  DoctorAppointment(
-    patientName: 'Priya Singh',
-    initials: 'PS',
-    appointmentType: 'General Checkup',
-    age: 31,
-    date: 'Tomorrow',
-    time: '10:00 AM',
-    status: AppointmentStatus.confirmed,
-  ),
+    return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+  }
 
-  DoctorAppointment(
-    patientName: 'Kiran Rao',
-    initials: 'KR',
-    appointmentType: 'Follow-up',
-    age: 45,
-    date: 'Tomorrow',
-    time: '02:00 PM',
-    status: AppointmentStatus.pending,
-  ),
+  String _formatDate(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}/'
+        '${date.month.toString().padLeft(2, '0')}/'
+        '${date.year}';
+  }
 
-  DoctorAppointment(
-    patientName: 'Sneha Reddy',
-    initials: 'SR',
-    appointmentType: 'Consultation',
-    age: 26,
-    date: 'Sep 12',
-    time: '04:00 PM',
-    status: AppointmentStatus.confirmed,
-  ),
-];
+  String _formatTime(DateTime date) {
+    final hour = date.hour;
+    final minute = date.minute;
 
-class DoctorAppointment {
-  final String patientName;
-  final String initials;
-  final String appointmentType;
-  final int age;
-  final String date;
-  final String time;
-  final AppointmentStatus status;
+    final period = hour >= 12 ? 'PM' : 'AM';
 
-  DoctorAppointment({
-    required this.patientName,
-    required this.initials,
-    required this.appointmentType,
-    required this.age,
-    required this.date,
-    required this.time,
-    required this.status,
-  });
+    final displayHour = hour % 12 == 0 ? 12 : hour % 12;
+
+    return '$displayHour:${minute.toString().padLeft(2, '0')} $period';
+  }
 }

@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/core/widgets/app_card.dart';
+import 'package:frontend/core/widgets/app_snackbar.dart';
 import 'package:frontend/core/widgets/app_text_field.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
+import 'package:frontend/features/prescription/data/models/create_prescription_request.dart';
 import 'package:frontend/features/prescription/data/models/medicine_frequency.dart';
+import 'package:frontend/features/prescription/data/models/prescription_item_request.dart';
+import 'package:frontend/features/prescription/providers/prescription_provider.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class MedicineData {
@@ -20,15 +27,18 @@ class MedicineData {
   }
 }
 
-class WritePrescriptionScreen extends StatefulWidget {
-  const WritePrescriptionScreen({super.key});
+class WritePrescriptionScreen extends ConsumerStatefulWidget {
+  final String appointmentId;
+
+  const WritePrescriptionScreen({super.key, required this.appointmentId});
 
   @override
-  State<WritePrescriptionScreen> createState() =>
+  ConsumerState<WritePrescriptionScreen> createState() =>
       _WritePrescriptionScreenState();
 }
 
-class _WritePrescriptionScreenState extends State<WritePrescriptionScreen> {
+class _WritePrescriptionScreenState
+    extends ConsumerState<WritePrescriptionScreen> {
   final List<MedicineData> medicines = [MedicineData()];
 
   final TextEditingController doctorNotesController = TextEditingController();
@@ -149,7 +159,7 @@ class _WritePrescriptionScreenState extends State<WritePrescriptionScreen> {
                   // Submit button
                   PrimaryButton.primary(
                     text: "Submit Prescription",
-                    onPressed: () {},
+                    onPressed: _submitPrescription,
                   ),
 
                   const SizedBox(height: 12),
@@ -301,8 +311,12 @@ class _WritePrescriptionScreenState extends State<WritePrescriptionScreen> {
 
           _dropdownRow(
             title: "Frequency",
-            value: null,
-            onChanged: (MedicineFrequency? value) {},
+            value: medicine.frequency,
+            onChanged: (MedicineFrequency? value) {
+              setState(() {
+                medicine.frequency = value;
+              });
+            },
           ),
 
           const SizedBox(height: 8),
@@ -357,6 +371,77 @@ class _WritePrescriptionScreenState extends State<WritePrescriptionScreen> {
         ),
       ],
     );
+  }
+
+  Future<void> _submitPrescription() async {
+    // Validate medicines
+    if (medicines.isEmpty) {
+      AppSnackBar.error(context, "Please add at least one medicine");
+      return;
+    }
+
+    for (final medicine in medicines) {
+      if (medicine.medicineNameController.text.trim().isEmpty) {
+        AppSnackBar.error(context, "Please enter medicine name");
+        return;
+      }
+
+      if (medicine.dosageController.text.trim().isEmpty) {
+        AppSnackBar.error(context, "Please enter dosage");
+        return;
+      }
+
+      if (medicine.durationController.text.trim().isEmpty) {
+        AppSnackBar.error(context, "Please enter duration");
+        return;
+      }
+
+      if (medicine.frequency == null) {
+        AppSnackBar.error(context, "Please select medicine frequency");
+        return;
+      }
+
+      if (int.tryParse(medicine.durationController.text.trim()) == null) {
+        AppSnackBar.error(context, "Duration must be a valid number");
+        return;
+      }
+    }
+
+    try {
+      final request = CreatePrescriptionRequest(
+        appointmentId: widget.appointmentId,
+        notes: doctorNotesController.text.trim().isEmpty
+            ? null
+            : doctorNotesController.text.trim(),
+        items: medicines.map((medicine) {
+          return PrescriptionItemRequest(
+            medicineName: medicine.medicineNameController.text.trim(),
+            dosage: medicine.dosageController.text.trim(),
+            durationDays: int.parse(medicine.durationController.text.trim()),
+            frequency: medicine.frequency!,
+            instructions: medicine.instructionsController.text.trim().isEmpty
+                ? null
+                : medicine.instructionsController.text.trim(),
+          );
+        }).toList(),
+      );
+
+      await ref.read(prescriptionProvider.notifier).createPrescription(request);
+
+      if (!mounted) return;
+
+      AppSnackBar.success(context, "Prescription created successfully");
+
+      context.pop();
+    } on ApiException catch (e) {
+      if (!mounted) return;
+
+      AppSnackBar.error(context, e.message);
+    } catch (e) {
+      if (!mounted) return;
+
+      AppSnackBar.error(context, "Failed to create prescription");
+    }
   }
 
   @override

@@ -67,4 +67,108 @@ class AppointmentRepository {
       throw ApiException(message: "Something went wrong");
     }
   }
+
+  Future<ApiResponse<List<AppointmentResponse>>> getDoctorAppointments(
+    String doctorId,
+  ) async {
+    try {
+      final response = await apiClient.get(
+        ApiConstants.getAppointmentsByDoctorId(doctorId),
+      );
+
+      return ApiResponse.fromJson(
+        response.data,
+        (data) => (data as List)
+            .map((e) => AppointmentResponse.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
+    } on DioException catch (e) {
+      if (e.response?.data != null) {
+        final data = e.response!.data;
+
+        throw ApiException(message: data['message'] ?? "Something went wrong");
+      }
+      if (e.error is ApiException) {
+        throw e.error as ApiException;
+      }
+
+      throw ApiException(message: "Something went wrong");
+    }
+  }
+
+  Future<ApiResponse<List<AppointmentResponse>>> getAllAppointments() async {
+    try {
+      final response = await apiClient.get(ApiConstants.getAllAppointments);
+
+      return ApiResponse.fromJson(
+        response.data,
+        (data) => (data as List)
+            .map((e) => AppointmentResponse.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
+    } on DioException catch (e) {
+      if (e.response?.data != null) {
+        final data = e.response!.data;
+
+        throw ApiException(message: data['message'] ?? "Something went wrong");
+      }
+      if (e.error is ApiException) {
+        throw e.error as ApiException;
+      }
+
+      throw ApiException(message: "Something went wrong");
+    }
+  }
+
+  Future<ApiResponse<AppointmentResponse>> getByAppointmentId(
+    String appointmentId,
+  ) async {
+    try {
+      final response = await apiClient.get(
+        ApiConstants.getAppointmentsById(appointmentId),
+      );
+
+      return ApiResponse.fromJson(
+        response.data,
+        (data) => AppointmentResponse.fromJson(data as Map<String, dynamic>),
+      );
+    } on DioException catch (e) {
+      if (e.response?.data != null) {
+        final data = e.response!.data;
+
+        throw ApiException(message: data['message'] ?? "Something went wrong");
+      }
+      if (e.error is ApiException) {
+        throw e.error as ApiException;
+      }
+
+      throw ApiException(message: "Something went wrong");
+    }
+  }
+
+  Future<ApiResponse<AppointmentResponse>> updateAppointmentStatus(
+    String appointmentId,
+  ) async {
+    try {
+      final response = await apiClient.patch(
+        ApiConstants.updateAppointmentStatus(appointmentId),
+      );
+
+      return ApiResponse.fromJson(
+        response.data,
+        (data) => AppointmentResponse.fromJson(data as Map<String, dynamic>),
+      );
+    } on DioException catch (e) {
+      if (e.response?.data != null) {
+        final data = e.response!.data;
+
+        throw ApiException(message: data['message'] ?? "Something went wrong");
+      }
+      if (e.error is ApiException) {
+        throw e.error as ApiException;
+      }
+
+      throw ApiException(message: "Something went wrong");
+    }
+  }
 }

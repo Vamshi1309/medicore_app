@@ -6,7 +6,7 @@ import 'package:frontend/features/appointment/data/repo/appointment_repository.d
 import 'package:frontend/features/patient/dashboard/presentation/state/appointment_state.dart';
 import 'package:frontend/features/appointment/providers/appointment_repo_provider.dart';
 
-class PatientAppointmentNotifier
+class AppointmentNotifier
     extends AsyncNotifier<List<AppointmentResponse>> {
   late AppointmentRepository appointmentRepository;
 
@@ -15,18 +15,14 @@ class PatientAppointmentNotifier
   @override
   Future<List<AppointmentResponse>> build() async {
     appointmentRepository = ref.read(appointmentRepoProvider);
-    final patientId = ref.read(authProvider).user!.id;
 
-    final response = await appointmentRepository.getPatientAppointments(
-      patientId,
-    );
-
-    if (!response.success || response.data == null) {
-      throw ApiException(message: response.message);
-    }
-
-    return response.data!;
+    // Do not automatically call patient/doctor API here.
+    return [];
   }
+
+  // ============================================================
+  // CREATE APPOINTMENT
+  // ============================================================
 
   Future<AppointmentResponse> createAppointment(
     AppointmentBookingState booking,
@@ -54,10 +50,122 @@ class PatientAppointmentNotifier
       isCreatingAppointment = false;
     }
   }
+
+  // ============================================================
+  // GET ALL APPOINTMENTS
+  // ============================================================
+
+  Future<List<AppointmentResponse>> getAllAppointments() async {
+    final response = await appointmentRepository.getAllAppointments();
+
+    if (!response.success || response.data == null) {
+      throw ApiException(message: response.message);
+    }
+
+    final appointments = response.data!;
+
+    state = AsyncData(appointments);
+
+    return appointments;
+  }
+
+  // ============================================================
+  // GET PATIENT APPOINTMENTS
+  // ============================================================
+
+  Future<List<AppointmentResponse>> getAppointmentsByPatientId() async {
+    final patientId = ref.read(authProvider).user!.id;
+
+    final response = await appointmentRepository.getPatientAppointments(
+      patientId,
+    );
+
+    if (!response.success || response.data == null) {
+      throw ApiException(message: response.message);
+    }
+
+    final appointments = response.data!;
+
+    state = AsyncData(appointments);
+
+    return appointments;
+  }
+
+  // ============================================================
+  // GET DOCTOR APPOINTMENTS
+  // ============================================================
+
+  Future<List<AppointmentResponse>> getAppointmentsByDoctorId() async {
+    final doctorId = ref.read(authProvider).user!.id;
+
+    final response = await appointmentRepository.getDoctorAppointments(
+      doctorId,
+    );
+
+    if (!response.success || response.data == null) {
+      throw ApiException(message: response.message);
+    }
+
+    final appointments = response.data!;
+
+    state = AsyncData(appointments);
+
+    return appointments;
+  }
+
+  // ============================================================
+  // GET APPOINTMENT BY ID
+  // ============================================================
+
+  Future<AppointmentResponse> getAppointmentByAppointmentId(
+    String appointmentId,
+  ) async {
+    final response = await appointmentRepository.getByAppointmentId(
+      appointmentId,
+    );
+
+    if (!response.success || response.data == null) {
+      throw ApiException(message: response.message);
+    }
+
+    return response.data!;
+  }
+
+  // ============================================================
+  // UPDATE APPOINTMENT STATUS
+  // ============================================================
+
+  Future<AppointmentResponse> updateAppointmentStatus(
+    String appointmentId,
+  ) async {
+    final response = await appointmentRepository.updateAppointmentStatus(
+      appointmentId,
+    );
+
+    if (!response.success || response.data == null) {
+      throw ApiException(message: response.message);
+    }
+
+    final updatedAppointment = response.data!;
+
+    final currentAppointments = state.value ?? [];
+
+    final updatedList = currentAppointments.map((appointment) {
+      if (appointment.appointmentId == appointmentId) {
+        return updatedAppointment;
+      }
+
+      return appointment;
+    }).toList();
+
+    state = AsyncData(updatedList);
+
+    return updatedAppointment;
+  }
 }
 
-final patientAppointmentsProvider =
+final appointmentsProvider =
     AsyncNotifierProvider<
-      PatientAppointmentNotifier,
+      AppointmentNotifier,
       List<AppointmentResponse>
-    >(PatientAppointmentNotifier.new);
+    >(AppointmentNotifier.new);

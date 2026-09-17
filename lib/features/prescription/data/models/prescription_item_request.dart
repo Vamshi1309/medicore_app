@@ -1,14 +1,14 @@
 import 'package:frontend/features/prescription/data/models/medicine_frequency.dart';
 
 class PrescriptionItemRequest {
-  final String medicineId;
+  final String medicineName;
   final String dosage;
   final int durationDays;
   final MedicineFrequency frequency;
   final String? instructions;
 
   PrescriptionItemRequest({
-    required this.medicineId,
+    required this.medicineName,
     required this.dosage,
     required this.durationDays,
     required this.frequency,
@@ -17,7 +17,7 @@ class PrescriptionItemRequest {
 
   Map<String, dynamic> toJson() {
     return {
-      'medicineId': medicineId,
+      'medicineName': medicineName,
       'dosage': dosage,
       'durationDays': durationDays,
       'frequency': frequency.apiValue,

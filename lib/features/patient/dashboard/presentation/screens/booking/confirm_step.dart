@@ -32,7 +32,7 @@ class _ConfirmStepState extends ConsumerState<ConfirmStep> {
   @override
   initState() {
     super.initState();
-    ref.listenManual(patientAppointmentsProvider, (prev, next) {
+    ref.listenManual(appointmentsProvider, (prev, next) {
       if (next.error != null) {
         AppSnackBar.error(context, next.error.toString());
       }
@@ -43,7 +43,7 @@ class _ConfirmStepState extends ConsumerState<ConfirmStep> {
   Widget build(BuildContext context) {
     final doctorsAsync = ref.watch(getAllDoctorsProvider);
     final bookingState = ref.watch(appointmentBookingProvider);
-    final appointmentAsync = ref.read(patientAppointmentsProvider.notifier);
+    final appointmentAsync = ref.read(appointmentsProvider.notifier);
 
     if (uiState == ConfirmBookingUiState.success) {
       return _SuccessView(appointment: appointment!);

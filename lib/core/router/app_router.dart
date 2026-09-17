@@ -123,7 +123,11 @@ class AppRouter {
           routes: [
             GoRoute(
               path: 'write-prescription',
-              builder: (_, _) => const WritePrescriptionScreen(),
+              builder: (context, state) {
+                final appointmentId = state.extra as String;
+
+                return WritePrescriptionScreen(appointmentId: appointmentId);
+              },
             ),
           ],
         ),

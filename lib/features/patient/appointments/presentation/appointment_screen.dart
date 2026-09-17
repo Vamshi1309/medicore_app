@@ -25,7 +25,7 @@ class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
   void initState() {
     super.initState();
 
-    ref.listenManual(patientAppointmentsProvider, (previous, next) {
+    ref.listenManual(appointmentsProvider, (previous, next) {
       next.whenOrNull(
         error: (error, _) {
           final message = error is ApiException
@@ -74,7 +74,7 @@ class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final appointmentsAsync = ref.watch(patientAppointmentsProvider);
+    final appointmentsAsync = ref.watch(appointmentsProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
@@ -112,7 +112,7 @@ class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
                   ),
                 ],
 
-                error: (_, __) => const [
+                error: (_, _) => const [
                   StatCard(
                     count: Text(
                       "0",
@@ -218,7 +218,7 @@ class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
               child: appointmentsAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
 
-                error: (_, __) =>
+                error: (_, _) =>
                     const Center(child: Text("Failed to load appointments")),
 
                 data: (appointments) {

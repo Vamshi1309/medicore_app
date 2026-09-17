@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/core/constants/app_sizes.dart';
 import 'package:frontend/core/router/app_routes.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
@@ -20,7 +19,7 @@ class DoctorProfileScreen extends ConsumerStatefulWidget {
 class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(authProvider).user;
+    //final user = ref.watch(authProvider).user;
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.grey.shade200,

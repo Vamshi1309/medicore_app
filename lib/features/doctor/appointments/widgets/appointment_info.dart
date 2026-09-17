@@ -5,6 +5,7 @@ class AppointmentInfo extends StatelessWidget {
   final String value;
 
   const AppointmentInfo({
+    super.key, 
     required this.title,
     required this.value,
   });
