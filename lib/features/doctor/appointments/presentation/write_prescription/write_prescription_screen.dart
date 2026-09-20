@@ -37,8 +37,15 @@ class MedicineData {
 
 class WritePrescriptionScreen extends ConsumerStatefulWidget {
   final String appointmentId;
+  final String patientName;
+  final String initials;
 
-  const WritePrescriptionScreen({super.key, required this.appointmentId});
+  const WritePrescriptionScreen({
+    super.key,
+    required this.appointmentId,
+    required this.patientName,
+    required this.initials,
+  });
 
   @override
   ConsumerState<WritePrescriptionScreen> createState() =>
@@ -88,7 +95,7 @@ class _WritePrescriptionScreenState
 
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: _patientCard(),
+                    child: _patientCard(widget.patientName, widget.initials),
                   ),
 
                   const SizedBox(height: 10),
@@ -197,15 +204,15 @@ class _WritePrescriptionScreenState
     );
   }
 
-  Widget _patientCard() {
+  Widget _patientCard(String patientName, String initials) {
     return AppCard(
       child: Row(
         children: [
-          const CircleAvatar(
+          CircleAvatar(
             radius: 25,
             backgroundColor: Colors.blue,
             child: Text(
-              "VD",
+              initials,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -216,9 +223,9 @@ class _WritePrescriptionScreenState
           const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
+            children: [
               Text(
-                "Uday Kummar",
+                patientName,
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
               ),
               SizedBox(height: 3),

@@ -124,9 +124,17 @@ class AppRouter {
             GoRoute(
               path: 'write-prescription',
               builder: (context, state) {
-                final appointmentId = state.extra as String;
+                final extra = state.extra as Map<String, String>;
 
-                return WritePrescriptionScreen(appointmentId: appointmentId);
+                final appointmentId = extra['appointmentId']!;
+                final patientName = extra['name']!;
+                final initials = extra['initials']!;
+
+                return WritePrescriptionScreen(
+                  appointmentId: appointmentId,
+                  patientName: patientName,
+                  initials: initials,
+                );
               },
             ),
           ],

@@ -211,7 +211,13 @@ class _DoctorAppointmentScreenState
                               onPrescribe: () {
                                 context.push(
                                   AppRoutes.writePrescription,
-                                  extra: appointment.appointmentId,
+                                  extra: {
+                                    'appointmentId': appointment.appointmentId,
+                                    'name': appointment.patientName,
+                                    'initials': _getInitials(
+                                      appointment.patientName,
+                                    ),
+                                  },
                                 );
                               },
                             );
