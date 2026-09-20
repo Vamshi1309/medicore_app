@@ -5,6 +5,7 @@ import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/core/network/api_response.dart';
 import 'package:frontend/features/prescription/data/models/create_prescription_request.dart';
 import 'package:frontend/features/prescription/data/models/prescription_response.dart';
+import 'package:frontend/features/prescription/data/models/update_prescription_request.dart';
 
 class PrescriptionRepository {
   final ApiClient apiClient;
@@ -68,6 +69,62 @@ class PrescriptionRepository {
       final response = await apiClient.post(
         ApiConstants.createPrescription,
         data: req.toJson(),
+      );
+
+      return ApiResponse.fromJson(
+        response.data,
+        (data) => PrescriptionResponse.fromJson(data as Map<String, dynamic>),
+      );
+    } on DioException catch (e) {
+      if (e.response?.data != null) {
+        final data = e.response!.data;
+
+        throw ApiException(message: data['message'] ?? "Something went wrong");
+      }
+
+      if (e.error is ApiException) {
+        throw e.error as ApiException;
+      }
+
+      throw ApiException(message: "Something went wrong");
+    }
+  }
+
+  Future<ApiResponse<PrescriptionResponse>> updatePrescription(
+    UpdatePrescriptionRequest req,
+    String prescriptionId,
+  ) async {
+    try {
+      final response = await apiClient.put(
+        ApiConstants.updatePrescription(prescriptionId),
+        data: req.toJson(),
+      );
+
+      return ApiResponse.fromJson(
+        response.data,
+        (data) => PrescriptionResponse.fromJson(data as Map<String, dynamic>),
+      );
+    } on DioException catch (e) {
+      if (e.response?.data != null) {
+        final data = e.response!.data;
+
+        throw ApiException(message: data['message'] ?? "Something went wrong");
+      }
+
+      if (e.error is ApiException) {
+        throw e.error as ApiException;
+      }
+
+      throw ApiException(message: "Something went wrong");
+    }
+  }
+
+  Future<ApiResponse<PrescriptionResponse>> getPrescriptionByAppointmentId(
+    String appointmentId,
+  ) async {
+    try {
+      final response = await apiClient.get(
+        ApiConstants.getPrescriptionByAppointmentId(appointmentId),
       );
 
       return ApiResponse.fromJson(

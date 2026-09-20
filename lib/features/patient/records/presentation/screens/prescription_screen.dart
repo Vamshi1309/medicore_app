@@ -24,6 +24,10 @@ class _PrescriptionsScreenState extends ConsumerState<PrescriptionsScreen> {
   void initState() {
     super.initState();
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.invalidate(prescriptionProvider);
+    });
+
     ref.listenManual(prescriptionProvider, (prev, next) {
       next.whenOrNull(
         error: (error, _) {
@@ -52,11 +56,13 @@ class _PrescriptionsScreenState extends ConsumerState<PrescriptionsScreen> {
 
       data: (prescriptions) {
         if (prescriptions.isEmpty) {
-          return const Center(child: EmptyState(
-            icon: LucideIcons.fileX, 
-            title: "No prescriptions available", 
-            subtitle: "Your prescriptions will appear here.")
-            );
+          return const Center(
+            child: EmptyState(
+              icon: LucideIcons.fileX,
+              title: "No prescriptions available",
+              subtitle: "Your prescriptions will appear here.",
+            ),
+          );
         }
 
         return ListView(

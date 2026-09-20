@@ -6,8 +6,7 @@ import 'package:frontend/features/appointment/data/repo/appointment_repository.d
 import 'package:frontend/features/patient/dashboard/presentation/state/appointment_state.dart';
 import 'package:frontend/features/appointment/providers/appointment_repo_provider.dart';
 
-class AppointmentNotifier
-    extends AsyncNotifier<List<AppointmentResponse>> {
+class AppointmentNotifier extends AsyncNotifier<List<AppointmentResponse>> {
   late AppointmentRepository appointmentRepository;
 
   bool isCreatingAppointment = false;
@@ -16,8 +15,21 @@ class AppointmentNotifier
   Future<List<AppointmentResponse>> build() async {
     appointmentRepository = ref.read(appointmentRepoProvider);
 
-    // Do not automatically call patient/doctor API here.
-    return [];
+    final patientId = ref.read(authProvider).user!.id;
+
+    final response = await appointmentRepository.getPatientAppointments(
+      patientId,
+    );
+
+    if (!response.success || response.data == null) {
+      throw ApiException(message: response.message);
+    }
+
+    final appointments = response.data!;
+
+    state = AsyncData(appointments);
+
+    return appointments;
   }
 
   // ============================================================
@@ -57,28 +69,6 @@ class AppointmentNotifier
 
   Future<List<AppointmentResponse>> getAllAppointments() async {
     final response = await appointmentRepository.getAllAppointments();
-
-    if (!response.success || response.data == null) {
-      throw ApiException(message: response.message);
-    }
-
-    final appointments = response.data!;
-
-    state = AsyncData(appointments);
-
-    return appointments;
-  }
-
-  // ============================================================
-  // GET PATIENT APPOINTMENTS
-  // ============================================================
-
-  Future<List<AppointmentResponse>> getAppointmentsByPatientId() async {
-    final patientId = ref.read(authProvider).user!.id;
-
-    final response = await appointmentRepository.getPatientAppointments(
-      patientId,
-    );
 
     if (!response.success || response.data == null) {
       throw ApiException(message: response.message);
@@ -165,7 +155,6 @@ class AppointmentNotifier
 }
 
 final appointmentsProvider =
-    AsyncNotifierProvider<
-      AppointmentNotifier,
-      List<AppointmentResponse>
-    >(AppointmentNotifier.new);
+    AsyncNotifierProvider<AppointmentNotifier, List<AppointmentResponse>>(
+      AppointmentNotifier.new,
+    );

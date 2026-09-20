@@ -11,7 +11,7 @@ class PrescriptionResponse {
   final String patientId;
   final String patientName;
 
-  final String notes;
+  final String? notes;
 
   final List<PrescriptionItemResponse> items;
 

@@ -33,6 +33,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.invalidate(prescriptionProvider);
+    });
+
     ref.listenManual(authProvider, (prev, next) {
       if (next.error != null) {
         AppSnackBar.error(context, next.error!);

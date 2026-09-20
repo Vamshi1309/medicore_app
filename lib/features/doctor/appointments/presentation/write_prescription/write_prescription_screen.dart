@@ -5,22 +5,30 @@ import 'package:frontend/core/widgets/app_card.dart';
 import 'package:frontend/core/widgets/app_snackbar.dart';
 import 'package:frontend/core/widgets/app_text_field.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
+import 'package:frontend/features/inventory/data/models/medicine_response.dart';
+import 'package:frontend/features/inventory/providers/inventory_provider.dart';
 import 'package:frontend/features/prescription/data/models/create_prescription_request.dart';
 import 'package:frontend/features/prescription/data/models/medicine_frequency.dart';
 import 'package:frontend/features/prescription/data/models/prescription_item_request.dart';
+import 'package:frontend/features/prescription/data/models/prescription_response.dart';
+import 'package:frontend/features/prescription/data/models/update_prescription_request.dart';
 import 'package:frontend/features/prescription/providers/prescription_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class MedicineData {
-  final TextEditingController medicineNameController = TextEditingController();
+  String? medicineId;
+  String medicineName = '';
+
   final TextEditingController dosageController = TextEditingController();
+
   MedicineFrequency? frequency;
+
   final TextEditingController durationController = TextEditingController();
+
   final TextEditingController instructionsController = TextEditingController();
 
   void dispose() {
-    medicineNameController.dispose();
     dosageController.dispose();
     durationController.dispose();
     instructionsController.dispose();
@@ -43,6 +51,23 @@ class _WritePrescriptionScreenState
 
   final TextEditingController doctorNotesController = TextEditingController();
 
+  String? prescriptionId;
+
+  bool isLoadingPrescription = true;
+  bool isLoadingMedicines = true;
+
+  List<MedicineResponse> medicinesList = [];
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadPrescription();
+      _loadMedicinesList();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,101 +79,63 @@ class _WritePrescriptionScreenState
         backgroundColor: Colors.blue,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-
       body: SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: 10),
-
-            // Patient information
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: _patientCard(),
-            ),
-
-            const SizedBox(height: 10),
-
-            // Medicines heading
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: isLoadingPrescription
+            ? const Center(child: CircularProgressIndicator())
+            : Column(
                 children: [
-                  const Text(
-                    "Medicines",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                  const SizedBox(height: 10),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: _patientCard(),
                   ),
 
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        medicines.add(MedicineData());
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Row(
-                        children: [
-                          Icon(LucideIcons.plus, color: Colors.white, size: 15),
-                          SizedBox(width: 3),
-                          Text(
-                            "Add Medicines",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                  const SizedBox(height: 10),
 
-            const SizedBox(height: 10),
-
-            // Everything below is scrollable
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                children: [
-                  // Medicine cards
-                  ...List.generate(
-                    medicines.length,
-                    (index) => Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: _addMedicineCard(
-                        index: index,
-                        medicine: medicines[index],
-                      ),
-                    ),
-                  ),
-
-                  // Doctor Notes
-                  AppCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          "Doctor Notes",
+                          "Medicines",
                           style: TextStyle(
-                            fontWeight: FontWeight.w900,
-                            fontSize: 14,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
 
-                        const SizedBox(height: 10),
-
-                        AppTextField(
-                          controller: doctorNotesController,
-                          maxLines: 4,
-                          hintText:
-                              "Additional instruction, diet, follow up....",
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              medicines.add(MedicineData());
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.blue,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(
+                                  LucideIcons.plus,
+                                  color: Colors.white,
+                                  size: 15,
+                                ),
+                                SizedBox(width: 3),
+                                Text(
+                                  "Add Medicines",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -156,18 +143,56 @@ class _WritePrescriptionScreenState
 
                   const SizedBox(height: 10),
 
-                  // Submit button
-                  PrimaryButton.primary(
-                    text: "Submit Prescription",
-                    onPressed: _submitPrescription,
-                  ),
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      children: [
+                        ...List.generate(
+                          medicines.length,
+                          (index) => Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: _addMedicineCard(
+                              index: index,
+                              medicine: medicines[index],
+                            ),
+                          ),
+                        ),
 
-                  const SizedBox(height: 12),
+                        AppCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                "Doctor Notes",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              AppTextField(
+                                controller: doctorNotesController,
+                                maxLines: 4,
+                                hintText:
+                                    "Additional instruction, diet, follow up....",
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        PrimaryButton.primary(
+                          text: "Submit Prescription",
+                          onPressed: _submitPrescription,
+                        ),
+
+                        const SizedBox(height: 12),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -188,9 +213,7 @@ class _WritePrescriptionScreenState
               ),
             ),
           ),
-
           const SizedBox(width: 12),
-
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: const [
@@ -219,9 +242,7 @@ class _WritePrescriptionScreenState
           title,
           style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
         ),
-
         const SizedBox(height: 5),
-
         SizedBox(
           height: 40,
           child: DropdownButtonFormField<MedicineFrequency>(
@@ -244,7 +265,10 @@ class _WritePrescriptionScreenState
                 value: frequency,
                 child: Text(
                   frequency.name,
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.normal,
+                  ),
                 ),
               );
             }).toList(),
@@ -278,8 +302,8 @@ class _WritePrescriptionScreenState
                 IconButton(
                   onPressed: () {
                     setState(() {
-                      medicines[index].dispose();
-                      medicines.removeAt(index);
+                      medicine.dispose();
+                      medicines.remove(medicine);
                     });
                   },
                   icon: const Icon(
@@ -293,11 +317,7 @@ class _WritePrescriptionScreenState
 
           const SizedBox(height: 8),
 
-          _editTextRow(
-            title: 'Medicine Name',
-            controller: medicine.medicineNameController,
-            hintText: 'e.g., Paracetamol',
-          ),
+          _medicineAutocomplete(medicine: medicine),
 
           const SizedBox(height: 8),
 
@@ -324,7 +344,8 @@ class _WritePrescriptionScreenState
           _editTextRow(
             title: 'Duration',
             controller: medicine.durationController,
-            hintText: 'e.g., 5 days',
+            hintText: 'e.g., 5',
+            keyboardType: TextInputType.number,
           ),
 
           const SizedBox(height: 8),
@@ -336,6 +357,147 @@ class _WritePrescriptionScreenState
           ),
         ],
       ),
+    );
+  }
+
+  Widget _medicineAutocomplete({required MedicineData medicine}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Medicine Name",
+          style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+        ),
+
+        const SizedBox(height: 5),
+
+        Autocomplete<MedicineResponse>(
+          key: ObjectKey(medicine),
+
+          displayStringForOption: (medicine) {
+            return medicine.medicineName;
+          },
+
+          initialValue: TextEditingValue(text: medicine.medicineName),
+
+          optionsBuilder: (TextEditingValue textEditingValue) {
+            final query = textEditingValue.text.trim().toLowerCase();
+
+            if (query.isEmpty) {
+              return medicinesList;
+            }
+
+            return medicinesList.where((medicine) {
+              return medicine.medicineName.toLowerCase().contains(query);
+            });
+          },
+
+          onSelected: (MedicineResponse selectedMedicine) {
+            setState(() {
+              medicine.medicineId = selectedMedicine.id;
+              medicine.medicineName = selectedMedicine.medicineName;
+            });
+          },
+
+          fieldViewBuilder:
+              (
+                BuildContext context,
+                TextEditingController controller,
+                FocusNode focusNode,
+                VoidCallback onFieldSubmitted,
+              ) {
+                return TextField(
+                  controller: controller,
+                  focusNode: focusNode,
+
+                  decoration: InputDecoration(
+                    hintText: "Type medicine name",
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+
+                  onChanged: (value) {
+                    /*
+               * Store the current text.
+               */
+                    medicine.medicineName = value;
+
+                    /*
+               * If the doctor changes the text after
+               * selecting a medicine, the previous ID
+               * should no longer be trusted.
+               */
+                    final selectedMedicine = medicinesList
+                        .where(
+                          (item) =>
+                              item.id == medicine.medicineId &&
+                              item.medicineName == value,
+                        )
+                        .firstOrNull;
+
+                    if (selectedMedicine == null) {
+                      medicine.medicineId = null;
+                    }
+                  },
+                );
+              },
+
+          optionsViewBuilder:
+              (
+                BuildContext context,
+                AutocompleteOnSelected<MedicineResponse> onSelected,
+                Iterable<MedicineResponse> options,
+              ) {
+                return Align(
+                  alignment: Alignment.topLeft,
+                  child: Material(
+                    elevation: 4,
+                    borderRadius: BorderRadius.circular(8),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxHeight: 250,
+                        maxWidth: 500,
+                      ),
+                      child: ListView.builder(
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        itemCount: options.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          final medicine = options.elementAt(index);
+
+                          return ListTile(
+                            dense: true,
+
+                            title: Text(
+                              medicine.medicineName,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+
+                            subtitle: Text(
+                              "Available: ${medicine.quantity} ${medicine.unit}",
+                              style: const TextStyle(fontSize: 11),
+                            ),
+
+                            onTap: () {
+                              onSelected(medicine);
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                );
+              },
+        ),
+      ],
     );
   }
 
@@ -355,9 +517,7 @@ class _WritePrescriptionScreenState
           title,
           style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
         ),
-
         const SizedBox(height: 5),
-
         SizedBox(
           height: 40,
           child: AppTextField(
@@ -373,16 +533,142 @@ class _WritePrescriptionScreenState
     );
   }
 
+  Future<void> _loadMedicinesList() async {
+    try {
+      final medicines = await ref
+          .read(inventoryNotifierProvider.notifier)
+          .getAllMedicines();
+
+      if (!mounted) return;
+
+      setState(() {
+        medicinesList = medicines;
+        isLoadingMedicines = false;
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        isLoadingMedicines = false;
+      });
+
+      AppSnackBar.error(context, e.message);
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        isLoadingMedicines = false;
+      });
+
+      AppSnackBar.error(context, "Failed to load medicines");
+    }
+  }
+
+  Future<void> _loadPrescription() async {
+    try {
+      final prescription = await ref
+          .read(prescriptionProvider.notifier)
+          .getPrescriptionByAppointmentId(widget.appointmentId);
+
+      if (!mounted) return;
+
+      prescriptionId = prescription.prescriptionId;
+
+      _loadPrescriptionIntoForm(prescription);
+
+      setState(() {
+        isLoadingPrescription = false;
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+
+      if (e.statusCode == 404) {
+        setState(() {
+          prescriptionId = null;
+          isLoadingPrescription = false;
+        });
+
+        return;
+      }
+
+      setState(() {
+        isLoadingPrescription = false;
+      });
+
+      AppSnackBar.error(context, e.message);
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        isLoadingPrescription = false;
+      });
+
+      AppSnackBar.error(context, "Failed to load prescription");
+    }
+  }
+
+  void _loadPrescriptionIntoForm(PrescriptionResponse prescription) {
+    doctorNotesController.text = prescription.notes ?? '';
+
+    /*
+     * Dispose the initially-created empty medicine
+     * before replacing the list.
+     */
+    for (final medicine in medicines) {
+      medicine.dispose();
+    }
+
+    medicines.clear();
+
+    for (final item in prescription.items) {
+      final medicine = MedicineData();
+
+      /*
+       * IMPORTANT:
+       *
+       * The prescription response already contains
+       * medicineId AND medicineName.
+       *
+       * So we don't need to search the inventory list
+       * to find the ID.
+       */
+      medicine.medicineId = item.medicineId;
+      medicine.medicineName = item.medicineName ?? '';
+
+      medicine.dosageController.text = item.dosage;
+
+      medicine.durationController.text = item.durationInDays.toString();
+
+      medicine.instructionsController.text = item.instructions ?? '';
+
+      medicine.frequency = item.frequency;
+
+      medicines.add(medicine);
+    }
+
+    if (medicines.isEmpty) {
+      medicines.add(MedicineData());
+    }
+  }
+
   Future<void> _submitPrescription() async {
-    // Validate medicines
     if (medicines.isEmpty) {
       AppSnackBar.error(context, "Please add at least one medicine");
       return;
     }
 
+    /*
+     * Validate every medicine before making
+     * the API request.
+     */
     for (final medicine in medicines) {
-      if (medicine.medicineNameController.text.trim().isEmpty) {
-        AppSnackBar.error(context, "Please enter medicine name");
+      if (medicine.medicineId == null) {
+        AppSnackBar.error(context, "Please select a medicine from the list");
+        return;
+      }
+
+      if (medicine.medicineName.trim().isEmpty) {
+        AppSnackBar.error(context, "Please select medicine name");
         return;
       }
 
@@ -408,29 +694,56 @@ class _WritePrescriptionScreenState
     }
 
     try {
-      final request = CreatePrescriptionRequest(
-        appointmentId: widget.appointmentId,
-        notes: doctorNotesController.text.trim().isEmpty
-            ? null
-            : doctorNotesController.text.trim(),
-        items: medicines.map((medicine) {
-          return PrescriptionItemRequest(
-            medicineName: medicine.medicineNameController.text.trim(),
-            dosage: medicine.dosageController.text.trim(),
-            durationDays: int.parse(medicine.durationController.text.trim()),
-            frequency: medicine.frequency!,
-            instructions: medicine.instructionsController.text.trim().isEmpty
-                ? null
-                : medicine.instructionsController.text.trim(),
-          );
-        }).toList(),
-      );
+      final items = medicines.map((medicine) {
+        return PrescriptionItemRequest(
+          /*
+           * Backend now expects medicineId.
+           */
+          medicineId: medicine.medicineId!,
 
-      await ref.read(prescriptionProvider.notifier).createPrescription(request);
+          dosage: medicine.dosageController.text.trim(),
+
+          durationDays: int.parse(medicine.durationController.text.trim()),
+
+          frequency: medicine.frequency!,
+
+          instructions: medicine.instructionsController.text.trim().isEmpty
+              ? null
+              : medicine.instructionsController.text.trim(),
+        );
+      }).toList();
+
+      final notes = doctorNotesController.text.trim().isEmpty
+          ? null
+          : doctorNotesController.text.trim();
+
+      final notifier = ref.read(prescriptionProvider.notifier);
+
+      if (prescriptionId == null) {
+        // CREATE
+        final request = CreatePrescriptionRequest(
+          appointmentId: widget.appointmentId,
+          notes: notes,
+          items: items,
+        );
+
+        await notifier.createPrescription(request);
+
+        if (!mounted) return;
+
+        AppSnackBar.success(context, "Prescription created successfully");
+      } else {
+        // UPDATE
+        final request = UpdatePrescriptionRequest(notes: notes, items: items);
+
+        await notifier.updatePrescription(request, prescriptionId!);
+
+        if (!mounted) return;
+
+        AppSnackBar.success(context, "Prescription updated successfully");
+      }
 
       if (!mounted) return;
-
-      AppSnackBar.success(context, "Prescription created successfully");
 
       context.pop();
     } on ApiException catch (e) {
@@ -440,7 +753,12 @@ class _WritePrescriptionScreenState
     } catch (e) {
       if (!mounted) return;
 
-      AppSnackBar.error(context, "Failed to create prescription");
+      AppSnackBar.error(
+        context,
+        prescriptionId == null
+            ? "Failed to create prescription"
+            : "Failed to update prescription",
+      );
     }
   }
 

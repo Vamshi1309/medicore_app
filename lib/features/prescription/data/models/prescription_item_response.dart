@@ -2,36 +2,36 @@ import 'package:frontend/features/prescription/data/models/medicine_frequency.da
 
 class PrescriptionItemResponse {
   final String itemId;
-  final String medicineId;
-  final String medicineName;
+  final String? medicineId;
+  final String? medicineName;
+  final String? instructions;
   final String dosage;
   final int durationInDays;
   final MedicineFrequency frequency;
-  final String instructions;
 
   const PrescriptionItemResponse({
     required this.itemId,
-    required this.medicineId,
-    required this.medicineName,
+    this.medicineId,
+    this.medicineName,
     required this.dosage,
     required this.durationInDays,
     required this.frequency,
-    required this.instructions,
+    this.instructions,
   });
 
   factory PrescriptionItemResponse.fromJson(Map<String, dynamic> json) {
-    return PrescriptionItemResponse(
-      itemId: json['itemId'] as String,
-      medicineId: json['medicineId'] as String,
-      medicineName: json['medicineName'] as String,
-      dosage: json['dosage'] as String,
-      durationInDays: json['durationInDays'] as int,
-      frequency: MedicineFrequencyExtension.fromApiValue(
-        json['frequency'] as String,
-      ),
-      instructions: json['instructions'] ?? '',
-    );
-  }
+  return PrescriptionItemResponse(
+    itemId: json['itemId'] as String,
+    medicineId: json['medicineId'] as String?,
+    medicineName: json['medicineName'] as String?,
+    dosage: json['dosage'] as String,
+    durationInDays: json['durationInDays'] as int,
+    frequency: MedicineFrequencyExtension.fromApiValue(
+      json['frequency'] as String,
+    ),
+    instructions: json['instructions'] as String?,
+  );
+}
 
   Map<String, dynamic> toJson() {
     return {
