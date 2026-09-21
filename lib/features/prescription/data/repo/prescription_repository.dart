@@ -160,14 +160,20 @@ class PrescriptionRepository {
       if (e.response?.data != null) {
         final data = e.response!.data;
 
-        throw ApiException(message: data['message'] ?? "Something went wrong");
+        throw ApiException(
+          message: data['message'] ?? "Something went wrong",
+          statusCode: e.response?.statusCode,
+        );
       }
 
       if (e.error is ApiException) {
         throw e.error as ApiException;
       }
 
-      throw ApiException(message: "Something went wrong");
+      throw ApiException(
+        message: "Something went wrong",
+        statusCode: e.response?.statusCode,
+      );
     }
   }
 }

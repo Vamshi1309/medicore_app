@@ -53,19 +53,14 @@ class PrescriptionNotifier extends AsyncNotifier<List<PrescriptionResponse>> {
   Future<PrescriptionResponse> getPrescriptionByAppointmentId(
     String appointmentId,
   ) async {
-    try {
-      final response = await prescriptionRepository
-          .getPrescriptionByAppointmentId(appointmentId);
+    final response = await prescriptionRepository
+        .getPrescriptionByAppointmentId(appointmentId);
 
-      if (!response.success || response.data == null) {
-        throw ApiException(message: response.message);
-      }
-
-      return response.data!;
-    } catch (error, stackTrace) {
-      state = AsyncError(error, stackTrace);
-      rethrow;
+    if (!response.success || response.data == null) {
+      throw ApiException(message: response.message);
     }
+
+    return response.data!;
   }
 
   Future<List<int>> downloadPrescriptionPdf(String prescriptionId) async {
