@@ -27,61 +27,106 @@ class PrescriptionNotifier extends AsyncNotifier<List<PrescriptionResponse>> {
     return response.data!;
   }
 
+  Future<List<PrescriptionResponse>> getPrescriptionByDoctorId() async {
+    try {
+      final doctorId = ref.read(authProvider).user!.id;
+
+      final response = await prescriptionRepository.getPrescriptionsByDoctorId(
+        doctorId,
+      );
+
+      if (!response.success || response.data == null) {
+        throw ApiException(message: response.message);
+      }
+
+      final prescriptions = response.data!;
+
+      state = AsyncData(prescriptions);
+
+      return prescriptions;
+    } catch (error, stackTrace) {
+      state = AsyncError(error, stackTrace);
+      rethrow;
+    }
+  }
+
   Future<PrescriptionResponse> getPrescriptionByAppointmentId(
     String appointmentId,
   ) async {
-    final response = await prescriptionRepository
-        .getPrescriptionByAppointmentId(appointmentId);
+    try {
+      final response = await prescriptionRepository
+          .getPrescriptionByAppointmentId(appointmentId);
 
-    if (!response.success || response.data == null) {
-      throw ApiException(message: response.message);
+      if (!response.success || response.data == null) {
+        throw ApiException(message: response.message);
+      }
+
+      return response.data!;
+    } catch (error, stackTrace) {
+      state = AsyncError(error, stackTrace);
+      rethrow;
     }
-
-    return response.data!;
   }
 
   Future<List<int>> downloadPrescriptionPdf(String prescriptionId) async {
-    return prescriptionRepository.downloadPrescriptionPdf(prescriptionId);
+    try {
+      return await prescriptionRepository.downloadPrescriptionPdf(
+        prescriptionId,
+      );
+    } catch (error, stackTrace) {
+      state = AsyncError(error, stackTrace);
+      rethrow;
+    }
   }
 
   Future<PrescriptionResponse> createPrescription(
     CreatePrescriptionRequest req,
   ) async {
-    final response = await prescriptionRepository.createPrescription(req);
+    try {
+      final response = await prescriptionRepository.createPrescription(req);
 
-    if (!response.success || response.data == null) {
-      throw ApiException(message: response.message);
+      if (!response.success || response.data == null) {
+        throw ApiException(message: response.message);
+      }
+
+      return response.data!;
+    } catch (error, stackTrace) {
+      state = AsyncError(error, stackTrace);
+      rethrow;
     }
-
-    return response.data!;
   }
 
   Future<PrescriptionResponse> updatePrescription(
     UpdatePrescriptionRequest req,
     String prescriptionId,
   ) async {
-    final response = await prescriptionRepository.updatePrescription(
-      req,
-      prescriptionId,
-    );
+    try {
+      final response = await prescriptionRepository.updatePrescription(
+        req,
+        prescriptionId,
+      );
 
-    if (!response.success || response.data == null) {
-      throw ApiException(message: response.message);
+      if (!response.success || response.data == null) {
+        throw ApiException(message: response.message);
+      }
+
+      final updatedPrescription = response.data!;
+
+      state = AsyncData(
+        (state.value ?? []).map((prescription) {
+          if (prescription.prescriptionId == prescriptionId) {
+            return updatedPrescription;
+          }
+
+          return prescription;
+        }).toList(),
+      );
+
+      return updatedPrescription;
+    } catch (error, stackTrace) {
+      state = AsyncError(error, stackTrace);
+      rethrow;
     }
-
-    final updatedPrescription = response.data!;
-
-    state = AsyncData(
-      (state.value ?? []).map((prescription) {
-        if (prescription.prescriptionId == prescriptionId) {
-          return updatedPrescription;
-        }
-
-        return prescription;
-      }).toList(),
-    );
-
-    return updatedPrescription;
   }
 }
 

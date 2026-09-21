@@ -37,6 +37,31 @@ class PrescriptionRepository {
     }
   }
 
+  Future<ApiResponse<List<PrescriptionResponse>>> getPrescriptionsByDoctorId(
+    String doctorId,
+  ) async {
+    try {
+      final response = await apiClient.get(
+        ApiConstants.getPrescriptionsByDoctorId(doctorId),
+      );
+
+      return ApiResponse.fromJson(
+        response.data,
+        (data) => (data as List)
+            .map(
+              (e) => PrescriptionResponse.fromJson(e as Map<String, dynamic>),
+            )
+            .toList(),
+      );
+    } on DioException catch (e) {
+      if (e.error is ApiException) {
+        throw e.error as ApiException;
+      }
+
+      throw ApiException(message: "Something went wrong");
+    }
+  }
+
   Future<List<int>> downloadPrescriptionPdf(String prescriptionId) async {
     try {
       final response = await apiClient.get<List<int>>(

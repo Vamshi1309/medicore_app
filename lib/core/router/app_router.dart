@@ -140,16 +140,12 @@ class AppRouter {
           ],
         ),
         GoRoute(
-          path: AppRoutes.doctorPatients,
+          path: AppRoutes.doctorPrescriptions,
           builder: (_, _) => const DoctorShell(initialIndex: 2),
         ),
         GoRoute(
-          path: AppRoutes.doctorPrescriptions,
-          builder: (_, _) => const DoctorShell(initialIndex: 3),
-        ),
-        GoRoute(
           path: AppRoutes.doctorProfile,
-          builder: (_, _) => const DoctorShell(initialIndex: 4),
+          builder: (_, _) => const DoctorShell(initialIndex: 3),
         ),
 
         GoRoute(

@@ -38,6 +38,8 @@ class ApiConstants {
   static String createPrescription = "/prescriptions";
   static String getPrescriptionsByPatientId(String patiendId) =>
       "/prescriptions/patient/$patiendId";
+  static String getPrescriptionsByDoctorId(String doctorId) =>
+      "/prescriptions/doctor/$doctorId";
   static String downloadPrescription(String prescriptionId) =>
       "/prescriptions/$prescriptionId/download";
   static String getPrescriptionByAppointmentId(String appointmentId) =>

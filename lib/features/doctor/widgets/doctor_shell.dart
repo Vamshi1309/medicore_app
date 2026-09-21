@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/core/router/app_routes.dart';
 import 'package:frontend/features/doctor/appointments/presentation/doctor_appointment_screen.dart';
 import 'package:frontend/features/doctor/dashboard/presentation/doctor_dashboard.dart';
-import 'package:frontend/features/doctor/patients/presentation/doctor_patient_screen.dart';
-import 'package:frontend/features/doctor/prescriptions/presentation/doctors_appointments_screen.dart';
+import 'package:frontend/features/doctor/prescriptions/presentation/doctors_prescriptions_screen.dart';
 import 'package:frontend/features/doctor/profile/presentation/doctor_profile_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -21,7 +20,6 @@ class DoctorShell extends StatelessWidget {
   static const List<String> _routes = [
     AppRoutes.doctorHome,
     AppRoutes.doctorAppointments,
-    AppRoutes.doctorPatients,
     AppRoutes.doctorPrescriptions,
     AppRoutes.doctorProfile,
   ];
@@ -30,8 +28,7 @@ class DoctorShell extends StatelessWidget {
   static const List<Widget> _tabs = [
     DoctorDashboard(),
     DoctorAppointmentScreen(),
-    DoctorPatientScreen(),
-    DoctorsAppointmentsScreen(),
+    DoctorsPrescriptionScreen(),
     DoctorProfileScreen(),
   ];
 
@@ -58,11 +55,6 @@ class DoctorShell extends StatelessWidget {
             icon: Icon(LucideIcons.calendar, color: Colors.grey),
             selectedIcon: Icon(LucideIcons.calendar, color: Colors.blue),
             label: 'Appointments',
-          ),
-          NavigationDestination(
-            icon: Icon(LucideIcons.users, color: Colors.grey),
-            selectedIcon: Icon(LucideIcons.users, color: Colors.blue),
-            label: 'Patients',
           ),
           NavigationDestination(
             icon: Icon(LucideIcons.fileText, color: Colors.grey),
