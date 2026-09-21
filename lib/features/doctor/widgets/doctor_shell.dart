@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/core/router/app_routes.dart';
 import 'package:frontend/features/doctor/appointments/presentation/doctor_appointment_screen.dart';
 import 'package:frontend/features/doctor/dashboard/presentation/doctor_dashboard.dart';
-import 'package:frontend/features/doctor/prescriptions/presentation/doctors_prescriptions_screen.dart';
+import 'package:frontend/features/doctor/prescriptions/presentation/doctor_prescriptions_screen.dart';
 import 'package:frontend/features/doctor/profile/presentation/doctor_profile_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';

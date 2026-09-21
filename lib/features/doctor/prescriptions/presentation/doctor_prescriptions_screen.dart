@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/network/api_exception.dart';
@@ -6,6 +8,8 @@ import 'package:frontend/core/widgets/error_state.dart';
 import 'package:frontend/features/doctor/prescriptions/widgets/doctor_prescription_card.dart';
 import 'package:frontend/features/doctor/widgets/doctor_header.dart';
 import 'package:frontend/features/prescription/providers/prescription_provider.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 
 class DoctorsPrescriptionScreen extends ConsumerStatefulWidget {
   const DoctorsPrescriptionScreen({super.key});
@@ -17,12 +21,12 @@ class DoctorsPrescriptionScreen extends ConsumerStatefulWidget {
 
 class _DoctorsAppointmentsScreenState
     extends ConsumerState<DoctorsPrescriptionScreen> {
-      int prescriptionCount = 0;
+  int prescriptionCount = 0;
   @override
   void initState() {
     super.initState();
 
-    Future.microtask((){
+    Future.microtask(() {
       ref.read(prescriptionProvider.notifier).getPrescriptionByDoctorId();
     });
 
@@ -90,9 +94,9 @@ class _DoctorsAppointmentsScreenState
                             reason: prescription.notes ?? "",
                             date: _formatDate(prescription.createdAt),
                             medicineCount: prescription.items.length,
-                            onDownload: () {
-                              // Download PDF
-                            },
+                            onDownload: () => downloadAndOpenPrescription(
+                              prescription.prescriptionId,
+                            ),
                           ),
                         );
                       },
@@ -106,6 +110,30 @@ class _DoctorsAppointmentsScreenState
       ),
     );
   }
+
+  Future<void> downloadAndOpenPrescription(String prescriptionId) async {
+    try {
+      final pdfBytes = await ref
+          .read(prescriptionProvider.notifier)
+          .downloadPrescriptionPdf(prescriptionId);
+
+      final directory = await getTemporaryDirectory();
+
+      final file = File('${directory.path}/prescription_$prescriptionId.pdf');
+
+      await file.writeAsBytes(pdfBytes);
+
+      await OpenFilex.open(file.path);
+    } catch (e) {
+      if (!mounted) return;
+
+      final message = e is ApiException
+          ? e.message
+          : "Failed to open prescription";
+
+      AppSnackBar.error(context, message);
+    }
+  }
 }
 
 String _formatDate(DateTime date) {
@@ -113,4 +141,3 @@ String _formatDate(DateTime date) {
       '${date.month.toString().padLeft(2, '0')}/'
       '${date.year}';
 }
-
