@@ -4,6 +4,7 @@ import 'package:frontend/core/network/api_constants.dart';
 import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/core/network/api_response.dart';
 import 'package:frontend/features/appointment/data/models/appointment_response.dart';
+import 'package:frontend/features/appointment/data/models/update_appointment_status_model.dart';
 import 'package:frontend/features/patient/dashboard/presentation/state/appointment_state.dart';
 
 class AppointmentRepository {
@@ -147,11 +148,13 @@ class AppointmentRepository {
   }
 
   Future<ApiResponse<AppointmentResponse>> updateAppointmentStatus(
-    String appointmentId,
+    UpdateAppointmentStatusRequest req,
+    String appointmentId
   ) async {
     try {
       final response = await apiClient.patch(
         ApiConstants.updateAppointmentStatus(appointmentId),
+        data : req.toJson()
       );
 
       return ApiResponse.fromJson(

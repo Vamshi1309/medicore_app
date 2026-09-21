@@ -6,6 +6,7 @@ import 'package:frontend/core/widgets/app_snackbar.dart';
 import 'package:frontend/core/widgets/empty_state.dart';
 import 'package:frontend/core/widgets/error_state.dart';
 import 'package:frontend/features/appointment/data/models/appointment_response.dart';
+import 'package:frontend/features/appointment/data/models/update_appointment_status_model.dart';
 import 'package:frontend/features/appointment/providers/appointment_provider.dart';
 import 'package:frontend/features/doctor/appointments/widgets/doctor_appointment_card.dart';
 import 'package:frontend/features/doctor/widgets/doctor_header.dart';
@@ -53,31 +54,48 @@ class _DoctorAppointmentScreenState
     List<AppointmentResponse> appointments,
   ) {
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    List<AppointmentResponse> filtered;
 
     switch (selectedOption) {
       case 'today':
-        return appointments.where((appointment) {
+        filtered = appointments.where((appointment) {
           final date = appointment.scheduledAt;
 
-          return date.year == now.year &&
-              date.month == now.month &&
-              date.day == now.day;
+          final appointmentDate = DateTime(date.year, date.month, date.day);
+
+          return appointmentDate == today &&
+              appointment.status != AppointmentStatus.completed;
         }).toList();
+        break;
 
       case 'upcoming':
-        return appointments.where((appointment) {
-          return appointment.scheduledAt.isAfter(now);
+        filtered = appointments.where((appointment) {
+          final date = appointment.scheduledAt;
+
+          final appointmentDate = DateTime(date.year, date.month, date.day);
+
+          return appointmentDate.isAfter(today);
         }).toList();
+        break;
 
       case 'completed':
-        return appointments.where((appointment) {
+        filtered = appointments.where((appointment) {
           return appointment.status == AppointmentStatus.completed;
         }).toList();
+        break;
 
       case 'all':
       default:
-        return appointments;
+        filtered = appointments.toList();
+        break;
     }
+
+    // Sort by appointment date/time
+    filtered.sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+
+    return filtered;
   }
 
   Widget _buildSegment(String value, String label) {
@@ -192,14 +210,10 @@ class _DoctorAppointmentScreenState
 
                               initials: _getInitials(appointment.patientName),
 
-                              // Your AppointmentResponse does not
-                              // contain appointmentType.
                               appointmentType: appointment.notes.isNotEmpty
                                   ? appointment.notes
                                   : "Appointment",
 
-                              // Your AppointmentResponse does not
-                              // contain age.
                               age: 0,
 
                               date: _formatDate(appointment.scheduledAt),
@@ -207,6 +221,42 @@ class _DoctorAppointmentScreenState
                               time: _formatTime(appointment.scheduledAt),
 
                               status: appointment.status,
+
+                              // Is this appointment scheduled for today?
+                              isToday:
+                                  appointment.scheduledAt.year ==
+                                      DateTime.now().year &&
+                                  appointment.scheduledAt.month ==
+                                      DateTime.now().month &&
+                                  appointment.scheduledAt.day ==
+                                      DateTime.now().day,
+
+                              // Has the appointment been completed?
+                              isCompleted:
+                                  appointment.status ==
+                                  AppointmentStatus.completed,
+
+                              onConfirm: () {
+                                ref
+                                    .read(appointmentsProvider.notifier)
+                                    .updateAppointmentStatus(
+                                      UpdateAppointmentStatusRequest(
+                                        status: AppointmentStatus.confirmed,
+                                      ),
+                                      appointment.appointmentId,
+                                    );
+                              },
+
+                              onComplete: () {
+                                ref
+                                    .read(appointmentsProvider.notifier)
+                                    .updateAppointmentStatus(
+                                      UpdateAppointmentStatusRequest(
+                                        status: AppointmentStatus.completed,
+                                      ),
+                                      appointment.appointmentId,
+                                    );
+                              },
 
                               onPrescribe: () {
                                 context.push(

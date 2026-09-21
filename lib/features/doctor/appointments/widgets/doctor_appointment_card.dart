@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/widgets/app_card.dart';
 import 'package:frontend/features/doctor/appointments/widgets/appointment_info.dart';
-
 import 'package:frontend/features/patient/appointments/widgets/appointment_card.dart';
 
 class DoctorAppointmentCard extends StatelessWidget {
@@ -13,6 +12,12 @@ class DoctorAppointmentCard extends StatelessWidget {
   final String time;
 
   final AppointmentStatus status;
+
+  // Whether this appointment is scheduled for today
+  final bool isToday;
+
+  // True when the appointment has been completed
+  final bool isCompleted;
 
   final VoidCallback? onConfirm;
   final VoidCallback? onComplete;
@@ -27,6 +32,8 @@ class DoctorAppointmentCard extends StatelessWidget {
     required this.date,
     required this.time,
     required this.status,
+    required this.isToday,
+    required this.isCompleted,
     this.onConfirm,
     this.onComplete,
     this.onPrescribe,
@@ -73,11 +80,13 @@ class DoctorAppointmentCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        '$appointmentType · Age $age',
+                        appointmentType,
                         style: const TextStyle(
                           fontSize: 11,
                           color: Colors.grey,
                         ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
@@ -118,43 +127,62 @@ class DoctorAppointmentCard extends StatelessWidget {
             // -------------------------
             // Buttons
             // -------------------------
-            Row(
-              children: [
-                // Confirm only for pending appointments
-                if (status == AppointmentStatus.pending) ...[
-                  Expanded(
-                    child: _OutlineButton(
-                      text: 'Confirm',
-                      onPressed: onConfirm,
+            if (!isCompleted)
+              Row(
+                children: [
+                  // -------------------------
+                  // Pending → Confirm
+                  // -------------------------
+                  if (status == AppointmentStatus.pending) ...[
+                    Expanded(
+                      child: _OutlineButton(
+                        text: 'Confirm',
+                        onPressed: onConfirm,
+                      ),
                     ),
-                  ),
 
-                  const SizedBox(width: 6),
+                    // If today, Prescribe will come after Confirm
+                    if (isToday) const SizedBox(width: 6),
+                  ],
+
+                  // -------------------------
+                  // Today + Confirmed → Complete
+                  // -------------------------
+                  if (isToday && status == AppointmentStatus.confirmed) ...[
+                    Expanded(
+                      child: _PrimaryButton(
+                        text: 'Complete',
+                        onPressed: onComplete,
+                      ),
+                    ),
+
+                    const SizedBox(width: 6),
+                  ],
+
+                  // -------------------------
+                  // Today + Pending/Confirmed → Prescribe
+                  // -------------------------
+                  if (isToday &&
+                      (status == AppointmentStatus.pending ||
+                          status == AppointmentStatus.confirmed))
+                    Expanded(
+                      child: _PrescribeButton(
+                        text: 'Prescribe',
+                        onPressed: onPrescribe,
+                      ),
+                    ),
                 ],
-
-                Expanded(
-                  child: _PrimaryButton(
-                    text: 'Complete',
-                    onPressed: onComplete,
-                  ),
-                ),
-
-                const SizedBox(width: 6),
-
-                Expanded(
-                  child: _PrescribeButton(
-                    text: 'Prescribe',
-                    onPressed: onPrescribe,
-                  ),
-                ),
-              ],
-            ),
+              ),
           ],
         ),
       ),
     );
   }
 }
+
+// ============================================================
+// Primary Button
+// ============================================================
 
 class _PrimaryButton extends StatelessWidget {
   final String text;
@@ -173,6 +201,7 @@ class _PrimaryButton extends StatelessWidget {
             if (states.contains(WidgetState.disabled)) {
               return Colors.blue;
             }
+
             return Colors.blue;
           }),
           foregroundColor: WidgetStateProperty.all(Colors.white),
@@ -190,6 +219,10 @@ class _PrimaryButton extends StatelessWidget {
     );
   }
 }
+
+// ============================================================
+// Status Badge
+// ============================================================
 
 class _StatusBadge extends StatelessWidget {
   final AppointmentStatus status;
@@ -215,6 +248,10 @@ class _StatusBadge extends StatelessWidget {
     );
   }
 }
+
+// ============================================================
+// Outline Button
+// ============================================================
 
 class _OutlineButton extends StatelessWidget {
   final String text;
@@ -247,6 +284,10 @@ class _OutlineButton extends StatelessWidget {
     );
   }
 }
+
+// ============================================================
+// Prescribe Button
+// ============================================================
 
 class _PrescribeButton extends StatelessWidget {
   final String text;
