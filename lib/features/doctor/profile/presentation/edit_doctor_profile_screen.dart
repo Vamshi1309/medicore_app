@@ -24,6 +24,8 @@ class _EditDoctorProfileScreenState
   final _specializationController = TextEditingController();
   final _qualificationController = TextEditingController();
   final _experienceController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneNumberController = TextEditingController();
 
   @override
   void initState() {
@@ -37,6 +39,8 @@ class _EditDoctorProfileScreenState
           _specializationController.text = data.specialization;
           _qualificationController.text = data.qualification;
           _experienceController.text = data.experienceInYears.toString();
+          _emailController.text = data.email;
+          _phoneNumberController.text = data.phoneNumber;
         },
         loading: () {},
         error: (error, stackTrace) {
@@ -117,6 +121,19 @@ class _EditDoctorProfileScreenState
                       _editTextRow(
                         title: "Experience",
                         controller: _experienceController,
+                        keyboardType: TextInputType.number,
+                      ),
+
+                      const SizedBox(height: 8),
+                      _editTextRow(
+                        title: "Email",
+                        controller: _emailController,
+                      ),
+
+                      const SizedBox(height: 8),
+                      _editTextRow(
+                        title: "Phone Number",
+                        controller: _phoneNumberController,
                         keyboardType: TextInputType.number,
                       ),
                     ],
@@ -207,9 +224,12 @@ class _EditDoctorProfileScreenState
 
   Future<void> _saveChanges() async {
     final req = UpdateDoctorProfileReq(
+      name: _fullNameController.text,
       specialization: _specializationController.text,
       qualification: _qualificationController.text,
       experienceInYears: int.parse(_experienceController.text),
+      phoneNumber: _phoneNumberController.text,
+      email: _emailController.text,
     );
 
     await ref.read(doctorProfileProvider.notifier).updateMyProfile(req);

@@ -22,6 +22,7 @@ class DoctorProfileScreen extends ConsumerStatefulWidget {
 class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
   late String name;
   late String role;
+  late String doctorId;
 
   @override
   void initState() {
@@ -45,6 +46,7 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
 
     name = user!.name;
     role = user.role.name;
+    doctorId = user.staffId ?? "";
   }
 
   @override
@@ -78,6 +80,7 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                         icon: LucideIcons.briefcaseMedical,
                         title: 'Medical Details',
                         rows: [
+                          InfoRowData(label: 'Doctor ID', value: doctorId),
                           // From authProvider
                           InfoRowData(
                             label: 'Specialization',
@@ -92,6 +95,11 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                           InfoRowData(
                             label: 'Experince',
                             value: '${data.experienceInYears} years',
+                          ),
+                          InfoRowData(label: 'Email', value: data.email),
+                          InfoRowData(
+                            label: 'Phone Number',
+                            value: data.phoneNumber,
                           ),
                         ],
                       );

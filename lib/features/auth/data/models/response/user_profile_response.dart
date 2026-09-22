@@ -4,12 +4,14 @@ import 'package:frontend/shared/enums/user_role.dart';
 class UserProfileResponse {
   final String id;
   final String name;
+  final String staffId;
   final String phoneNumber;
   final String role;
 
   const UserProfileResponse({
     required this.id,
     required this.name,
+    required this.staffId,
     required this.phoneNumber,
     required this.role,
   });
@@ -20,6 +22,7 @@ class UserProfileResponse {
       name: json['name'],
       phoneNumber: json['phoneNumber'],
       role: json['role'],
+      staffId: json['staffId'],
     );
   }
 
@@ -28,6 +31,7 @@ class UserProfileResponse {
       id: id,
       name: name,
       phoneNumber: phoneNumber,
+      staffId: staffId,
       role: UserRole.values.firstWhere(
         (role) => role.name.toUpperCase() == this.role,
       ),
