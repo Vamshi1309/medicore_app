@@ -5,6 +5,8 @@ import 'package:frontend/core/widgets/app_card.dart';
 import 'package:frontend/core/widgets/app_snackbar.dart';
 import 'package:frontend/core/widgets/app_text_field.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
+import 'package:frontend/features/doctor/profile/data/models/update_doctor_profile_req.dart';
+import 'package:frontend/features/doctor/profile/providers/doctor_profile_provider.dart';
 import 'package:frontend/features/widgets/profile/profile_header.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -22,21 +24,26 @@ class _EditDoctorProfileScreenState
   final _specializationController = TextEditingController();
   final _qualificationController = TextEditingController();
   final _experienceController = TextEditingController();
-  final _hospitalController = TextEditingController();
-  final _emailController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
 
-    final user = ref.read(authProvider).user;
+    _loadProfileData();
 
-    _fullNameController.text = user?.name ?? '';
-    _emailController.text = "doctor@gmail.com";
-    _specializationController.text = "Cardiologist";
-    _qualificationController.text = "MBBS, MD";
-    _experienceController.text = "12 Years";
-    _hospitalController.text = "Lilavathi Hospitals";
+    ref.listenManual(doctorProfileProvider, (previous, next) {
+      next.when(
+        data: (data) {
+          _specializationController.text = data.specialization;
+          _qualificationController.text = data.qualification;
+          _experienceController.text = data.experienceInYears.toString();
+        },
+        loading: () {},
+        error: (error, stackTrace) {
+          AppSnackBar.error(context, error.toString());
+        },
+      );
+    }, fireImmediately: true);
   }
 
   @override
@@ -45,9 +52,12 @@ class _EditDoctorProfileScreenState
     _specializationController.dispose();
     _qualificationController.dispose();
     _experienceController.dispose();
-    _hospitalController.dispose();
-    _emailController.dispose();
     super.dispose();
+  }
+
+  void _loadProfileData() {
+    final user = ref.watch(authProvider).user;
+    _fullNameController.text = user!.name;
   }
 
   @override
@@ -108,21 +118,6 @@ class _EditDoctorProfileScreenState
                         title: "Experience",
                         controller: _experienceController,
                         keyboardType: TextInputType.number,
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      _editTextRow(
-                        title: "Hospital",
-                        controller: _hospitalController,
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      _editTextRow(
-                        title: "Email",
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
                       ),
                     ],
                   ),
@@ -210,8 +205,14 @@ class _EditDoctorProfileScreenState
     );
   }
 
-  void _saveChanges() {
-    AppSnackBar.success(context, "Doctor profile updated successfully");
+  Future<void> _saveChanges() async {
+    final req = UpdateDoctorProfileReq(
+      specialization: _specializationController.text,
+      qualification: _qualificationController.text,
+      experienceInYears: int.parse(_experienceController.text),
+    );
+
+    await ref.read(doctorProfileProvider.notifier).updateMyProfile(req);
 
     ref.read(goRouterProvider).pop();
   }
