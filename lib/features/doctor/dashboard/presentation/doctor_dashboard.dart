@@ -1,12 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/constants/app_sizes.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/widgets/app_snackbar.dart';
+import 'package:frontend/core/widgets/error_state.dart';
+import 'package:frontend/core/widgets/status_badge.dart';
+import 'package:frontend/features/appointment/data/models/appointment_response.dart';
+import 'package:frontend/features/appointment/providers/appointment_provider.dart';
+import 'package:frontend/features/patient/appointments/widgets/appointment_card.dart';
 
-class DoctorDashboard extends StatelessWidget {
+class DoctorDashboard extends ConsumerStatefulWidget {
   const DoctorDashboard({super.key});
 
   @override
+  ConsumerState<DoctorDashboard> createState() => _DoctorDashboardState();
+}
+
+class _DoctorDashboardState extends ConsumerState<DoctorDashboard> {
+  @override
+  void initState() {
+    super.initState();
+
+    ref.listenManual(appointmentsProvider, (prev, next) {
+      next.whenOrNull(
+        error: (err, _) {
+          final message = err.toString();
+          AppSnackBar.error(context, message);
+        },
+      );
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final asyncAppointmentsProvider = ref.watch(appointmentsProvider);
+
     return Scaffold(
       body: Container(
         color: AppColors.background,
@@ -34,7 +62,7 @@ class DoctorDashboard extends StatelessWidget {
 
                       const SizedBox(height: AppSizes.sm),
 
-                      ..._buildTodaySchedule(),
+                      ..._buildTodaySchedule(asyncAppointmentsProvider),
 
                       const SizedBox(height: AppSizes.xxl),
                     ],
@@ -265,9 +293,9 @@ class DoctorDashboard extends StatelessWidget {
                     Text(
                       'General Checkup',
                       style: TextStyle(
-                         fontWeight: FontWeight.w500,
-                        color: Colors.white70
-                        ),
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white70,
+                      ),
                     ),
                   ],
                 ),
@@ -306,11 +334,7 @@ class DoctorDashboard extends StatelessWidget {
             ],
           ),
 
-          Divider(
-            height: 25,
-            color: Colors.white30,
-          ),
-
+          Divider(height: 25, color: Colors.white30),
 
           Row(
             children: [
@@ -401,69 +425,40 @@ class DoctorDashboard extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildTodaySchedule() {
-    final items = [
-      {
-        'initials': 'RK',
-        'name': 'Ravi Kumar',
-        'time': '09:00 AM',
-        'desc': 'General Checkup',
-        'status': 'Confirmed',
-      },
-      {
-        'initials': 'SP',
-        'name': 'Sneha Patel',
-        'time': '10:30 AM',
-        'desc': 'Follow-up',
-        'status': 'Pending',
-      },
-      {
-        'initials': 'AS',
-        'name': 'Arjun Singh',
-        'time': '12:00 PM',
-        'desc': 'Fever & Cold',
-        'status': 'Completed',
-      },
-    ];
+  List<Widget> _buildTodaySchedule(
+    AsyncValue<List<AppointmentResponse>> asyncAppointments,
+  ) {
+    return asyncAppointments.when(
+      loading: () => [const Center(child: CircularProgressIndicator())],
 
-    return items
-        .map(
-          (it) => Padding(
+      error: (error, stackTrace) => [
+        ErrorState(title: "Error", subtitle: error.toString()),
+      ],
+
+      data: (appointments) {
+        return appointments.map((appointment) {
+          return Padding(
             padding: const EdgeInsets.only(bottom: AppSizes.sm),
             child: _scheduleItem(
-              it['initials']!,
-              it['name']!,
-              it['time']!,
-              it['desc']!,
-              it['status']!,
+              initials: _getInitials(appointment.patientName),
+              name: appointment.patientName,
+              time: _getTime(appointment.scheduledAt),
+              desc: appointment.notes,
+              status: appointment.status,
             ),
-          ),
-        )
-        .toList();
+          );
+        }).toList();
+      },
+    );
   }
 
-  Widget _scheduleItem(
-    String initials,
-    String name,
-    String time,
-    String desc,
-    String status,
-  ) {
-    Color statusColor;
-    switch (status) {
-      case 'Confirmed':
-        statusColor = AppColors.confirmed;
-        break;
-      case 'Pending':
-        statusColor = AppColors.pending;
-        break;
-      case 'Completed':
-        statusColor = AppColors.completed;
-        break;
-      default:
-        statusColor = AppColors.grey700;
-    }
-
+  Widget _scheduleItem({
+    required String initials,
+    required String name,
+    required String time,
+    required String desc,
+    required AppointmentStatus status,
+  }) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -480,15 +475,25 @@ class DoctorDashboard extends StatelessWidget {
       child: Row(
         children: [
           _avatarCircleSmall(initials, const Color(0xFF3B82F6)),
+
           const SizedBox(width: AppSizes.md),
+
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  name,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis,
+                ),
+
                 const SizedBox(height: AppSizes.xs),
+
                 Text(
                   '$time · $desc',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: AppColors.grey700,
                     fontSize: 12,
@@ -497,26 +502,42 @@ class DoctorDashboard extends StatelessWidget {
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(
-              vertical: AppSizes.xs,
-              horizontal: AppSizes.sm,
-            ),
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              status,
-              style: TextStyle(
-                color: statusColor,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
+
+          const SizedBox(width: 8),
+
+          // Compact status badge
+          SizedBox(
+            child: StatusBadge(
+              status: status.label,
+              fontSize: 11,
+              backgroundColor: status.backgroundColor,
+              textColor: status.textColor,
+              icon: status.icon,
             ),
           ),
         ],
       ),
     );
+  }
+
+  String _getTime(DateTime date) {
+    final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
+    final minute = date.minute.toString().padLeft(2, '0');
+    final period = date.hour >= 12 ? 'PM' : 'AM';
+
+    return '$hour:$minute $period';
+  }
+
+  String _getInitials(String name) {
+    String ans = "";
+    List<String> names = name.split(" ");
+    if (names.length > 1) {
+      ans += names.elementAt(0)[0];
+      ans += names.elementAt(1)[0];
+    } else {
+      ans += names.elementAt(0)[0];
+    }
+
+    return ans.toUpperCase();
   }
 }

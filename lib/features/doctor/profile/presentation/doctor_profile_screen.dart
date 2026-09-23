@@ -108,18 +108,7 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
 
                   SizedBox(height: 20),
 
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _statCard(title: 'Patients', count: '128'),
-                      const SizedBox(width: 10),
-                      _statCard(title: 'Appointments', count: '342'),
-                      const SizedBox(width: 10),
-                      _statCard(title: 'Prescription', count: '89'),
-                    ],
-                  ),
-
-                  SizedBox(height: 15),
+                  
                   PrimaryButton.primary(
                     text: "Edit Profile",
                     prefixIcon: LucideIcons.edit,
