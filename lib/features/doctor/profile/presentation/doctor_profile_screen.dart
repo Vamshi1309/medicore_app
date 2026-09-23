@@ -20,15 +20,9 @@ class DoctorProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
-  late String name;
-  late String role;
-  late String doctorId;
-
   @override
   void initState() {
     super.initState();
-
-    _loadProfileData();
 
     ref.listenManual(doctorProfileProvider, (prev, next) {
       next.whenOrNull(
@@ -41,17 +35,13 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
     });
   }
 
-  Future<void> _loadProfileData() async {
-    final user = ref.watch(authProvider).user;
-
-    name = user!.name;
-    role = user.role.name;
-    doctorId = user.staffId ?? "";
-  }
-
   @override
   Widget build(BuildContext context) {
     final doctorProfileAsync = ref.watch(doctorProfileProvider);
+    final user = ref.watch(authProvider).user;
+    final name = user?.name ?? "Doctor";
+    final role = user?.role.name ?? "DOCTOR";
+    final doctorId = user?.staffId ?? "";
 
     return SafeArea(
       child: Scaffold(
@@ -108,7 +98,6 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
 
                   SizedBox(height: 20),
 
-                  
                   PrimaryButton.primary(
                     text: "Edit Profile",
                     prefixIcon: LucideIcons.edit,
@@ -125,34 +114,6 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                   ),
                 ],
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _statCard({required String title, required String count}) {
-    return Expanded(
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 15, horizontal: 25),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(15)),
-        ),
-        child: Column(
-          children: [
-            Text(
-              count,
-              style: TextStyle(
-                color: Colors.blue,
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            Text(
-              title,
-              style: TextStyle(color: Colors.grey.shade500, fontSize: 10),
             ),
           ],
         ),

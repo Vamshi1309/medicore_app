@@ -7,6 +7,8 @@ import 'package:frontend/core/widgets/error_state.dart';
 import 'package:frontend/core/widgets/status_badge.dart';
 import 'package:frontend/features/appointment/data/models/appointment_response.dart';
 import 'package:frontend/features/appointment/providers/appointment_provider.dart';
+import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
+import 'package:frontend/features/doctor/profile/providers/doctor_profile_provider.dart';
 import 'package:frontend/features/patient/appointments/widgets/appointment_card.dart';
 
 class DoctorDashboard extends ConsumerStatefulWidget {
@@ -22,6 +24,15 @@ class _DoctorDashboardState extends ConsumerState<DoctorDashboard> {
     super.initState();
 
     ref.listenManual(appointmentsProvider, (prev, next) {
+      next.whenOrNull(
+        error: (err, _) {
+          final message = err.toString();
+          AppSnackBar.error(context, message);
+        },
+      );
+    });
+
+    ref.listenManual(doctorProfileProvider, (prev, next) {
       next.whenOrNull(
         error: (err, _) {
           final message = err.toString();
@@ -84,6 +95,9 @@ class _DoctorDashboardState extends ConsumerState<DoctorDashboard> {
   }
 
   Widget _buildTopHeader(BuildContext context) {
+
+    final user = ref.watch(authProvider).user;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.only(
@@ -125,8 +139,8 @@ class _DoctorDashboardState extends ConsumerState<DoctorDashboard> {
                       style: TextStyle(color: Colors.white70),
                     ),
                     const SizedBox(height: AppSizes.xs),
-                    const Text(
-                      'Dr. Vikram Rao',
+                    Text(
+                      'Dr. ${user?.name ?? "Doctor"}',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 28,
@@ -134,7 +148,7 @@ class _DoctorDashboardState extends ConsumerState<DoctorDashboard> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    _specialtyBadge('CARDIOLOGIST'),
+                    _specialtyBadge(),
                   ],
                 ),
               ),
@@ -184,36 +198,56 @@ class _DoctorDashboardState extends ConsumerState<DoctorDashboard> {
     );
   }
 
-  Widget _specialtyBadge(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(20),
+  Widget _specialtyBadge() {
+    final provider = ref.watch(doctorProfileProvider);
+
+    return provider.when(
+      loading: () => const SizedBox(
+        height: 24,
+        child: Center(
+          child: SizedBox(
+            height: 14,
+            width: 14,
+            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+        ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: const BoxDecoration(
-              color: Color(0xFF34D399),
-              shape: BoxShape.circle,
-            ),
+
+      error: (error, stackTrace) => const SizedBox(),
+
+      data: (profile) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(20),
           ),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.5,
-            ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF34D399),
+                  shape: BoxShape.circle,
+                ),
+              ),
+
+              const SizedBox(width: 6),
+
+              Text(
+                profile.specialization,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

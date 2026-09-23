@@ -60,7 +60,7 @@ class _EditDoctorProfileScreenState
   }
 
   void _loadProfileData() {
-    final user = ref.watch(authProvider).user;
+    final user = ref.read(authProvider).user;
     _fullNameController.text = user!.name;
   }
 
@@ -234,6 +234,15 @@ class _EditDoctorProfileScreenState
 
     await ref.read(doctorProfileProvider.notifier).updateMyProfile(req);
 
-    ref.read(goRouterProvider).pop();
+    ref
+        .read(authProvider.notifier)
+        .updateUserProfile(
+          name: _fullNameController.text,
+          phoneNumber: _phoneNumberController.text,
+        );
+
+    if (mounted) {
+      ref.read(goRouterProvider).pop();
+    }
   }
 }
