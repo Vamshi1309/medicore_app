@@ -19,8 +19,7 @@ class AppRoutes {
   static const doctorPrescriptions = '/doctor-prescriptions';
   static const doctorProfile = '/doctor-profile';
   static const editDoctorProfile = '/doctor-profile/edit';
-  static const writePrescription =
-    '$doctorAppointments/write-prescription';
+  static const writePrescription = '$doctorAppointments/write-prescription';
 
   //create appointment routes
   static const bookAppointment = '/book-appointment';
@@ -28,4 +27,10 @@ class AppRoutes {
   static const String bookAppointmentTime = '$bookAppointment/time';
   static const String bookAppointmentNotes = '$bookAppointment/notes';
   static const String bookAppointmentConfirm = '$bookAppointment/confirm';
+
+  //receptionist routes
+  static const receptionistHome = '/receptionist/home';
+  static const receptionistAppointments = '/receptionist/appointments';
+  static const receptionistBook = '/receptionist/book';
+  static const receptionistProfile = '/receptionist/profile';
 }

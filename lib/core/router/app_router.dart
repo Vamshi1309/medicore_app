@@ -6,12 +6,16 @@ import 'package:frontend/features/auth/presentation/providers/auth_provider.dart
 import 'package:frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:frontend/features/auth/presentation/screens/register_screen.dart';
 import 'package:frontend/features/doctor/appointments/presentation/write_prescription/write_prescription_screen.dart';
-import 'package:frontend/features/doctor/dashboard/presentation/doctor_dashboard.dart';
 import 'package:frontend/features/doctor/profile/presentation/edit_doctor_profile_screen.dart';
 import 'package:frontend/features/doctor/widgets/doctor_shell.dart';
 import 'package:frontend/features/patient/dashboard/presentation/screens/booking/select_doctor_step.dart';
 import 'package:frontend/features/patient/profile/presentation/edit_profile_screen.dart';
 import 'package:frontend/features/patient/widgets/patient_shell.dart';
+import 'package:frontend/features/receptionist/appointments/presentation/receptionist_appointments_screen.dart';
+import 'package:frontend/features/receptionist/book/presentation/receptionist_book_screen.dart';
+import 'package:frontend/features/receptionist/dashboard/presentation/receptionist_dashboard.dart';
+import 'package:frontend/features/receptionist/profile/presentation/receptionist_profile_screen.dart';
+import 'package:frontend/features/receptionist/widgets/receptionist_shell.dart';
 import 'package:frontend/shared/enums/user_role.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/features/patient/dashboard/presentation/screens/booking/booking_shell.dart';
@@ -149,13 +153,56 @@ class AppRouter {
         ),
 
         GoRoute(
-          path: AppRoutes.doctorHome,
-          builder: (_, _) => const DoctorDashboard(),
-        ),
-
-        GoRoute(
           path: AppRoutes.editDoctorProfile,
           builder: (_, _) => const EditDoctorProfileScreen(),
+        ),
+
+        StatefulShellRoute.indexedStack(
+          builder: (context, state, navigationShell) {
+            return ReceptionistShell(navigationShell: navigationShell);
+          },
+          branches: [
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: AppRoutes.receptionistHome,
+                  builder: (context, state) {
+                    return const ReceptionistDashboard();
+                  },
+                ),
+              ],
+            ),
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: AppRoutes.receptionistAppointments,
+                  builder: (context, state) {
+                    return const ReceptionistAppointmentsScreen();
+                  },
+                ),
+              ],
+            ),
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: AppRoutes.receptionistBook,
+                  builder: (context, state) {
+                    return const ReceptionistBookScreen();
+                  },
+                ),
+              ],
+            ),
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: AppRoutes.receptionistProfile,
+                  builder: (context, state) {
+                    return const ReceptionistProfileScreen();
+                  },
+                ),
+              ],
+            ),
+          ],
         ),
       ],
     );
@@ -177,6 +224,9 @@ class AppRouter {
 
       case UserRole.doctor:
         return AppRoutes.doctorHome;
+
+      case UserRole.receptionist:
+        return AppRoutes.receptionistHome;
 
       // case UserRole.admin:
       //   return AppRoutes.adminHome;
