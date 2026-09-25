@@ -6,11 +6,13 @@ class PrimaryButton extends StatelessWidget {
   final String text;
   final bool isTextBold;
   final VoidCallback? onPressed;
+  final Color? foregroundColor;
   final bool isLoading;
   final bool enabled;
   final IconData? prefixIcon;
   final IconData? suffixIcon;
   final Color color;
+  final double? fontSize;
 
   // Internal button type
   final _ButtonType _type;
@@ -20,11 +22,13 @@ class PrimaryButton extends StatelessWidget {
     super.key,
     required this.text,
     required this.onPressed,
+    this.foregroundColor,
     this.isTextBold = true,
     this.isLoading = false,
     this.enabled = true,
     this.prefixIcon,
     this.suffixIcon,
+    this.fontSize,
     this.color = AppColors.primary,
   }) : _type = _ButtonType.primary;
 
@@ -33,11 +37,13 @@ class PrimaryButton extends StatelessWidget {
     super.key,
     required this.text,
     required this.onPressed,
+    this.foregroundColor,
     this.isTextBold = true,
     this.isLoading = false,
     this.enabled = true,
     this.prefixIcon,
     this.suffixIcon,
+    this.fontSize,
     this.color = AppColors.primary,
   }) : _type = _ButtonType.outlined;
 
@@ -47,10 +53,12 @@ class PrimaryButton extends StatelessWidget {
     required this.text,
     required this.onPressed,
     this.isTextBold = true,
+    this.foregroundColor,
     this.isLoading = false,
     this.enabled = true,
     this.prefixIcon,
     this.suffixIcon,
+    this.fontSize,
     this.color = AppColors.primary,
   }) : _type = _ButtonType.outlinedFilled;
 
@@ -78,7 +86,7 @@ class PrimaryButton extends StatelessWidget {
                 text,
                 style: TextStyle(
                   fontWeight: isTextBold ? FontWeight.bold : null,
-                  fontSize: 18,
+                  fontSize: fontSize ?? 18,
                 ),
               ),
 
@@ -95,7 +103,7 @@ class PrimaryButton extends StatelessWidget {
         child: OutlinedButton(
           onPressed: enabled && !isLoading ? onPressed : null,
           style: OutlinedButton.styleFrom(
-            foregroundColor: color,
+            foregroundColor: foregroundColor ?? color,
             side: BorderSide(color: color, width: 1.5),
           ),
           child: child,
@@ -109,7 +117,7 @@ class PrimaryButton extends StatelessWidget {
         child: OutlinedButton(
           onPressed: enabled && !isLoading ? onPressed : null,
           style: OutlinedButton.styleFrom(
-            foregroundColor: color,
+            foregroundColor: foregroundColor ?? color,
             backgroundColor: color.withValues(alpha: 0.08),
             side: BorderSide(color: color.withValues(alpha: 0.3), width: 1),
           ),
@@ -124,7 +132,7 @@ class PrimaryButton extends StatelessWidget {
         onPressed: enabled && !isLoading ? onPressed : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
-          foregroundColor: Colors.white,
+          foregroundColor: foregroundColor ?? Colors.white,
         ),
         child: child,
       ),
