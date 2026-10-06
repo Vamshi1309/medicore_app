@@ -36,8 +36,8 @@ class DioClient {
     dio.interceptors.addAll([
       AuthInterceptor(),
       LoggerInterceptor(),
-      RefreshInterceptor(dio: dio),
       ErrorInterceptor(),
+      RefreshInterceptor(dio: dio),
     ]);
 
     return dio;

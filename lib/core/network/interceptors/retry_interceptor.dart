@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:frontend/core/network/api_constants.dart';
 import 'package:frontend/core/storage/token_manager.dart';
 
@@ -45,6 +46,9 @@ class RefreshInterceptor extends QueuedInterceptor {
 
       return handler.resolve(response);
     } catch (e) {
+
+      await TokenManager.clearTokens();
+
       return handler.next(err);
     }
   }

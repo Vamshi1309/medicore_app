@@ -11,7 +11,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   final controller = StreamController<AuthState>.broadcast();
 
   ref.listen<AuthState>(authProvider, (previous, next) {
-    
     controller.add(next);
   });
 

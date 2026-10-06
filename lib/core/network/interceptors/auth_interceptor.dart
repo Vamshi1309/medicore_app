@@ -11,7 +11,6 @@ class AuthInterceptor extends Interceptor {
     '/api/auth/login/send-otp',
     '/api/auth/register/verify-otp',
     '/api/auth/login/verify-otp',
-
   };
 
   @override
@@ -20,6 +19,11 @@ class AuthInterceptor extends Interceptor {
     RequestInterceptorHandler handler,
   ) async {
     if (publicAuthRoutes.contains(options.path)) {
+      handler.next(options);
+      return;
+    }
+
+    if (options.extra['skipAuth'] == true) {
       handler.next(options);
       return;
     }
