@@ -10,34 +10,42 @@ import 'package:frontend/core/network/interceptors/retry_interceptor.dart';
 class DioClient {
   DioClient._();
 
+  static void Function()? onSessionExpired;
+
   static final Dio dio = _createDio();
 
   static Dio _createDio() {
     final dio = Dio(
       BaseOptions(
         baseUrl: ApiConstants.baseUrl,
-
         connectTimeout: const Duration(seconds: 10),
-
-        validateStatus: (status) {
-          return status != null && status >= 200 && status < 300;
-        },
-
         receiveTimeout: const Duration(seconds: 10),
-
         headers: {'Content-Type': 'application/json'},
+        validateStatus: (s) => s != null && s >= 200 && s < 300,
       ),
     );
 
-    dio.interceptors.add(
-      ConnectivityInterceptor(connectivityService: ConnectivityService()),
+    // Plain Dio: NO interceptors
+    final refreshDio = Dio(
+      BaseOptions(
+        baseUrl: ApiConstants.baseUrl,
+        connectTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 10),
+        headers: {'Content-Type': 'application/json'},
+        validateStatus: (s) => s != null && s >= 200 && s < 300,
+      ),
     );
 
     dio.interceptors.addAll([
+      ConnectivityInterceptor(connectivityService: ConnectivityService()),
       AuthInterceptor(),
+      RefreshInterceptor(
+        dio: dio,
+        refreshDio: refreshDio,
+        onSessionExpired: () => DioClient.onSessionExpired?.call(),
+      ),
+      ErrorInterceptor(),   // must stay after RefreshInterceptor
       LoggerInterceptor(),
-      ErrorInterceptor(),
-      RefreshInterceptor(dio: dio),
     ]);
 
     return dio;

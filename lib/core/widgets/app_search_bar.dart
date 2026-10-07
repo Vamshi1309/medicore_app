@@ -5,6 +5,7 @@ class AppSearchBar extends StatelessWidget {
   final String hintText;
   final ValueChanged<String>? onChanged;
   final VoidCallback? onClear;
+  final bool isFilled;
 
   const AppSearchBar({
     super.key,
@@ -12,6 +13,7 @@ class AppSearchBar extends StatelessWidget {
     this.hintText = 'Search...',
     this.onChanged,
     this.onClear,
+    this.isFilled = false,
   });
 
   @override
@@ -32,7 +34,7 @@ class AppSearchBar extends StatelessWidget {
               )
             : null,
         filled: true,
-        fillColor: Colors.grey.shade100,
+        fillColor: isFilled ? Colors.white : Colors.grey.shade100,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 12,

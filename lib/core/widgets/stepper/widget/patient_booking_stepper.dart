@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:frontend/core/widgets/stepper/model/booking_step.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-class BookingStepper extends StatelessWidget {
+class PatientBookingStepper extends StatelessWidget {
   final int currentStep;
 
-  const BookingStepper({
+  const PatientBookingStepper({
     super.key,
     required this.currentStep,
   });

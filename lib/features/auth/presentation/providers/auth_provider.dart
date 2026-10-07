@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/network/api_exception.dart';
+import 'package:frontend/core/network/dio_client.dart';
 import 'package:frontend/core/storage/token_manager.dart';
 import 'package:frontend/features/auth/data/models/request/patient_login_request.dart';
 import 'package:frontend/features/auth/data/models/request/send_otp_request.dart';
@@ -17,7 +18,14 @@ class AuthNotifier extends Notifier<AuthState> {
   AuthState build() {
     repository = ref.read(authRepositoryProvider);
 
+    DioClient.onSessionExpired = _handleSessionExpired;
+    ref.onDispose(() => DioClient.onSessionExpired = null);
+
     return const AuthState();
+  }
+
+  void _handleSessionExpired() {
+    state = const AuthState(isInitialized: true);
   }
 
   Future<void> patientLogin(PatientLoginRequest req) async {
@@ -82,45 +90,28 @@ class AuthNotifier extends Notifier<AuthState> {
 
   Future<void> logout() async {
     try {
-      state = state.copyWith(isLoading: true, error: null, message: null);
-
       await repository.logout();
-
-      await TokenManager.clearTokens();
-
-      state = state.copyWith(
-        isLoading: false,
-        isAuthenticated: false,
-        user: null,
-        message: 'Logged out successfully',
-      );
-    } on ApiException catch (e) {
-      state = state.copyWith(isLoading: false, error: e.message);
-    } catch (e) {
-      state = state.copyWith(isLoading: false, error: 'Something went wrong');
-    }
+    } catch (_) {}
+    await TokenManager.clearTokens();
+    state = const AuthState(
+      isInitialized: true,
+      message: 'Logged out successfully',
+    );
   }
 
   Future<void> checkAuthentication() async {
-    final accessToken = await TokenManager.getAccessToken();
-
-    if (accessToken == null) {
-      state = state.copyWith(isAuthenticated: false, isInitialized: true);
-      return;
-    }
-
     try {
-      await getMe();
-
+      final refresh = await TokenManager.getRefreshToken();
+      if (refresh == null) {
+        state = const AuthState(isInitialized: true);
+        return;
+      }
+      await getMe().timeout(const Duration(seconds: 20));
+    } catch (_) {
+      // Refresh rejected: the interceptor already reset the state.
+      // Network/server error: tokens are kept.
+    } finally {
       state = state.copyWith(isInitialized: true);
-    } on ApiException {
-      await TokenManager.clearTokens();
-
-      state = state.copyWith(isAuthenticated: false, isInitialized: true);
-    } catch (e) {
-      await TokenManager.clearTokens();
-
-      state = state.copyWith(isAuthenticated: false, isInitialized: true);
     }
   }
 

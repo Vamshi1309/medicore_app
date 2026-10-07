@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/router/app_routes.dart';
 import 'package:frontend/core/theme/app_colors.dart';
-import 'package:frontend/core/widgets/stepper/widget/booking_stepper.dart';
+import 'package:frontend/core/widgets/stepper/widget/patient_booking_stepper.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -79,7 +79,7 @@ class BookingShell extends StatelessWidget {
             height: 70,
             padding: const EdgeInsets.only(left: 18, right: 18, top: 12),
             decoration: const BoxDecoration(color: Colors.white),
-            child: BookingStepper(currentStep: currentStep),
+            child: PatientBookingStepper(currentStep: currentStep),
           ),
           const SizedBox(height: 20),
           Expanded(child: child),
