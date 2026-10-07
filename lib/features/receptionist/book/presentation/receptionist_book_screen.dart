@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/widgets/app_card.dart';
 import 'package:frontend/core/widgets/app_search_bar.dart';
+import 'package:frontend/core/widgets/app_text_field.dart';
+import 'package:frontend/core/widgets/primary_button.dart';
 import 'package:frontend/core/widgets/stepper/widget/receptionist_booking_stepper.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -16,6 +18,19 @@ class _ReceptionistBookScreenState extends State<ReceptionistBookScreen> {
 
   String? selectedPatient;
   String? selectedDoctor;
+
+  final List<String> availableTimes = [
+    '09:00',
+    '09:30',
+    '10:00',
+    '10:30',
+    '11:00',
+    '13:00',
+    '14:00',
+    '15:00',
+  ];
+
+  final TextEditingController dateController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +55,10 @@ class _ReceptionistBookScreenState extends State<ReceptionistBookScreen> {
 
     if (currentStep == 1) {
       return _buildDoctorsList();
+    }
+
+    if (currentStep == 2) {
+      return _buildSelectTimeAndDate();
     }
 
     return const SizedBox();
@@ -103,7 +122,7 @@ class _ReceptionistBookScreenState extends State<ReceptionistBookScreen> {
                     ),
                     Spacer(flex: 4),
                     TextButton(
-                      onPressed: () {  }, 
+                      onPressed: () {},
                       child: Text(
                         "Change",
                         style: TextStyle(
@@ -112,7 +131,7 @@ class _ReceptionistBookScreenState extends State<ReceptionistBookScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      ),
+                    ),
                   ],
                 ),
               ],
@@ -139,6 +158,169 @@ class _ReceptionistBookScreenState extends State<ReceptionistBookScreen> {
           _buildSearchCard(),
           _buildSearchCard(),
           _buildSearchCard(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSelectTimeAndDate() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: 15),
+          AppCard(
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Booking for",
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      "Change doctor",
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 5),
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.blue,
+                      ),
+                      child: Text(
+                        "A",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Patient Name",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          "Dr. Doctor Name - specialization",
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 15),
+          Text(
+            "Date",
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 5),
+          AppTextField(
+            controller: dateController,
+            hintText: "Select a date",
+            readOnly: true,
+            suffixIcon: LucideIcons.calendarDays,
+            onTap: () async {
+              DateTime? pickedDate = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime.now(),
+                lastDate: DateTime(2101),
+              );
+
+              if (pickedDate != null) {
+                String formattedDate =
+                    "${pickedDate.day}-${pickedDate.month}-${pickedDate.year}";
+                setState(() {
+                  dateController.text = formattedDate;
+                });
+              }
+            },
+          ),
+          SizedBox(height: 15),
+          Text(
+            "Time",
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 5),
+          GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              childAspectRatio: 2.2,
+            ),
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: availableTimes.length,
+            itemBuilder: (context, index) {
+              return Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  availableTimes[index],
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              );
+            },
+          ),
+          SizedBox(height: 15),
+          Text(
+            "Notes(Optional)",
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 5),
+          AppTextField(hintText: "Any notes for the doctor", maxLines: 4),
+          SizedBox(height: 15),
+          PrimaryButton.primary(text: "Confirm", onPressed: () {}),
         ],
       ),
     );
