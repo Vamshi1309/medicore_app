@@ -12,6 +12,7 @@ import 'package:frontend/features/patient/dashboard/presentation/screens/booking
 import 'package:frontend/features/patient/profile/presentation/edit_profile_screen.dart';
 import 'package:frontend/features/patient/widgets/patient_shell.dart';
 import 'package:frontend/features/receptionist/appointments/presentation/receptionist_appointments_screen.dart';
+import 'package:frontend/features/receptionist/book/presentation/booking_confirmation_screen.dart';
 import 'package:frontend/features/receptionist/book/presentation/receptionist_book_screen.dart';
 import 'package:frontend/features/receptionist/dashboard/presentation/receptionist_dashboard.dart';
 import 'package:frontend/features/receptionist/profile/presentation/receptionist_profile_screen.dart';
@@ -203,6 +204,21 @@ class AppRouter {
               ],
             ),
           ],
+        ),
+
+        GoRoute(
+          path: AppRoutes.receptionistBookingConfirmation,
+          builder: (context, state) {
+            final extra = state.extra as Map<String, String>;
+
+            return BookingConfirmationScreen(
+              patientName: extra['patientName']!,
+              doctorName: extra['doctorName']!,
+              onBookAnother: () {
+                context.go(AppRoutes.receptionistBook);
+              },
+            );
+          },
         ),
       ],
     );

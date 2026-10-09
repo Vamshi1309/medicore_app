@@ -33,4 +33,6 @@ class AppRoutes {
   static const receptionistAppointments = '/receptionist/appointments';
   static const receptionistBook = '/receptionist/book';
   static const receptionistProfile = '/receptionist/profile';
+  static const String receptionistBookingConfirmation =
+      '/receptionist/booking-confirmation';
 }

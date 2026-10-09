@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/core/router/app_routes.dart';
 import 'package:frontend/core/widgets/app_card.dart';
 import 'package:frontend/core/widgets/app_search_bar.dart';
 import 'package:frontend/core/widgets/app_text_field.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
 import 'package:frontend/core/widgets/stepper/widget/receptionist_booking_stepper.dart';
+import 'package:frontend/features/receptionist/book/presentation/booking_confirmation_screen.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ReceptionistBookScreen extends StatefulWidget {
@@ -15,6 +18,7 @@ class ReceptionistBookScreen extends StatefulWidget {
 
 class _ReceptionistBookScreenState extends State<ReceptionistBookScreen> {
   int currentStep = 0;
+  bool bookingConfirmed = false;
 
   String? selectedPatient;
   String? selectedDoctor;
@@ -34,6 +38,21 @@ class _ReceptionistBookScreenState extends State<ReceptionistBookScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (bookingConfirmed) {
+      return BookingConfirmationScreen(
+        patientName: selectedPatient ?? 'Sarah Mitchell',
+        doctorName: selectedDoctor ?? 'Dr. Rachel Nguyen',
+        onBookAnother: () {
+          setState(() {
+            bookingConfirmed = false;
+            currentStep = 0;
+            selectedPatient = null;
+            selectedDoctor = null;
+            dateController.clear();
+          });
+        },
+      );
+    }
     return SafeArea(
       child: SingleChildScrollView(
         child: Column(
@@ -320,7 +339,18 @@ class _ReceptionistBookScreenState extends State<ReceptionistBookScreen> {
           SizedBox(height: 5),
           AppTextField(hintText: "Any notes for the doctor", maxLines: 4),
           SizedBox(height: 15),
-          PrimaryButton.primary(text: "Confirm", onPressed: () {}),
+          PrimaryButton.primary(
+            text: "Confirm",
+            onPressed: () {
+              context.push(
+                AppRoutes.receptionistBookingConfirmation,
+                extra: {
+                  'patientName': selectedPatient ?? 'Sarah Mitchell',
+                  'doctorName': selectedDoctor ?? 'Dr. Rachel Nguyen',
+                },
+              );
+            },
+          ),
         ],
       ),
     );
