@@ -15,8 +15,8 @@ import 'package:frontend/features/receptionist/appointments/presentation/recepti
 import 'package:frontend/features/receptionist/book/presentation/booking_confirmation_screen.dart';
 import 'package:frontend/features/receptionist/book/presentation/receptionist_book_screen.dart';
 import 'package:frontend/features/receptionist/dashboard/presentation/receptionist_dashboard.dart';
-import 'package:frontend/features/receptionist/profile/presentation/edit_receptionist_profile_screen.dart';
-import 'package:frontend/features/receptionist/profile/presentation/receptionist_profile_screen.dart';
+import 'package:frontend/features/receptionist/profile/presentation/screens/edit_receptionist_profile_screen.dart';
+import 'package:frontend/features/receptionist/profile/presentation/screens/receptionist_profile_screen.dart';
 import 'package:frontend/features/receptionist/widgets/receptionist_shell.dart';
 import 'package:frontend/shared/enums/user_role.dart';
 import 'package:go_router/go_router.dart';

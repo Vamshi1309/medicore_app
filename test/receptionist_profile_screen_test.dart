@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frontend/features/receptionist/profile/presentation/receptionist_profile_screen.dart';
+import 'package:frontend/features/receptionist/profile/presentation/screens/receptionist_profile_screen.dart';
 
 void main() {
   testWidgets('Receptionist profile screen renders the provided profile data', (tester) async {

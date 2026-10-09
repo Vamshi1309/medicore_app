@@ -62,4 +62,7 @@ class ApiConstants {
 
   //Inventory Endpoints
   static String getAllMedicines = "/inventory";
+
+  //Receptionist Endpoints
+  static String receptionistProfile = "/receptionist/profile";
 }
