@@ -6,6 +6,8 @@ class ProfileHeader extends StatelessWidget {
   final String name;
   final String role;
   final bool isEditable;
+  final String? subtitle;
+  final bool showRoleBadge;
   final String? imageUrl;
   final VoidCallback? onProfileImageTap;
   final String? avatarLetter;
@@ -15,6 +17,8 @@ class ProfileHeader extends StatelessWidget {
     required this.name,
     required this.role,
     required this.isEditable,
+    this.subtitle,
+    this.showRoleBadge = true,
     this.onProfileImageTap,
     this.imageUrl,
     this.avatarLetter,
@@ -117,26 +121,47 @@ class ProfileHeader extends StatelessWidget {
                 color: Colors.white,
               ),
             ),
-            const SizedBox(height: AppSizes.sm),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSizes.md,
-                vertical: 4,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                role.toUpperCase(),
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                  letterSpacing: 0.5,
+            if (subtitle != null && subtitle!.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                subtitle!,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.white.withValues(alpha: 0.9),
+                  fontWeight: FontWeight.w400,
                 ),
               ),
-            ),
+            ],
+            const SizedBox(height: AppSizes.sm),
+            if (showRoleBadge)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.md,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  role,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              )
+            else
+              Text(
+                role,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
           ],
         ],
       ),
