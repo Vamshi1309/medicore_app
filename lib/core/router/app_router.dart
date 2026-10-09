@@ -15,6 +15,7 @@ import 'package:frontend/features/receptionist/appointments/presentation/recepti
 import 'package:frontend/features/receptionist/book/presentation/booking_confirmation_screen.dart';
 import 'package:frontend/features/receptionist/book/presentation/receptionist_book_screen.dart';
 import 'package:frontend/features/receptionist/dashboard/presentation/receptionist_dashboard.dart';
+import 'package:frontend/features/receptionist/profile/presentation/edit_receptionist_profile_screen.dart';
 import 'package:frontend/features/receptionist/profile/presentation/receptionist_profile_screen.dart';
 import 'package:frontend/features/receptionist/widgets/receptionist_shell.dart';
 import 'package:frontend/shared/enums/user_role.dart';
@@ -158,6 +159,10 @@ class AppRouter {
           builder: (_, _) => const EditDoctorProfileScreen(),
         ),
 
+        GoRoute(
+          path: AppRoutes.receptionistEditProfile,
+          builder: (context, state) => const EditReceptionistProfileScreen(),
+        ),
         StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) {
             return ReceptionistShell(navigationShell: navigationShell);

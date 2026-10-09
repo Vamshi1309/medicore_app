@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/core/providers/go_router_provider.dart';
+import 'package:frontend/core/router/app_routes.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
 import 'package:frontend/features/widgets/profile/info_section.dart';
 import 'package:frontend/features/widgets/profile/profile_header.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-class ReceptionistProfileScreen extends StatefulWidget {
+class ReceptionistProfileScreen extends ConsumerStatefulWidget {
   const ReceptionistProfileScreen({super.key});
 
   @override
-  State<ReceptionistProfileScreen> createState() =>
+  ConsumerState<ReceptionistProfileScreen> createState() =>
       _ReceptionistProfileScreenState();
 }
 
-class _ReceptionistProfileScreenState extends State<ReceptionistProfileScreen> {
+class _ReceptionistProfileScreenState extends ConsumerState<ReceptionistProfileScreen> {
   bool isEditingShift = false;
   String selectedShift = 'Night Shift';
 
@@ -287,7 +290,9 @@ class _ReceptionistProfileScreenState extends State<ReceptionistProfileScreen> {
                     PrimaryButton.primary(
                       text: 'Edit Profile',
                       prefixIcon: LucideIcons.pencilLine,
-                      onPressed: () {},
+                      onPressed: () {
+                        ref.read(goRouterProvider).push(AppRoutes.receptionistEditProfile);
+                      },
                     ),
                     const SizedBox(height: 12),
                     PrimaryButton.outlinedFilled(
