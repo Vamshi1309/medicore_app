@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/providers/go_router_provider.dart';
+import 'package:frontend/core/widgets/app_snackbar.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
+import 'package:frontend/features/receptionist/profile/data/model/update_receptionist_profile_req.dart';
+import 'package:frontend/features/receptionist/profile/presentation/provider/receptionist_profile_provider.dart';
 import 'package:frontend/features/widgets/profile/profile_header.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -27,8 +30,6 @@ class _EditReceptionistProfileScreenState
 
     final user = ref.read(authProvider).user;
     _fullNameController.text = user?.name ?? 'Maya Thornton';
-    _phoneController.text = user?.phoneNumber ?? '+1 90000 12345';
-    _emailController.text = 'maya.thorton@clinic.com';
     _roleController.text = user?.role.name ?? 'Receptionist';
   }
 
@@ -44,6 +45,21 @@ class _EditReceptionistProfileScreenState
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authProvider).user;
+    final receptionistState = ref.watch(receptionistProfileProvider);
+
+    receptionistState.when(
+      data: (profile) {
+        if (_phoneController.text.isEmpty) {
+          _phoneController.text = profile.phoneNumber;
+        }
+
+        if (_emailController.text.isEmpty) {
+          _emailController.text = profile.email;
+        }
+      },
+      loading: () {},
+      error: (error, stackTrace) {},
+    );
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
@@ -131,18 +147,15 @@ class _EditReceptionistProfileScreenState
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
                           ),
-                          const SizedBox(height: 10),
-                          _Field(
-                            label: 'Role',
-                            controller: _roleController,
-                          ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 18),
                     PrimaryButton.primary(
                       text: 'Save Changes',
-                      onPressed: () => ref.read(goRouterProvider).pop(),
+                      onPressed: () async {
+                        await _saveChanges();
+                      },
                     ),
                     const SizedBox(height: 12),
                     PrimaryButton.primary(
@@ -159,6 +172,30 @@ class _EditReceptionistProfileScreenState
         ),
       ),
     );
+  }
+
+  Future<void> _saveChanges() async {
+    try {
+      final req = UpdateReceptionistProfileRequest(
+        name: _fullNameController.text.trim(),
+        email: _emailController.text.trim(),
+        phoneNumber: _phoneController.text.trim(),
+      );
+
+      final message = await ref
+          .read(receptionistProfileProvider.notifier)
+          .updateMyProfile(req);
+
+      if (!mounted) return;
+
+      AppSnackBar.success(context, message);
+
+      ref.read(goRouterProvider).pop();
+    } catch (e) {
+      if (!mounted) return;
+
+      AppSnackBar.error(context, e.toString());
+    }
   }
 }
 
@@ -190,10 +227,7 @@ class _Field extends StatelessWidget {
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
-          style: const TextStyle(
-            fontSize: 16,
-            color: Color(0xFF1F2937),
-          ),
+          style: const TextStyle(fontSize: 16, color: Color(0xFF1F2937)),
           decoration: InputDecoration(
             filled: true,
             fillColor: const Color(0xFFF4F6F9),
@@ -203,9 +237,7 @@ class _Field extends StatelessWidget {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(
-                color: Color(0xFFE6EAF0),
-              ),
+              borderSide: const BorderSide(color: Color(0xFFE6EAF0)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
@@ -216,9 +248,7 @@ class _Field extends StatelessWidget {
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(
-                color: Color(0xFFE6EAF0),
-              ),
+              borderSide: const BorderSide(color: Color(0xFFE6EAF0)),
             ),
           ),
         ),
