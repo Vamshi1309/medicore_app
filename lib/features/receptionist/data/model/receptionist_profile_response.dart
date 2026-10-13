@@ -1,4 +1,4 @@
-import 'package:frontend/features/receptionist/profile/data/model/shifts_enum.dart';
+import 'package:frontend/features/receptionist/data/model/shifts_enum.dart';
 
 class ReceptionistProfileResponse {
   final String userId;

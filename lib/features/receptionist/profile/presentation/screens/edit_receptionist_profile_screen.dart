@@ -4,7 +4,7 @@ import 'package:frontend/core/providers/go_router_provider.dart';
 import 'package:frontend/core/widgets/app_snackbar.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
-import 'package:frontend/features/receptionist/profile/data/model/update_receptionist_profile_req.dart';
+import 'package:frontend/features/receptionist/data/model/update_receptionist_profile_req.dart';
 import 'package:frontend/features/receptionist/profile/presentation/provider/receptionist_profile_provider.dart';
 import 'package:frontend/features/widgets/profile/profile_header.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';

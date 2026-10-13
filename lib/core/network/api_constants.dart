@@ -65,4 +65,8 @@ class ApiConstants {
 
   //Receptionist Endpoints
   static String receptionistProfile = "/receptionist/profile";
+  static String getAllPatients = "/receptionist/patients";
+
+  //admin endpoints
+  static String getAllUsers = "/admin/users";
 }

@@ -4,7 +4,7 @@ import 'package:frontend/core/providers/go_router_provider.dart';
 import 'package:frontend/core/router/app_routes.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
-import 'package:frontend/features/receptionist/profile/data/model/shifts_enum.dart';
+import 'package:frontend/features/receptionist/data/model/shifts_enum.dart';
 import 'package:frontend/features/receptionist/profile/presentation/provider/receptionist_profile_provider.dart';
 import 'package:frontend/features/widgets/profile/info_section.dart';
 import 'package:frontend/features/widgets/profile/profile_header.dart';
@@ -234,7 +234,9 @@ class _ReceptionistProfileScreenState
                       text: 'Logout',
                       prefixIcon: LucideIcons.logOut,
                       color: Colors.red,
-                      onPressed: () {},
+                      onPressed: () {
+                        ref.read(authProvider.notifier).logout();
+                      },
                     ),
                   ],
                 ),

@@ -1,22 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/router/app_routes.dart';
 import 'package:frontend/core/widgets/app_card.dart';
 import 'package:frontend/core/widgets/app_search_bar.dart';
 import 'package:frontend/core/widgets/app_text_field.dart';
+import 'package:frontend/core/widgets/error_state.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
 import 'package:frontend/core/widgets/stepper/widget/receptionist_booking_stepper.dart';
+import 'package:frontend/features/admin/data/models/user_summary_response.dart';
 import 'package:frontend/features/receptionist/book/presentation/booking_confirmation_screen.dart';
+import 'package:frontend/features/receptionist/book/presentation/providers/receptionist_patients_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-class ReceptionistBookScreen extends StatefulWidget {
+class ReceptionistBookScreen extends ConsumerStatefulWidget {
   const ReceptionistBookScreen({super.key});
 
   @override
-  State<ReceptionistBookScreen> createState() => _ReceptionistBookScreenState();
+  ConsumerState<ReceptionistBookScreen> createState() =>
+      _ReceptionistBookScreenState();
 }
 
-class _ReceptionistBookScreenState extends State<ReceptionistBookScreen> {
+class _ReceptionistBookScreenState
+    extends ConsumerState<ReceptionistBookScreen> {
   int currentStep = 0;
   bool bookingConfirmed = false;
 
@@ -38,6 +44,7 @@ class _ReceptionistBookScreenState extends State<ReceptionistBookScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final receptionistPatientsState = ref.watch(receptionistPatientsProvider);
     if (bookingConfirmed) {
       return BookingConfirmationScreen(
         patientName: selectedPatient ?? 'Sarah Mitchell',
@@ -60,16 +67,18 @@ class _ReceptionistBookScreenState extends State<ReceptionistBookScreen> {
           children: [
             _buildHeader(),
             ReceptionistBookingStepper(currentStep: currentStep),
-            _buildCurrentStep(),
+            _buildCurrentStep(receptionistPatientsState),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCurrentStep() {
+  Widget _buildCurrentStep(
+    AsyncValue<List<UserSummaryResponse>> receptionistPatientsState,
+  ) {
     if (currentStep == 0) {
-      return _buildPatientList();
+      return _buildPatientList(receptionistPatientsState);
     }
 
     if (currentStep == 1) {
@@ -356,34 +365,98 @@ class _ReceptionistBookScreenState extends State<ReceptionistBookScreen> {
     );
   }
 
-  Widget _buildPatientList() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(height: 15),
-          Text(
-            "Find a patient",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+  Widget _buildPatientList(AsyncValue<List<UserSummaryResponse>> state) {
+    return state.when(
+      data: (patients) {
+        if (patients.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.all(24),
+            child: Center(child: Text('No patients found')),
+          );
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 15),
+              const Text(
+                "Find a patient",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                "Search and select the patient before choosing a doctor",
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+              const SizedBox(height: 10),
+              AppSearchBar(hintText: "Search by patient name", isFilled: true),
+              const SizedBox(height: 15),
+
+              ...patients.map((patient) => _buildPatientCard(patient)),
+            ],
           ),
-          SizedBox(height: 5),
-          Text(
-            "Search and select the patient before choosing a doctor",
-            style: TextStyle(color: Colors.grey[600]),
-          ),
-          SizedBox(height: 10),
-          AppSearchBar(hintText: "Search by patient name", isFilled: true),
-          SizedBox(height: 15),
-          _buildSearchCard(),
-          _buildSearchCard(),
-          _buildSearchCard(),
-          _buildSearchCard(),
-          _buildSearchCard(),
-          _buildSearchCard(),
-          _buildSearchCard(),
-          _buildSearchCard(),
-        ],
+        );
+      },
+      error: (err, stackTrace) {
+        return ErrorState(title: "Error", subtitle: err.toString());
+      },
+      loading: () {
+        return const Center(child: CircularProgressIndicator());
+      },
+    );
+  }
+
+  Widget _buildPatientCard(UserSummaryResponse patient) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          selectedPatient = patient.name;
+          currentStep = 1;
+        });
+      },
+      child: AppCard(
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.blue,
+              ),
+              child: Text(
+                patient.name.isNotEmpty ? patient.name[0].toUpperCase() : '?',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    patient.name,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    patient.phoneNumber ?? 'No phone number',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(LucideIcons.chevronRight),
+          ],
+        ),
       ),
     );
   }

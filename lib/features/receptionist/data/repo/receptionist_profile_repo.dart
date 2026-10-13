@@ -3,8 +3,9 @@ import 'package:frontend/core/network/api_client.dart';
 import 'package:frontend/core/network/api_constants.dart';
 import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/core/network/api_response.dart';
-import 'package:frontend/features/receptionist/profile/data/model/receptionist_profile_response.dart';
-import 'package:frontend/features/receptionist/profile/data/model/update_receptionist_profile_req.dart';
+import 'package:frontend/features/admin/data/models/user_summary_response.dart';
+import 'package:frontend/features/receptionist/data/model/receptionist_profile_response.dart';
+import 'package:frontend/features/receptionist/data/model/update_receptionist_profile_req.dart';
 
 class ReceptionistProfileRepo {
   final ApiClient apiClient;
@@ -53,6 +54,30 @@ class ReceptionistProfileRepo {
       if (e.response?.data != null) {
         final data = e.response!.data;
 
+        throw ApiException(message: data['message'] ?? "Something went wrong");
+      }
+
+      if (e.error is ApiException) {
+        throw e.error as ApiException;
+      }
+
+      throw ApiException(message: "Something went wrong");
+    }
+  }
+
+  Future<ApiResponse<List<UserSummaryResponse>>> getAllPatients() async {
+    try {
+      final response = await apiClient.get(ApiConstants.getAllPatients);
+
+      return ApiResponse.fromJson(
+        response.data,
+        (data) => (data as List)
+            .map((e) => UserSummaryResponse.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
+    } on DioException catch (e) {
+      if (e.response?.data != null) {
+        final data = e.response!.data;
         throw ApiException(message: data['message'] ?? "Something went wrong");
       }
 
