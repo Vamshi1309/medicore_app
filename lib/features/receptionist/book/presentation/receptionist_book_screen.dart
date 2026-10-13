@@ -26,7 +26,7 @@ class _ReceptionistBookScreenState
   int currentStep = 0;
   bool bookingConfirmed = false;
 
-  String? selectedPatient;
+  UserSummaryResponse? selectedPatient;
   String? selectedDoctor;
 
   final List<String> availableTimes = [
@@ -47,7 +47,7 @@ class _ReceptionistBookScreenState
     final receptionistPatientsState = ref.watch(receptionistPatientsProvider);
     if (bookingConfirmed) {
       return BookingConfirmationScreen(
-        patientName: selectedPatient ?? 'Sarah Mitchell',
+        patientName: selectedPatient?.name ?? 'No Patient Selected',
         doctorName: selectedDoctor ?? 'Dr. Rachel Nguyen',
         onBookAnother: () {
           setState(() {
@@ -132,7 +132,7 @@ class _ReceptionistBookScreenState
                           ),
                         ),
                         Text(
-                          "patient Name",
+                          selectedPatient?.name ?? "No patient selected",
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -140,7 +140,7 @@ class _ReceptionistBookScreenState
                         ),
                         SizedBox(height: 5),
                         Text(
-                          "+91 9999999999",
+                          selectedPatient?.phoneNumber ?? "No Number",
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey[600],
@@ -412,7 +412,7 @@ class _ReceptionistBookScreenState
     return GestureDetector(
       onTap: () {
         setState(() {
-          selectedPatient = patient.name;
+          selectedPatient = patient;
           currentStep = 1;
         });
       },
@@ -461,11 +461,23 @@ class _ReceptionistBookScreenState
     );
   }
 
+  String getInitials(String name) {
+    if (name.trim().isEmpty) return '';
+
+    final parts = name.trim().split(RegExp(r'\s+'));
+
+    if (parts.length == 1) {
+      return parts[0][0].toUpperCase();
+    }
+
+    return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+  }
+
   Widget _buildSearchCard() {
     return GestureDetector(
       onTap: () {
         setState(() {
-          selectedPatient = "patient Name";
+          selectedPatient = selectedPatient;
           currentStep++;
         });
       },
