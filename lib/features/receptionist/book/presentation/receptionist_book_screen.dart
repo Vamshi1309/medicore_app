@@ -3,14 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/router/app_routes.dart';
 import 'package:frontend/core/widgets/app_card.dart';
 import 'package:frontend/core/widgets/app_search_bar.dart';
+import 'package:frontend/core/widgets/app_snackbar.dart';
 import 'package:frontend/core/widgets/app_text_field.dart';
 import 'package:frontend/core/widgets/error_state.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
 import 'package:frontend/core/widgets/stepper/widget/receptionist_booking_stepper.dart';
 import 'package:frontend/features/admin/data/models/user_summary_response.dart';
+import 'package:frontend/features/appointment/providers/appointment_provider.dart';
 import 'package:frontend/features/doctor/dashboard/data/models/doctor_profile_response.dart';
+import 'package:frontend/features/patient/dashboard/presentation/providers/appointment_booking_provider.dart';
 import 'package:frontend/features/patient/dashboard/presentation/providers/get_all_doctors_provider.dart';
+import 'package:frontend/features/patient/dashboard/presentation/state/appointment_state.dart';
 import 'package:frontend/features/receptionist/book/presentation/booking_confirmation_screen.dart';
+import 'package:frontend/features/receptionist/book/presentation/models/book_appointment_model.dart';
+import 'package:frontend/features/receptionist/book/presentation/providers/receptionist_book_appointment_provider.dart';
 import 'package:frontend/features/receptionist/book/presentation/providers/receptionist_patients_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -43,6 +49,16 @@ class _ReceptionistBookScreenState
   ];
 
   final TextEditingController dateController = TextEditingController();
+  final TextEditingController timeController = TextEditingController();
+  final TextEditingController notesController = TextEditingController();
+
+  @override
+  void dispose() {
+    dateController.dispose();
+    timeController.dispose();
+    notesController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -307,8 +323,9 @@ class _ReceptionistBookScreenState
               );
 
               if (pickedDate != null) {
-                String formattedDate =
-                    "${pickedDate.day}-${pickedDate.month}-${pickedDate.year}";
+                final formattedDate =
+                    '${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}';
+
                 setState(() {
                   dateController.text = formattedDate;
                 });
@@ -336,18 +353,27 @@ class _ReceptionistBookScreenState
             physics: const NeverScrollableScrollPhysics(),
             itemCount: availableTimes.length,
             itemBuilder: (context, index) {
-              return Container(
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  availableTimes[index],
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[600],
+              final time = availableTimes[index];
+              final isSelected = timeController.text == time;
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    timeController.text = time;
+                  });
+                },
+                child: Container(
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: isSelected ? Colors.blue : Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    availableTimes[index],
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[600],
+                    ),
                   ),
                 ),
               );
@@ -363,16 +389,22 @@ class _ReceptionistBookScreenState
             ),
           ),
           SizedBox(height: 5),
-          AppTextField(hintText: "Any notes for the doctor", maxLines: 4),
+          AppTextField(
+            controller: notesController,
+            hintText: "Any notes for the doctor",
+            maxLines: 4,
+          ),
           SizedBox(height: 15),
           PrimaryButton.primary(
             text: "Confirm",
-            onPressed: () {
+            onPressed: () async {
+              await _submitConfirm();
+              // ignore: use_build_context_synchronously
               context.push(
                 AppRoutes.receptionistBookingConfirmation,
-                extra: {
-                  'patientName': selectedPatient ?? 'Sarah Mitchell',
-                  'doctorName': selectedDoctor ?? 'Dr. Rachel Nguyen',
+                extra: <String, String>{
+                  'patientName': selectedPatient!.name,
+                  'doctorName': selectedDoctor!.name,
                 },
               );
             },
@@ -518,7 +550,7 @@ class _ReceptionistBookScreenState
                   ),
                   const SizedBox(height: 5),
                   Text(
-                    doctor.phoneNumber ?? 'No phone number',
+                    doctor.phoneNumber,
                     style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
                 ],
@@ -543,60 +575,87 @@ class _ReceptionistBookScreenState
     return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
   }
 
-  Widget _buildSearchCard() {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          selectedPatient = selectedPatient;
-          currentStep++;
-        });
-      },
-      child: AppCard(
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.blue,
-                  ),
-                  child: Text(
-                    "A",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                Spacer(),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "patient Name",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 5),
-                    Text(
-                      "+91 9999999999",
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
-                Spacer(flex: 7),
-                Icon(LucideIcons.chevronRight),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
+  Future<void> _submitConfirm() async {
+    if (selectedPatient == null) {
+      AppSnackBar.error(context, 'Please select a patient');
+      return;
+    }
+
+    if (selectedDoctor == null) {
+      AppSnackBar.error(context, 'Please select a doctor');
+      return;
+    }
+
+    if (dateController.text.trim().isEmpty) {
+      AppSnackBar.error(context, 'Please select an appointment date');
+      return;
+    }
+
+    if (timeController.text.trim().isEmpty) {
+      AppSnackBar.error(context, 'Please select an appointment time');
+      return;
+    }
+
+    try {
+      final selectedDate = DateTime.tryParse(dateController.text.trim());
+
+      if (selectedDate == null) {
+        AppSnackBar.error(context, 'Please select a valid date');
+        return;
+      }
+
+      // Your available slots are in HH:mm format, e.g. 10:30.
+      final timeParts = timeController.text.trim().split(':');
+
+      if (timeParts.length != 2) {
+        AppSnackBar.error(context, 'Please select a valid time');
+        return;
+      }
+
+      final hour = int.tryParse(timeParts[0]);
+      final minute = int.tryParse(timeParts[1]);
+
+      if (hour == null ||
+          minute == null ||
+          hour < 0 ||
+          hour > 23 ||
+          minute < 0 ||
+          minute > 59) {
+        AppSnackBar.error(context, 'Please select a valid time');
+        return;
+      }
+
+      final scheduledAt = DateTime(
+        selectedDate.year,
+        selectedDate.month,
+        selectedDate.day,
+        hour,
+        minute,
+      );
+
+      final booking = CreateAppointmentRequest(
+        patientId: selectedPatient!.userId,
+        doctorId: selectedDoctor!.userId,
+        scheduledAt: scheduledAt,
+        notes: notesController.text.trim().isEmpty
+            ? null
+            : notesController.text.trim(),
+      );
+
+      await ref
+          .read(receptionistBookAppointmentProvider)
+          .createAppointment(booking);
+
+      if (!mounted) return;
+
+      AppSnackBar.success(context, 'Appointment booked successfully');
+
+      // Navigate to your confirmation screen here if needed.
+    } catch (e) {
+      if (!mounted) return;
+
+      AppSnackBar.error(context, e.toString());
+    }
   }
 
   Widget _buildHeader() {

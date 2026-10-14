@@ -214,11 +214,11 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.receptionistBookingConfirmation,
           builder: (context, state) {
-            final extra = state.extra as Map<String, String>;
+            final extra = state.extra as Map<String, dynamic>;
 
             return BookingConfirmationScreen(
-              patientName: extra['patientName']!,
-              doctorName: extra['doctorName']!,
+              patientName: extra['patientName'] as String,
+              doctorName: extra['doctorName'] as String,
               onBookAnother: () {
                 context.go(AppRoutes.receptionistBook);
               },
