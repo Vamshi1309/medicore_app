@@ -8,6 +8,8 @@ import 'package:frontend/core/widgets/error_state.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
 import 'package:frontend/core/widgets/stepper/widget/receptionist_booking_stepper.dart';
 import 'package:frontend/features/admin/data/models/user_summary_response.dart';
+import 'package:frontend/features/doctor/dashboard/data/models/doctor_profile_response.dart';
+import 'package:frontend/features/patient/dashboard/presentation/providers/get_all_doctors_provider.dart';
 import 'package:frontend/features/receptionist/book/presentation/booking_confirmation_screen.dart';
 import 'package:frontend/features/receptionist/book/presentation/providers/receptionist_patients_provider.dart';
 import 'package:go_router/go_router.dart';
@@ -27,7 +29,7 @@ class _ReceptionistBookScreenState
   bool bookingConfirmed = false;
 
   UserSummaryResponse? selectedPatient;
-  String? selectedDoctor;
+  DoctorProfileResponse? selectedDoctor;
 
   final List<String> availableTimes = [
     '09:00',
@@ -45,10 +47,12 @@ class _ReceptionistBookScreenState
   @override
   Widget build(BuildContext context) {
     final receptionistPatientsState = ref.watch(receptionistPatientsProvider);
+    final receptionistDoctorsState = ref.watch(getAllDoctorsProvider);
+
     if (bookingConfirmed) {
       return BookingConfirmationScreen(
         patientName: selectedPatient?.name ?? 'No Patient Selected',
-        doctorName: selectedDoctor ?? 'Dr. Rachel Nguyen',
+        doctorName: selectedDoctor?.name ?? 'Dr. Rachel Nguyen',
         onBookAnother: () {
           setState(() {
             bookingConfirmed = false;
@@ -67,7 +71,10 @@ class _ReceptionistBookScreenState
           children: [
             _buildHeader(),
             ReceptionistBookingStepper(currentStep: currentStep),
-            _buildCurrentStep(receptionistPatientsState),
+            _buildCurrentStep(
+              receptionistPatientsState,
+              receptionistDoctorsState,
+            ),
           ],
         ),
       ),
@@ -76,13 +83,14 @@ class _ReceptionistBookScreenState
 
   Widget _buildCurrentStep(
     AsyncValue<List<UserSummaryResponse>> receptionistPatientsState,
+    AsyncValue<List<DoctorProfileResponse>> receptionistDoctorsState,
   ) {
     if (currentStep == 0) {
       return _buildPatientList(receptionistPatientsState);
     }
 
     if (currentStep == 1) {
-      return _buildDoctorsList();
+      return _buildDoctorsList(receptionistDoctorsState);
     }
 
     if (currentStep == 2) {
@@ -92,102 +100,111 @@ class _ReceptionistBookScreenState
     return const SizedBox();
   }
 
-  Widget _buildDoctorsList() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(height: 15),
-          AppCard(
-            child: Column(
-              children: [
-                Row(
+  Widget _buildDoctorsList(AsyncValue<List<DoctorProfileResponse>> state) {
+    return state.when(
+      data: (data) {
+        if (data.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.all(24),
+            child: Center(child: Text('No patients found')),
+          );
+        }
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 15),
+              AppCard(
+                child: Column(
                   children: [
-                    Container(
-                      padding: EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.blue,
-                      ),
-                      child: Text(
-                        "A",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    Spacer(),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Row(
                       children: [
-                        Text(
-                          "Selected Patient",
-                          style: TextStyle(
+                        Container(
+                          padding: EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
                             color: Colors.blue,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                          ),
+                          child: Text(
+                            getInitials(selectedPatient?.name ?? "NA"),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                        Text(
-                          selectedPatient?.name ?? "No patient selected",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Spacer(),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Selected Patient",
+                              style: TextStyle(
+                                color: Colors.blue,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              selectedPatient?.name ?? "No patient selected",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 5),
+                            Text(
+                              selectedPatient?.phoneNumber ?? "No Number",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
                         ),
-                        SizedBox(height: 5),
-                        Text(
-                          selectedPatient?.phoneNumber ?? "No Number",
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
+                        Spacer(flex: 4),
+                        TextButton(
+                          onPressed: () {},
+                          child: Text(
+                            "Change",
+                            style: TextStyle(
+                              color: Colors.blue,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    Spacer(flex: 4),
-                    TextButton(
-                      onPressed: () {},
-                      child: Text(
-                        "Change",
-                        style: TextStyle(
-                          color: Colors.blue,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
                   ],
                 ),
-              ],
-            ),
+              ),
+              SizedBox(height: 15),
+              Text(
+                "Choose a doctor",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 5),
+              Text(
+                "Search by doctor name",
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+              SizedBox(height: 10),
+              AppSearchBar(hintText: "Search by doctor name", isFilled: true),
+              SizedBox(height: 15),
+              ...data.map((doctor) => _buildDoctorCard(doctor)),
+            ],
           ),
-          SizedBox(height: 15),
-          Text(
-            "Choose a doctor",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 5),
-          Text(
-            "Search by doctor name",
-            style: TextStyle(color: Colors.grey[600]),
-          ),
-          SizedBox(height: 10),
-          AppSearchBar(hintText: "Search by doctor name", isFilled: true),
-          SizedBox(height: 15),
-          _buildSearchCard(),
-          _buildSearchCard(),
-          _buildSearchCard(),
-          _buildSearchCard(),
-          _buildSearchCard(),
-          _buildSearchCard(),
-          _buildSearchCard(),
-          _buildSearchCard(),
-        ],
-      ),
+        );
+      },
+      error: (err, stackTrace) {
+        return ErrorState(title: "Error", subtitle: err.toString());
+      },
+      loading: () {
+        return const Center(child: CircularProgressIndicator());
+      },
     );
   }
 
@@ -232,7 +249,7 @@ class _ReceptionistBookScreenState
                         color: Colors.blue,
                       ),
                       child: Text(
-                        "A",
+                        getInitials(selectedPatient?.name ?? "NA"),
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 20,
@@ -245,14 +262,14 @@ class _ReceptionistBookScreenState
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Patient Name",
+                          selectedPatient?.name ?? "No Patient",
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
-                          "Dr. Doctor Name - specialization",
+                          "Dr. ${selectedDoctor?.name ?? "No Doctor"} - ${selectedDoctor?.specialization ?? "NA"}",
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -449,6 +466,59 @@ class _ReceptionistBookScreenState
                   const SizedBox(height: 5),
                   Text(
                     patient.phoneNumber ?? 'No phone number',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(LucideIcons.chevronRight),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDoctorCard(DoctorProfileResponse doctor) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          selectedDoctor = doctor;
+          currentStep = 2;
+        });
+      },
+      child: AppCard(
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.blue,
+              ),
+              child: Text(
+                doctor.name.isNotEmpty ? doctor.name[0].toUpperCase() : '?',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    doctor.name,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    doctor.phoneNumber ?? 'No phone number',
                     style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
                 ],

@@ -21,8 +21,6 @@ class ApiConstants {
 
   //doctor endpoints
   static String doctorProfile = "/doctor/profile";
-
-  //doctor endpoints
   static String getAllDoctors = "/doctor/all";
 
   //appointment endpoints
