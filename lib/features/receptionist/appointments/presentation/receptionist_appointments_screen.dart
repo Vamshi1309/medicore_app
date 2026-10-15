@@ -1,29 +1,84 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/constants/app_sizes.dart';
 import 'package:frontend/core/widgets/app_search_bar.dart';
+import 'package:frontend/core/widgets/error_state.dart';
 import 'package:frontend/core/widgets/status_badge.dart';
+import 'package:frontend/features/appointment/data/models/appointment_response.dart';
+import 'package:frontend/features/appointment/providers/all_appointments_provider.dart';
+import 'package:frontend/features/patient/appointments/widgets/appointment_card.dart';
 import 'package:frontend/features/receptionist/widgets/receptionist_app_card.dart';
 
-class ReceptionistAppointmentsScreen extends StatelessWidget {
+class ReceptionistAppointmentsScreen extends ConsumerWidget {
   const ReceptionistAppointmentsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _buildTopHeader(context),
-        SizedBox(height: 20),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(children: [
-            ReceptionistAppCard(),
-            SizedBox(height: 10),
-            ReceptionistAppCard(),
-            SizedBox(height: 10),
-            ReceptionistAppCard(),
-          ]),
-        ),
-      ],
+  Widget build(BuildContext context, WidgetRef ref) {
+    final appointmentState = ref.watch(allAppointmentsProvider);
+
+    return appointmentState.when(
+      data: (data) {
+        return DefaultTabController(
+          length: 3,
+          child: Column(
+            children: [
+              _buildTopHeader(context),
+
+              const TabBar(
+                dividerColor: Colors.transparent,
+                
+                tabs: [
+                  Tab(text: 'Pending'),
+                  Tab(text: 'Confirmed'),
+                  Tab(text: 'Cancelled'),
+                ],
+              ),
+
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    _buildAppointmentList(data, AppointmentStatus.pending),
+                    _buildAppointmentList(data, AppointmentStatus.confirmed),
+                    _buildAppointmentList(data, AppointmentStatus.cancelled),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      error: (error, stackTrace) {
+        return Center(
+          child: ErrorState(title: "Error", subtitle: error.toString()),
+        );
+      },
+      loading: () {
+        return Center(child: CircularProgressIndicator());
+      },
+    );
+  }
+
+  Widget _buildAppointmentList(
+    List<AppointmentResponse> appointments,
+    AppointmentStatus status,
+  ) {
+    final filteredAppointments = appointments
+        .where((appointment) => appointment.status == status)
+        .toList();
+
+    if (filteredAppointments.isEmpty) {
+      return const Center(child: Text('No appointments found'));
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      itemCount: filteredAppointments.length,
+      itemBuilder: (context, index) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: ReceptionistAppCard(appointment: filteredAppointments[index]),
+        );
+      },
     );
   }
 

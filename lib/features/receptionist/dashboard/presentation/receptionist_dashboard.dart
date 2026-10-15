@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/constants/app_sizes.dart';
-import 'package:frontend/core/widgets/app_card.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
-import 'package:frontend/core/widgets/status_badge.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
-import 'package:frontend/features/patient/appointments/widgets/appointment_card.dart';
-import 'package:frontend/features/receptionist/widgets/receptionist_app_card.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ReceptionistDashboard extends ConsumerStatefulWidget {
@@ -31,7 +27,7 @@ class _ReceptionistDashboardState extends ConsumerState<ReceptionistDashboard> {
             children: [
               _buildHeading(),
               SizedBox(height: 15),
-              ReceptionistAppCard()
+              //ReceptionistAppCard()
             ],
           ),
         ),

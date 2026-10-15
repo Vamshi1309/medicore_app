@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/core/router/app_routes.dart';
 import 'package:frontend/core/widgets/app_card.dart';
 import 'package:frontend/core/widgets/app_search_bar.dart';
 import 'package:frontend/core/widgets/app_snackbar.dart';
@@ -9,16 +8,12 @@ import 'package:frontend/core/widgets/error_state.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
 import 'package:frontend/core/widgets/stepper/widget/receptionist_booking_stepper.dart';
 import 'package:frontend/features/admin/data/models/user_summary_response.dart';
-import 'package:frontend/features/appointment/providers/appointment_provider.dart';
 import 'package:frontend/features/doctor/dashboard/data/models/doctor_profile_response.dart';
-import 'package:frontend/features/patient/dashboard/presentation/providers/appointment_booking_provider.dart';
 import 'package:frontend/features/patient/dashboard/presentation/providers/get_all_doctors_provider.dart';
-import 'package:frontend/features/patient/dashboard/presentation/state/appointment_state.dart';
 import 'package:frontend/features/receptionist/book/presentation/booking_confirmation_screen.dart';
 import 'package:frontend/features/receptionist/book/presentation/models/book_appointment_model.dart';
 import 'package:frontend/features/receptionist/book/presentation/providers/receptionist_book_appointment_provider.dart';
 import 'package:frontend/features/receptionist/book/presentation/providers/receptionist_patients_provider.dart';
-import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ReceptionistBookScreen extends ConsumerStatefulWidget {
@@ -76,6 +71,8 @@ class _ReceptionistBookScreenState
             selectedPatient = null;
             selectedDoctor = null;
             dateController.clear();
+            timeController.clear();
+            notesController.clear();
           });
         },
       );
@@ -372,7 +369,7 @@ class _ReceptionistBookScreenState
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: Colors.grey[600],
+                      color: isSelected ? Colors.white : Colors.grey[600],
                     ),
                   ),
                 ),
@@ -398,15 +395,13 @@ class _ReceptionistBookScreenState
           PrimaryButton.primary(
             text: "Confirm",
             onPressed: () async {
-              await _submitConfirm();
-              // ignore: use_build_context_synchronously
-              context.push(
-                AppRoutes.receptionistBookingConfirmation,
-                extra: <String, String>{
-                  'patientName': selectedPatient!.name,
-                  'doctorName': selectedDoctor!.name,
-                },
-              );
+              final success = await _submitConfirm();
+
+              if (!mounted || !success) return;
+
+              setState(() {
+                bookingConfirmed = true;
+              });
             },
           ),
         ],
@@ -575,25 +570,25 @@ class _ReceptionistBookScreenState
     return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
   }
 
-  Future<void> _submitConfirm() async {
+  Future<bool> _submitConfirm() async {
     if (selectedPatient == null) {
       AppSnackBar.error(context, 'Please select a patient');
-      return;
+      return false;
     }
 
     if (selectedDoctor == null) {
       AppSnackBar.error(context, 'Please select a doctor');
-      return;
+      return false;
     }
 
     if (dateController.text.trim().isEmpty) {
       AppSnackBar.error(context, 'Please select an appointment date');
-      return;
+      return false;
     }
 
     if (timeController.text.trim().isEmpty) {
       AppSnackBar.error(context, 'Please select an appointment time');
-      return;
+      return false;
     }
 
     try {
@@ -601,7 +596,7 @@ class _ReceptionistBookScreenState
 
       if (selectedDate == null) {
         AppSnackBar.error(context, 'Please select a valid date');
-        return;
+        return false;
       }
 
       // Your available slots are in HH:mm format, e.g. 10:30.
@@ -609,7 +604,7 @@ class _ReceptionistBookScreenState
 
       if (timeParts.length != 2) {
         AppSnackBar.error(context, 'Please select a valid time');
-        return;
+        return false;
       }
 
       final hour = int.tryParse(timeParts[0]);
@@ -622,7 +617,7 @@ class _ReceptionistBookScreenState
           minute < 0 ||
           minute > 59) {
         AppSnackBar.error(context, 'Please select a valid time');
-        return;
+        return false;
       }
 
       final scheduledAt = DateTime(
@@ -646,15 +641,12 @@ class _ReceptionistBookScreenState
           .read(receptionistBookAppointmentProvider)
           .createAppointment(booking);
 
-      if (!mounted) return;
-
-      AppSnackBar.success(context, 'Appointment booked successfully');
-
-      // Navigate to your confirmation screen here if needed.
+      return true;
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) return false;
 
       AppSnackBar.error(context, e.toString());
+      return false;
     }
   }
 
