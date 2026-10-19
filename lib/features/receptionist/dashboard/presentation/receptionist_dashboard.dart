@@ -36,7 +36,6 @@ class _ReceptionistDashboardState extends ConsumerState<ReceptionistDashboard> {
             child: Column(
               children: [
                 _buildHeading(),
-                const SizedBox(height: 15),
                 Expanded(
                   child: appointmentsState.when(
                     data: (data) {

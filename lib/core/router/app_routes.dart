@@ -36,4 +36,12 @@ class AppRoutes {
   static const receptionistEditProfile = '/receptionist/profile/edit';
   static const String receptionistBookingConfirmation =
       '/receptionist/booking-confirmation';
+
+  // Pharmacist routes
+  static const pharmacistHome = '/pharmacist/home';
+  static const pharmacistPrescriptions = '/pharmacist/prescriptions';
+  static const pharmacistDispense = ':prescriptionId/dispense';
+  static const pharmacistDispensePath = '/pharmacist/prescriptions/:prescriptionId/dispense';
+  static const pharmacistInventory = '/pharmacist/inventory';
+  static const pharmacistProfile = '/pharmacist/profile';
 }

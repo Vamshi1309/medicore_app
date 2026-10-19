@@ -11,6 +11,12 @@ import 'package:frontend/features/doctor/widgets/doctor_shell.dart';
 import 'package:frontend/features/patient/dashboard/presentation/screens/booking/select_doctor_step.dart';
 import 'package:frontend/features/patient/profile/presentation/edit_profile_screen.dart';
 import 'package:frontend/features/patient/widgets/patient_shell.dart';
+import 'package:frontend/features/pharmacist/dashboard/presentation/pharmacist_dashboard.dart';
+import 'package:frontend/features/pharmacist/dispence/presentation/pharmacist_dispence_screen.dart';
+import 'package:frontend/features/pharmacist/inventory/presentation/pharmacist_inventory_screen.dart';
+import 'package:frontend/features/pharmacist/prescriptions/presentation/pharmacist_prescription_screen.dart';
+import 'package:frontend/features/pharmacist/profile/presentation/pharmacist_profile_screen.dart';
+import 'package:frontend/features/pharmacist/widgets/pharmacist_shell.dart';
 import 'package:frontend/features/receptionist/appointments/presentation/receptionist_appointments_screen.dart';
 import 'package:frontend/features/receptionist/book/presentation/booking_confirmation_screen.dart';
 import 'package:frontend/features/receptionist/book/presentation/receptionist_book_screen.dart';
@@ -163,6 +169,7 @@ class AppRouter {
           path: AppRoutes.receptionistEditProfile,
           builder: (context, state) => const EditReceptionistProfileScreen(),
         ),
+        
         StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) {
             return ReceptionistShell(navigationShell: navigationShell);
@@ -225,6 +232,61 @@ class AppRouter {
             );
           },
         ),
+
+        StatefulShellRoute.indexedStack(
+          builder: (context, state, navigationShell) {
+            return PharmacistShell(navigationShell: navigationShell);
+          },
+          branches: [
+            // Branch 0: Home
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: AppRoutes.pharmacistHome,
+                  builder: (context, state) => PharmacistDashboard(),
+                ),
+              ],
+            ),
+
+            // Branch 1: Prescriptions + Dispense Medicine
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: AppRoutes.pharmacistPrescriptions,
+                  builder: (context, state) => PharmacistPrescriptionScreen(),
+                  routes: [
+                    GoRoute(
+                      path: AppRoutes.pharmacistDispense,
+                      builder: (context, state) => PharmacistDispenceScreen(
+                        //prescriptionId: state.pathParameters['prescriptionId']!,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
+            // Branch 2: Inventory
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: AppRoutes.pharmacistInventory,
+                  builder: (context, state) => PharmacistInventoryScreen(),
+                ),
+              ],
+            ),
+
+            // Branch 3: Profile
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: AppRoutes.pharmacistProfile,
+                  builder: (context, state) => PharmacistProfileScreen(),
+                ),
+              ],
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -248,6 +310,9 @@ class AppRouter {
 
       case UserRole.receptionist:
         return AppRoutes.receptionistHome;
+
+      case UserRole.pharmacist:
+        return AppRoutes.pharmacistHome;
 
       // case UserRole.admin:
       //   return AppRoutes.adminHome;
