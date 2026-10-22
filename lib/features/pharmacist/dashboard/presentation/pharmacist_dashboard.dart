@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/core/theme/app_text_styles.dart';
 
 class PharmacistDashboard extends StatelessWidget {
   const PharmacistDashboard({super.key});
@@ -29,29 +30,26 @@ class PharmacistDashboard extends StatelessWidget {
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
+                            children: [
                               Text(
                                 'Good morning',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
+                                style: AppTextStyles.bodyMedium.copyWith(
                                   color: Colors.white70,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              SizedBox(height: 4),
+                              const SizedBox(height: 4),
                               Text(
                                 'Hello, Priya',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
+                                style: AppTextStyles.headlineMedium.copyWith(
                                   color: Colors.white,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
-                              SizedBox(height: 2),
+                              const SizedBox(height: 2),
                               Text(
                                 'Pharmacist',
-                                style: TextStyle(
-                                  fontSize: 10,
+                                style: AppTextStyles.bodySmall.copyWith(
                                   color: Colors.white70,
                                 ),
                               ),
@@ -102,11 +100,11 @@ class PharmacistDashboard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        child: const Text(
+                        child: Text(
                           '+ Review pending prescriptions',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
+                          style: AppTextStyles.button.copyWith(
                             fontSize: 15,
+                            color: const Color(0xFF2852D8),
                           ),
                         ),
                       ),
@@ -127,20 +125,18 @@ class PharmacistDashboard extends StatelessWidget {
                       const SizedBox(height: 22),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
+                        children: [
                           Text(
                             'Low stock alerts',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF2E2F42),
+                            style: AppTextStyles.titleLarge.copyWith(
+                              color: const Color(0xFF2E2F42),
+                              fontSize: 18,
                             ),
                           ),
                           Text(
                             'View inventory',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF6B7280),
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: const Color(0xFF6B7280),
                             ),
                           ),
                         ],
@@ -162,20 +158,18 @@ class PharmacistDashboard extends StatelessWidget {
                       const SizedBox(height: 22),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
+                        children: [
                           Text(
                             'Recent dispenses',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF2E2F42),
+                            style: AppTextStyles.titleLarge.copyWith(
+                              color: const Color(0xFF2E2F42),
+                              fontSize: 18,
                             ),
                           ),
                           Text(
                             'See all',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF6B7280),
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: const Color(0xFF6B7280),
                             ),
                           ),
                         ],
@@ -188,22 +182,22 @@ class PharmacistDashboard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(18),
                         ),
                         child: Column(
-                          children: const [
-                            _RecentDispenseRow(
+                          children: [
+                            const _RecentDispenseRow(
                               initials: 'SP',
                               name: 'Sneha Pillai',
                               details: '3 medicines · ₹284',
                               time: '10:24 AM',
                               color: Color(0xFF4CB6F5),
                             ),
-                            _RecentDispenseRow(
+                            const _RecentDispenseRow(
                               initials: 'KM',
                               name: 'Karan Malhotra',
                               details: '2 medicines · ₹156',
                               time: '09:42 AM',
                               color: Color(0xFF56C7C0),
                             ),
-                            _RecentDispenseRow(
+                            const _RecentDispenseRow(
                               initials: 'DV',
                               name: 'Diya Verma',
                               details: '4 medicines · ₹492',
@@ -243,17 +237,18 @@ class _MetricCard extends StatelessWidget {
         children: [
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
+            style: AppTextStyles.titleLarge.copyWith(
               color: Colors.white,
+              fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             label,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 11, color: Colors.white70),
+            style: AppTextStyles.bodySmall.copyWith(
+              color: Colors.white70,
+            ),
           ),
         ],
       ),
@@ -304,18 +299,16 @@ class _AlertRow extends StatelessWidget {
               children: [
                 Text(
                   name,
-                  style: const TextStyle(
+                  style: AppTextStyles.bodyLarge.copyWith(
+                    color: const Color(0xFF2E2F42),
                     fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                    color: Color(0xFF2E2F42),
                   ),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   subtitle,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Color(0xFF7A7E8C),
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: const Color(0xFF7A7E8C),
                   ),
                 ),
               ],
@@ -329,10 +322,9 @@ class _AlertRow extends StatelessWidget {
             ),
             child: Text(
               level,
-              style: const TextStyle(
-                color: Color(0xFFB76B00),
+              style: AppTextStyles.bodySmall.copyWith(
+                color: const Color(0xFFB76B00),
                 fontWeight: FontWeight.w700,
-                fontSize: 11,
               ),
             ),
           ),
@@ -372,10 +364,9 @@ class _RecentDispenseRow extends StatelessWidget {
             decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             child: Text(
               initials,
-              style: const TextStyle(
+              style: AppTextStyles.bodySmall.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.w700,
-                fontSize: 12,
               ),
             ),
           ),
@@ -386,18 +377,17 @@ class _RecentDispenseRow extends StatelessWidget {
               children: [
                 Text(
                   name,
-                  style: const TextStyle(
+                  style: AppTextStyles.bodyLarge.copyWith(
+                    color: const Color(0xFF2E2F42),
                     fontWeight: FontWeight.w700,
-                    fontSize: 15,
-                    color: Color(0xFF2E2F42),
+                   fontSize: 16,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   details,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF7A7E8C),
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: const Color(0xFF7A7E8C),
                   ),
                 ),
               ],
@@ -405,7 +395,9 @@ class _RecentDispenseRow extends StatelessWidget {
           ),
           Text(
             time,
-            style: const TextStyle(fontSize: 12, color: Color(0xFF7A7E8C)),
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: const Color(0xFF7A7E8C),
+            ),
           ),
         ],
       ),
