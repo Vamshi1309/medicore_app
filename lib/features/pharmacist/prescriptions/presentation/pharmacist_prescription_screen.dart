@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/app_text_styles.dart';
 import 'package:frontend/core/widgets/app_search_bar.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
+import 'package:frontend/core/widgets/status_badge.dart';
+import 'package:go_router/go_router.dart';
 
 class PharmacistPrescriptionScreen extends StatefulWidget {
   const PharmacistPrescriptionScreen({super.key});
@@ -63,8 +65,12 @@ class _PharmacistPrescriptionScreenState
                       ),
                       child: TabBar(
                         controller: _tabController,
-                        indicatorPadding: const EdgeInsets.symmetric(vertical: 6),
-                        labelPadding: const EdgeInsets.symmetric(horizontal: 20),
+                        indicatorPadding: const EdgeInsets.symmetric(
+                          vertical: 6,
+                        ),
+                        labelPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                        ),
                         indicatorSize: TabBarIndicatorSize.tab,
                         indicator: BoxDecoration(
                           color: Colors.white,
@@ -79,7 +85,9 @@ class _PharmacistPrescriptionScreenState
                         ),
                         dividerColor: Colors.transparent,
                         dividerHeight: 0,
-                        overlayColor: WidgetStateProperty.all(Colors.transparent),
+                        overlayColor: WidgetStateProperty.all(
+                          Colors.transparent,
+                        ),
                         splashFactory: NoSplash.splashFactory,
                         labelColor: const Color(0xFF0B7CDE),
                         unselectedLabelColor: const Color(0xFF7A8EA5),
@@ -103,10 +111,7 @@ class _PharmacistPrescriptionScreenState
                     Expanded(
                       child: TabBarView(
                         controller: _tabController,
-                        children: [
-                          _buildPendingList(),
-                          _buildCompletedList(),
-                        ],
+                        children: [_buildPendingList(), _buildCompletedList()],
                       ),
                     ),
                   ],
@@ -122,6 +127,7 @@ class _PharmacistPrescriptionScreenState
   Widget _buildPendingList() {
     final pending = [
       PendingPrescriptionCard(
+        prescriptionId: 'RX-2084',
         initials: 'RK',
         patientName: 'Ravi Kumar',
         patientId: 'RX-2084 • Age 34',
@@ -131,6 +137,7 @@ class _PharmacistPrescriptionScreenState
         status: 'Pending',
       ),
       PendingPrescriptionCard(
+        prescriptionId: 'RX-2083',
         initials: 'MP',
         patientName: 'Meera Patel',
         patientId: 'RX-2083 • Age 42',
@@ -140,6 +147,7 @@ class _PharmacistPrescriptionScreenState
         status: 'Pending',
       ),
       PendingPrescriptionCard(
+        prescriptionId: 'RX-2082',
         initials: 'AN',
         patientName: 'Arjun Nair',
         patientId: 'RX-2082 • Age 29',
@@ -151,6 +159,7 @@ class _PharmacistPrescriptionScreenState
     ];
 
     return ListView.separated(
+      padding: const EdgeInsets.only(bottom: 20),
       itemCount: pending.length,
       separatorBuilder: (_, _) => const SizedBox(height: 14),
       itemBuilder: (context, index) => pending[index],
@@ -192,6 +201,7 @@ class _PharmacistPrescriptionScreenState
     ];
 
     return ListView.separated(
+      padding: const EdgeInsets.only(bottom: 20),
       itemCount: completed.length,
       separatorBuilder: (_, _) => const SizedBox(height: 14),
       itemBuilder: (context, index) => completed[index],
@@ -235,6 +245,7 @@ class HeaderSection extends StatelessWidget {
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: const Color(0xD9EAFBFF),
                     fontWeight: FontWeight.w500,
+                    fontSize: 12,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -242,7 +253,7 @@ class HeaderSection extends StatelessWidget {
                   title,
                   style: AppTextStyles.headlineMedium.copyWith(
                     color: Colors.white,
-                    fontSize: 26,
+                    fontSize: 24,
                     letterSpacing: -0.6,
                   ),
                 ),
@@ -257,6 +268,7 @@ class HeaderSection extends StatelessWidget {
 }
 
 class PendingPrescriptionCard extends StatelessWidget {
+  final String prescriptionId;
   final String initials;
   final String patientName;
   final String patientId;
@@ -267,6 +279,7 @@ class PendingPrescriptionCard extends StatelessWidget {
 
   const PendingPrescriptionCard({
     super.key,
+    required this.prescriptionId,
     required this.initials,
     required this.patientName,
     required this.patientId,
@@ -281,15 +294,15 @@ class PendingPrescriptionCard extends StatelessWidget {
     final statusColor = const Color(0xFFF7DCA8);
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -299,8 +312,8 @@ class PendingPrescriptionCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 44,
-                height: 44,
+                width: 38,
+                height: 38,
                 decoration: const BoxDecoration(
                   color: Color(0xFF1CA5F8),
                   shape: BoxShape.circle,
@@ -311,11 +324,11 @@ class PendingPrescriptionCard extends StatelessWidget {
                   style: AppTextStyles.bodyLarge.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w800,
-                    fontSize: 18,
+                    fontSize: 16,
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -326,28 +339,18 @@ class PendingPrescriptionCard extends StatelessWidget {
                           child: Text(
                             patientName,
                             style: AppTextStyles.titleLarge.copyWith(
-                              fontSize: 20,
+                              fontSize: 18,
                               fontWeight: FontWeight.w700,
                               color: const Color(0xFF18314F),
                             ),
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: statusColor,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            status,
-                            style: AppTextStyles.bodySmall.copyWith(
-                              color: const Color(0xFF7A4D00),
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
+                        StatusBadge(
+                          status: status,
+                          backgroundColor: statusColor,
+                          textColor: const Color(0xFF7A4D00),
+                          fontSize: 10,
+                          height: 22,
                         ),
                       ],
                     ),
@@ -357,6 +360,7 @@ class PendingPrescriptionCard extends StatelessWidget {
                       style: AppTextStyles.bodyMedium.copyWith(
                         color: const Color(0xFF6D7F96),
                         fontWeight: FontWeight.w500,
+                        fontSize: 11,
                       ),
                     ),
                   ],
@@ -364,53 +368,72 @@ class PendingPrescriptionCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Text(
             'Prescribed by',
             style: AppTextStyles.bodyMedium.copyWith(
               color: const Color(0xFF6F7E94),
               fontWeight: FontWeight.w500,
+              fontSize: 12,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             doctorName,
             style: AppTextStyles.bodyLarge.copyWith(
               color: const Color(0xFF1E2D3D),
               fontWeight: FontWeight.w600,
+              fontSize: 14,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Row(
             children: [
-              const Icon(Icons.access_time_rounded, size: 17, color: Color(0xFF607A91)),
+              const Icon(
+                Icons.access_time_rounded,
+                size: 15,
+                color: Color(0xFF607A91),
+              ),
               const SizedBox(width: 6),
               Text(
                 datetime,
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: const Color(0xFF607A91),
                   fontWeight: FontWeight.w500,
+                  fontSize: 12,
                 ),
               ),
               const Spacer(),
-              const Icon(Icons.medical_services_outlined, size: 17, color: Color(0xFF607A91)),
+              const Icon(
+                Icons.medical_services_outlined,
+                size: 15,
+                color: Color(0xFF607A91),
+              ),
               const SizedBox(width: 4),
               Text(
                 '$medicineCount medicines',
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: const Color(0xFF607A91),
                   fontWeight: FontWeight.w500,
+                  fontSize: 12,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          PrimaryButton.primary(
-            text: 'Dispense',
-            onPressed: () {},
-            color: const Color(0xFF1BA7EF),
-            fontSize: 18,
-            suffixIcon: Icons.arrow_forward_rounded,
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 38,
+            child: PrimaryButton.primary(
+              text: 'Dispense',
+              onPressed: () {
+                context.push(
+                  '/pharmacist/prescriptions/$prescriptionId/dispense',
+                );
+              },
+              color: const Color(0xFF1BA7EF),
+              fontSize: 14,
+              suffixIcon: Icons.arrow_forward_rounded,
+            ),
           ),
         ],
       ),
@@ -443,15 +466,15 @@ class CompletedPrescriptionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -461,8 +484,8 @@ class CompletedPrescriptionCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 44,
-                height: 44,
+                width: 38,
+                height: 38,
                 decoration: const BoxDecoration(
                   color: Color(0xFF1CA5F8),
                   shape: BoxShape.circle,
@@ -473,11 +496,11 @@ class CompletedPrescriptionCard extends StatelessWidget {
                   style: AppTextStyles.bodyLarge.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w800,
-                    fontSize: 18,
+                    fontSize: 16,
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Row(
                   children: [
@@ -488,7 +511,7 @@ class CompletedPrescriptionCard extends StatelessWidget {
                           Text(
                             patientName,
                             style: AppTextStyles.titleLarge.copyWith(
-                              fontSize: 20,
+                              fontSize: 16,
                               fontWeight: FontWeight.w700,
                               color: const Color(0xFF18314F),
                             ),
@@ -499,69 +522,72 @@ class CompletedPrescriptionCard extends StatelessWidget {
                             style: AppTextStyles.bodyMedium.copyWith(
                               color: const Color(0xFF6D7F96),
                               fontWeight: FontWeight.w500,
+                              fontSize: 11,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 7,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFD8F5EA),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        'Completed',
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: const Color(0xFF1A7B5E),
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+                    StatusBadge(
+                      status: 'Completed',
+                      backgroundColor: const Color(0xFFD8F5EA),
+                      textColor: const Color(0xFF1A7B5E),
+                      fontSize: 10,
+                      height: 22,
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Text(
             'Prescribed by',
             style: AppTextStyles.bodyMedium.copyWith(
               color: const Color(0xFF6F7E94),
               fontWeight: FontWeight.w500,
+              fontSize: 12,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             doctorName,
             style: AppTextStyles.bodyLarge.copyWith(
               color: const Color(0xFF1E2D3D),
               fontWeight: FontWeight.w600,
+              fontSize: 14,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Row(
             children: [
-              const Icon(Icons.access_time_rounded, size: 17, color: Color(0xFF607A91)),
+              const Icon(
+                Icons.access_time_rounded,
+                size: 15,
+                color: Color(0xFF607A91),
+              ),
               const SizedBox(width: 6),
               Text(
                 datetime,
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: const Color(0xFF607A91),
                   fontWeight: FontWeight.w500,
+                  fontSize: 12,
                 ),
               ),
               const Spacer(),
-              const Icon(Icons.medical_services_outlined, size: 17, color: Color(0xFF607A91)),
+              const Icon(
+                Icons.medical_services_outlined,
+                size: 15,
+                color: Color(0xFF607A91),
+              ),
               const SizedBox(width: 4),
               Text(
                 '$medicineCount medicines',
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: const Color(0xFF607A91),
                   fontWeight: FontWeight.w500,
+                  fontSize: 12,
                 ),
               ),
             ],
@@ -569,13 +595,18 @@ class CompletedPrescriptionCard extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              const Icon(Icons.check_circle_rounded, color: Color(0xFF1EAF74), size: 18),
+              const Icon(
+                Icons.check_circle_rounded,
+                color: Color(0xFF1EAF74),
+                size: 17,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Dispensed by',
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: const Color(0xFF4B6079),
                   fontWeight: FontWeight.w600,
+                  fontSize: 11,
                 ),
               ),
               const SizedBox(width: 6),
@@ -584,6 +615,7 @@ class CompletedPrescriptionCard extends StatelessWidget {
                 style: AppTextStyles.bodyLarge.copyWith(
                   color: const Color(0xFF1B2F43),
                   fontWeight: FontWeight.w600,
+                  fontSize: 12,
                 ),
               ),
               const Spacer(),
@@ -592,6 +624,7 @@ class CompletedPrescriptionCard extends StatelessWidget {
                 style: AppTextStyles.bodyLarge.copyWith(
                   color: const Color(0xFF1D2F42),
                   fontWeight: FontWeight.w700,
+                  fontSize: 13,
                 ),
               ),
             ],

@@ -246,8 +246,8 @@ class _PharmacistInventoryScreenState extends State<PharmacistInventoryScreen> {
                                           Text(
                                             medicine.name,
                                             style: AppTextStyles.titleLarge.copyWith(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w800,
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w700,
                                               color: const Color(0xFF1D2432),
                                             ),
                                           ),
