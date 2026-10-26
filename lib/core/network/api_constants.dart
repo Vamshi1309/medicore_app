@@ -36,6 +36,7 @@ class ApiConstants {
       "/appointments/$appointmentId/status";
 
   //prescriptions endpoints
+  static String getAllPrescriptions = "/prescriptions/all";
   static String createPrescription = "/prescriptions";
   static String getPrescriptionsByPatientId(String patiendId) =>
       "/prescriptions/patient/$patiendId";

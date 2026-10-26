@@ -1,11 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/theme/app_text_styles.dart';
+import 'package:frontend/core/widgets/empty_state.dart';
+import 'package:frontend/core/widgets/error_state.dart';
+import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
+import 'package:frontend/features/prescription/providers/all_prescription_provider.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-class PharmacistDashboard extends StatelessWidget {
+class PharmacistDashboard extends ConsumerWidget {
   const PharmacistDashboard({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authProvider).user;
+    final prescriptions = ref.watch(getAllPrescriptionsProvider);
+    final totalPrescriptions = prescriptions.maybeWhen(
+      data: (list) => list.length,
+      orElse: () => 0,
+    );
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FB),
       body: SafeArea(
@@ -40,7 +53,7 @@ class PharmacistDashboard extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Hello, Priya',
+                                'Hello, ${user?.name}',
                                 style: AppTextStyles.headlineMedium.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w700,
@@ -75,7 +88,10 @@ class PharmacistDashboard extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: _MetricCard(value: '12', label: 'To dispense'),
+                          child: _MetricCard(
+                            value: totalPrescriptions.toString(),
+                            label: 'Prescriptions',
+                          ),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
@@ -112,102 +128,109 @@ class PharmacistDashboard extends StatelessWidget {
                   ],
                 ),
               ),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 430),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 6),
-                      const SizedBox(height: 22),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Low stock alerts',
-                            style: AppTextStyles.titleLarge.copyWith(
-                              color: const Color(0xFF2E2F42),
-                              fontSize: 18,
-                            ),
-                          ),
-                          Text(
-                            'View inventory',
-                            style: AppTextStyles.bodyMedium.copyWith(
-                              color: const Color(0xFF6B7280),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      _AlertRow(
-                        name: 'Amoxicillin 500mg',
-                        subtitle: 'Only 8 units remaining',
-                        level: 'Low',
-                        accent: Color(0xFFF9D08A),
-                      ),
-                      const SizedBox(height: 10),
-                      _AlertRow(
-                        name: 'Azithromycin 500mg',
-                        subtitle: 'Only 6 units remaining',
-                        level: 'Low',
-                        accent: Color(0xFFF9D08A),
-                      ),
-                      const SizedBox(height: 22),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Recent dispenses',
-                            style: AppTextStyles.titleLarge.copyWith(
-                              color: const Color(0xFF2E2F42),
-                              fontSize: 18,
-                            ),
-                          ),
-                          Text(
-                            'See all',
-                            style: AppTextStyles.bodyMedium.copyWith(
-                              color: const Color(0xFF6B7280),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                        child: Column(
+              Expanded(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 430),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 6),
+                        const SizedBox(height: 22),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const _RecentDispenseRow(
-                              initials: 'SP',
-                              name: 'Sneha Pillai',
-                              details: '3 medicines · ₹284',
-                              time: '10:24 AM',
-                              color: Color(0xFF4CB6F5),
+                            Text(
+                              'Low stock alerts',
+                              style: AppTextStyles.titleLarge.copyWith(
+                                color: const Color(0xFF2E2F42),
+                                fontSize: 18,
+                              ),
                             ),
-                            const _RecentDispenseRow(
-                              initials: 'KM',
-                              name: 'Karan Malhotra',
-                              details: '2 medicines · ₹156',
-                              time: '09:42 AM',
-                              color: Color(0xFF56C7C0),
-                            ),
-                            const _RecentDispenseRow(
-                              initials: 'DV',
-                              name: 'Diya Verma',
-                              details: '4 medicines · ₹492',
-                              time: 'Yesterday',
-                              color: Color(0xFFB39DDB),
+                            Text(
+                              'View inventory',
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                color: const Color(0xFF6B7280),
+                              ),
                             ),
                           ],
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 12),
+                        _AlertRow(
+                          name: 'Amoxicillin 500mg',
+                          subtitle: 'Only 8 units remaining',
+                          level: 'Low',
+                          accent: Color(0xFFF9D08A),
+                        ),
+                        const SizedBox(height: 10),
+                        _AlertRow(
+                          name: 'Azithromycin 500mg',
+                          subtitle: 'Only 6 units remaining',
+                          level: 'Low',
+                          accent: Color(0xFFF9D08A),
+                        ),
+                        const SizedBox(height: 22),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Recent dispenses',
+                              style: AppTextStyles.titleLarge.copyWith(
+                                color: const Color(0xFF2E2F42),
+                                fontSize: 18,
+                              ),
+                            ),
+                            Text(
+                              'See all',
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                color: const Color(0xFF6B7280),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        prescriptions.when(
+                          loading: () => const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                          error: (error, stackTrace) => ErrorState(
+                            title: "Error",
+                            subtitle: error.toString(),
+                          ),
+                          data: (list) {
+                            if (list.isEmpty) {
+                              return const EmptyState(
+                                icon: LucideIcons.fileText,
+                                title: "Empty",
+                                subtitle: "No prescriptions Found.",
+                              );
+                            }
+
+                            return ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              padding: EdgeInsets.zero,
+                              itemCount: list.length,
+                              itemBuilder: (context, index) {
+                                final prescription = list[index];
+                                return _RecentDispenseRow(
+                                  initials: getInitials(prescription.patientName),
+                                  name: prescription.patientName,
+                                  details:
+                                      '${prescription.items.length} medicine${prescription.items.length == 1 ? '' : 's'}',
+                                  time:
+                                      '${formatDispenseDate(prescription.createdAt)}\n${formatDispenseTime(prescription.createdAt)}',
+                                  color: Colors.lightBlueAccent,
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -246,9 +269,7 @@ class _MetricCard extends StatelessWidget {
           Text(
             label,
             textAlign: TextAlign.center,
-            style: AppTextStyles.bodySmall.copyWith(
-              color: Colors.white70,
-            ),
+            style: AppTextStyles.bodySmall.copyWith(color: Colors.white70),
           ),
         ],
       ),
@@ -336,6 +357,37 @@ class _AlertRow extends StatelessWidget {
   }
 }
 
+String getInitials(String name) {
+  final cleanName = name.trim();
+
+  if (cleanName.isEmpty) {
+    return '';
+  }
+
+  final parts = cleanName.split(RegExp(r'\s+'));
+
+  if (parts.length == 1) {
+    return parts.first[0].toUpperCase();
+  }
+
+  return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+}
+
+String formatDispenseDate(DateTime date) {
+  return '${date.day.toString().padLeft(2, '0')}/'
+      '${date.month.toString().padLeft(2, '0')}/'
+      '${date.year}';
+}
+
+String formatDispenseTime(DateTime date) {
+  final hour = date.hour;
+  final minute = date.minute;
+  final period = hour >= 12 ? 'PM' : 'AM';
+  final displayHour = hour % 12 == 0 ? 12 : hour % 12;
+
+  return '$displayHour:${minute.toString().padLeft(2, '0')} $period';
+}
+
 class _RecentDispenseRow extends StatelessWidget {
   const _RecentDispenseRow({
     required this.initials,
@@ -380,7 +432,7 @@ class _RecentDispenseRow extends StatelessWidget {
                   style: AppTextStyles.bodyLarge.copyWith(
                     color: const Color(0xFF2E2F42),
                     fontWeight: FontWeight.w700,
-                   fontSize: 16,
+                    fontSize: 16,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -395,6 +447,7 @@ class _RecentDispenseRow extends StatelessWidget {
           ),
           Text(
             time,
+            textAlign: TextAlign.right,
             style: AppTextStyles.bodyMedium.copyWith(
               color: const Color(0xFF7A7E8C),
             ),
