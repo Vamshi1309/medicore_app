@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/core/widgets/app_snackbar.dart';
 import 'package:frontend/core/widgets/empty_state.dart';
-import 'package:frontend/features/pharmacy/providers/pharmacy_provider.dart';
+import 'package:frontend/features/pharmacy/providers/patient_pharmacy_provider.dart';
 import 'package:frontend/features/patient/records/widgets/record_dispense_history_card.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -20,7 +20,7 @@ class _DispenseHistoryScreenState extends ConsumerState<DispenseHistoryScreen> {
   void initState() {
     super.initState();
 
-    ref.listenManual(pharmacyProvider, (prev, next) {
+    ref.listenManual(patientPharmacyProvider, (prev, next) {
       next.whenOrNull(
         error: (error, _) {
           final message = error is ApiException
@@ -35,7 +35,7 @@ class _DispenseHistoryScreenState extends ConsumerState<DispenseHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final dispenseHistoryAsync = ref.watch(pharmacyProvider);
+    final dispenseHistoryAsync = ref.watch(patientPharmacyProvider);
 
     return dispenseHistoryAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),

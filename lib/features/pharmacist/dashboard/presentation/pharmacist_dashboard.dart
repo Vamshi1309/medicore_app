@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/core/router/app_routes.dart';
 import 'package:frontend/core/theme/app_text_styles.dart';
 import 'package:frontend/core/widgets/empty_state.dart';
 import 'package:frontend/core/widgets/error_state.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
+import 'package:frontend/features/inventory/providers/low_stock_medicine_provider.dart';
+import 'package:frontend/features/pharmacy/providers/pharmacist_dispence_history_provider.dart';
 import 'package:frontend/features/prescription/providers/all_prescription_provider.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class PharmacistDashboard extends ConsumerWidget {
@@ -13,8 +17,21 @@ class PharmacistDashboard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authProvider).user;
+
     final prescriptions = ref.watch(getAllPrescriptionsProvider);
     final totalPrescriptions = prescriptions.maybeWhen(
+      data: (list) => list.length,
+      orElse: () => 0,
+    );
+
+    final dispenseHistory = ref.watch(pharmacistDispenceHistoryProvider);
+    final totalDispenced = dispenseHistory.maybeWhen(
+      data: (list) => list.length,
+      orElse: () => 0,
+    );
+
+    final lowStockMedicines = ref.watch(lowStockMedicinesProvider);
+    final totalLowStock = lowStockMedicines.maybeWhen(
       data: (list) => list.length,
       orElse: () => 0,
     );
@@ -95,11 +112,17 @@ class PharmacistDashboard extends ConsumerWidget {
                         ),
                         const SizedBox(width: 10),
                         Expanded(
-                          child: _MetricCard(value: '5', label: 'Low stock'),
+                          child: _MetricCard(
+                            value: totalLowStock.toString(),
+                            label: 'Low stock',
+                          ),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
-                          child: _MetricCard(value: '28', label: 'Dispensed'),
+                          child: _MetricCard(
+                            value: totalDispenced.toString(),
+                            label: 'Dispensed',
+                          ),
                         ),
                       ],
                     ),
@@ -107,7 +130,9 @@ class PharmacistDashboard extends ConsumerWidget {
                     SizedBox(
                       width: double.infinity,
                       child: FilledButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          context.go(AppRoutes.pharmacistPrescriptions);
+                        },
                         style: FilledButton.styleFrom(
                           backgroundColor: const Color(0xFFEFEFFA),
                           foregroundColor: const Color(0xFF2852D8),
@@ -159,18 +184,36 @@ class PharmacistDashboard extends ConsumerWidget {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        _AlertRow(
-                          name: 'Amoxicillin 500mg',
-                          subtitle: 'Only 8 units remaining',
-                          level: 'Low',
-                          accent: Color(0xFFF9D08A),
-                        ),
-                        const SizedBox(height: 10),
-                        _AlertRow(
-                          name: 'Azithromycin 500mg',
-                          subtitle: 'Only 6 units remaining',
-                          level: 'Low',
-                          accent: Color(0xFFF9D08A),
+                        lowStockMedicines.when(
+                          data: (list) {
+                            if (list.isEmpty) {
+                              return EmptyState(
+                                icon: LucideIcons.clipboard,
+                                title: "Empty List",
+                                subtitle: "No Low Stock Medicines",
+                              );
+                            }
+
+                            return ListView.builder(
+                              itemBuilder: (context, index) {
+                                final medicine = list[index];
+
+                                return _AlertRow(
+                                  name: medicine.medicineName,
+                                  subtitle:
+                                      "Only ${medicine.quantity} units remaining",
+                                  level: "Low",
+                                  accent: Colors.orangeAccent,
+                                );
+                              },
+                            );
+                          },
+                          loading: () =>
+                              const Center(child: CircularProgressIndicator()),
+                          error: (error, stackTrace) => ErrorState(
+                            title: "Error",
+                            subtitle: error.toString(),
+                          ),
                         ),
                         const SizedBox(height: 22),
                         Row(
@@ -192,10 +235,9 @@ class PharmacistDashboard extends ConsumerWidget {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        prescriptions.when(
-                          loading: () => const Center(
-                            child: CircularProgressIndicator(),
-                          ),
+                        dispenseHistory.when(
+                          loading: () =>
+                              const Center(child: CircularProgressIndicator()),
                           error: (error, stackTrace) => ErrorState(
                             title: "Error",
                             subtitle: error.toString(),
@@ -217,12 +259,14 @@ class PharmacistDashboard extends ConsumerWidget {
                               itemBuilder: (context, index) {
                                 final prescription = list[index];
                                 return _RecentDispenseRow(
-                                  initials: getInitials(prescription.patientName),
+                                  initials: getInitials(
+                                    prescription.patientName,
+                                  ),
                                   name: prescription.patientName,
                                   details:
                                       '${prescription.items.length} medicine${prescription.items.length == 1 ? '' : 's'}',
                                   time:
-                                      '${formatDispenseDate(prescription.createdAt)}\n${formatDispenseTime(prescription.createdAt)}',
+                                      '${formatDispenseDate(prescription.dispensedAt)}\n${formatDispenseTime(prescription.dispensedAt)}',
                                   color: Colors.lightBlueAccent,
                                 );
                               },

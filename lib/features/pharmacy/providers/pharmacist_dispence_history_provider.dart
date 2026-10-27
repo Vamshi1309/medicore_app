@@ -5,18 +5,21 @@ import 'package:frontend/features/pharmacy/data/models/dispense_response.dart';
 import 'package:frontend/features/pharmacy/data/repos/pharmacy_repository.dart';
 import 'package:frontend/features/pharmacy/providers/pharmacy_repo_provider.dart';
 
-class PharmacyNotifier extends AsyncNotifier<List<DispenseResponse>> {
+class PharmacistDispenceHistoryNotifier
+    extends AsyncNotifier<List<DispenseResponse>> {
   late PharmacyRepository pharmacyRepository;
 
   @override
   Future<List<DispenseResponse>> build() async {
-    pharmacyRepository = ref.read(pharmacyRepoProvider);
+    pharmacyRepository = ref.watch(pharmacyRepoProvider);
 
-    final patientId = ref.read(authProvider).user!.id;
+    final pharmacistId = ref.read(authProvider).user!.id;
 
-    final response = await pharmacyRepository.getDispenseHistory(patientId);
+    final response = await pharmacyRepository.getDispenseHistoryByPharmacistId(
+      pharmacistId,
+    );
 
-    if (!response.success || response.data == null) {
+    if (!response.success) {
       throw ApiException(message: response.message);
     }
 
@@ -24,7 +27,8 @@ class PharmacyNotifier extends AsyncNotifier<List<DispenseResponse>> {
   }
 }
 
-final pharmacyProvider =
-    AsyncNotifierProvider<PharmacyNotifier, List<DispenseResponse>>(
-      PharmacyNotifier.new,
-    );
+final pharmacistDispenceHistoryProvider =
+    AsyncNotifierProvider<
+      PharmacistDispenceHistoryNotifier,
+      List<DispenseResponse>
+    >(PharmacistDispenceHistoryNotifier.new);

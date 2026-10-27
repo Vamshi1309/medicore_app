@@ -4,7 +4,7 @@ import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/core/widgets/app_snackbar.dart';
 import 'package:frontend/features/labReports/providers/lab_reports_provider.dart';
 import 'package:frontend/features/prescription/providers/prescription_provider.dart';
-import 'package:frontend/features/pharmacy/providers/pharmacy_provider.dart';
+import 'package:frontend/features/pharmacy/providers/patient_pharmacy_provider.dart';
 import 'package:frontend/features/patient/records/presentation/screens/dispense_history_screen.dart';
 import 'package:frontend/features/patient/records/presentation/screens/lab_reports_screen.dart';
 import 'package:frontend/features/patient/records/presentation/screens/prescription_screen.dart';
@@ -22,7 +22,7 @@ class _RecordsScreenState extends ConsumerState<RecordsScreen> {
   void initState() {
     super.initState();
 
-    ref.listenManual(pharmacyProvider, (prev, next) {
+    ref.listenManual(patientPharmacyProvider, (prev, next) {
       next.whenOrNull(
         error: (error, _) {
           final message = error is ApiException
@@ -62,7 +62,7 @@ class _RecordsScreenState extends ConsumerState<RecordsScreen> {
   Widget build(BuildContext context) {
     final prescriptionAsync = ref.watch(prescriptionProvider);
     final labReportsAsync = ref.watch(labReportsProvider);
-    final dispenseAsync = ref.watch(pharmacyProvider);
+    final dispenseAsync = ref.watch(patientPharmacyProvider);
 
     return DefaultTabController(
       length: 3,

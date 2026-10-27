@@ -58,9 +58,13 @@ class ApiConstants {
   //Pharmacy endpoints
   static String getDispenseHistoryByPatientId(String patientId) =>
       "/pharmacy/history/patient/$patientId";
+  static String getDispenseHistoryByPharmacistId(String pharmacistId) =>
+      "/pharmacy/history/pharmacist/$pharmacistId";
 
   //Inventory Endpoints
   static String getAllMedicines = "/inventory";
+  static String getLowStockMedicines(int threshold) =>
+      "/inventory/low-stock?$threshold";
 
   //Receptionist Endpoints
   static String receptionistProfile = "/receptionist/profile";

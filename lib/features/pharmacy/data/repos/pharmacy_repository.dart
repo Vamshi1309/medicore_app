@@ -10,7 +10,7 @@ class PharmacyRepository {
 
   const PharmacyRepository({required this.apiClient});
 
-  Future<ApiResponse<List<DispenseResponse>>> getDispenseHistory(
+  Future<ApiResponse<List<DispenseResponse>>> getDispenseHistoryByPatientId(
     String patientId,
   ) async {
     try {
@@ -33,6 +33,35 @@ class PharmacyRepository {
       }
 
       // Already converted elsewhere
+      if (e.error is ApiException) {
+        throw e.error as ApiException;
+      }
+
+      throw ApiException(message: "Something went wrong");
+    }
+  }
+
+  Future<ApiResponse<List<DispenseResponse>>> getDispenseHistoryByPharmacistId(
+    String pharmacistId,
+  ) async {
+    try {
+      final response = await apiClient.get(
+        ApiConstants.getDispenseHistoryByPharmacistId(pharmacistId),
+      );
+
+      return ApiResponse.fromJson(
+        response.data,
+        (data) => (data as List)
+            .map((e) => DispenseResponse.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
+    } on DioException catch (e) {
+      if (e.response?.data != null) {
+        final data = e.response!.data;
+
+        throw ApiException(message: data['message'] ?? "Something went wrong");
+      }
+
       if (e.error is ApiException) {
         throw e.error as ApiException;
       }
