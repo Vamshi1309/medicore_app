@@ -1,3 +1,5 @@
+import 'package:frontend/features/prescription/data/models/enums/dispence_status.dart';
+
 import 'prescription_item_response.dart';
 
 class PrescriptionResponse {
@@ -17,6 +19,8 @@ class PrescriptionResponse {
 
   final DateTime createdAt;
 
+  final DispensingStatus status;
+
   const PrescriptionResponse({
     required this.prescriptionId,
     required this.appointmentId,
@@ -28,6 +32,7 @@ class PrescriptionResponse {
     required this.notes,
     required this.items,
     required this.createdAt,
+    required this.status,
   });
 
   factory PrescriptionResponse.fromJson(Map<String, dynamic> json) {
@@ -42,12 +47,12 @@ class PrescriptionResponse {
       notes: json['notes'] ?? '',
       items: (json['items'] as List<dynamic>? ?? [])
           .map(
-            (item) => PrescriptionItemResponse.fromJson(
-              item as Map<String, dynamic>,
-            ),
+            (item) =>
+                PrescriptionItemResponse.fromJson(item as Map<String, dynamic>),
           )
           .toList(),
       createdAt: DateTime.parse(json['createdAt'] as String),
+      status: DispensingStatus.fromApi(json['dispensingStatus'] as String?),
     );
   }
 
@@ -83,13 +88,13 @@ class PrescriptionResponse {
       appointmentId: appointmentId ?? this.appointmentId,
       doctorId: doctorId ?? this.doctorId,
       doctorName: doctorName ?? this.doctorName,
-      doctorSpecialization:
-          doctorSpecialization ?? this.doctorSpecialization,
+      doctorSpecialization: doctorSpecialization ?? this.doctorSpecialization,
       patientId: patientId ?? this.patientId,
       patientName: patientName ?? this.patientName,
       notes: notes ?? this.notes,
       items: items ?? this.items,
       createdAt: createdAt ?? this.createdAt,
+      status: status,
     );
   }
 }

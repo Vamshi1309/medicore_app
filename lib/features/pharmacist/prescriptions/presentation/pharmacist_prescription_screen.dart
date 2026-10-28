@@ -1,20 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/theme/app_text_styles.dart';
 import 'package:frontend/core/widgets/app_search_bar.dart';
+import 'package:frontend/core/widgets/empty_state.dart';
+import 'package:frontend/core/widgets/error_state.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
 import 'package:frontend/core/widgets/status_badge.dart';
+import 'package:frontend/features/prescription/data/models/enums/dispence_status.dart';
+import 'package:frontend/features/prescription/providers/all_prescription_provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-class PharmacistPrescriptionScreen extends StatefulWidget {
+class PharmacistPrescriptionScreen extends ConsumerStatefulWidget {
   const PharmacistPrescriptionScreen({super.key});
 
   @override
-  State<PharmacistPrescriptionScreen> createState() =>
+  ConsumerState<PharmacistPrescriptionScreen> createState() =>
       _PharmacistPrescriptionScreenState();
 }
 
 class _PharmacistPrescriptionScreenState
-    extends State<PharmacistPrescriptionScreen>
+    extends ConsumerState<PharmacistPrescriptionScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
@@ -35,6 +41,7 @@ class _PharmacistPrescriptionScreenState
   @override
   Widget build(BuildContext context) {
     final bool showCompleted = _tabController.index == 1;
+    final prescriptions = ref.watch(getAllPrescriptionsProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF1F5F9),
@@ -111,7 +118,118 @@ class _PharmacistPrescriptionScreenState
                     Expanded(
                       child: TabBarView(
                         controller: _tabController,
-                        children: [_buildPendingList(), _buildCompletedList()],
+                        children: [
+                          // Pending prescriptions
+                          prescriptions.when(
+                            loading: () => const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                            error: (err, stacktrace) => ErrorState(
+                              title: "Error",
+                              subtitle: err.toString(),
+                            ),
+                            data: (list) {
+                              final pendingList = list
+                                  .where(
+                                    (prescription) =>
+                                        prescription.status ==
+                                        DispensingStatus.pending,
+                                  )
+                                  .toList();
+
+                              if (pendingList.isEmpty) {
+                                return EmptyState(
+                                  icon: LucideIcons.clipboard,
+                                  title: "No Pending Prescriptions",
+                                  subtitle: "No prescriptions to dispense",
+                                );
+                              }
+
+                              return ListView.separated(
+                                itemCount: pendingList.length,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
+                                separatorBuilder: (context, index) =>
+                                    const SizedBox(height: 12),
+                                itemBuilder: (context, index) {
+                                  final prescription = pendingList[index];
+
+                                  return PendingPrescriptionCard(
+                                    prescriptionId: prescription.prescriptionId,
+                                    initials: getInitials(
+                                      prescription.patientName,
+                                    ),
+                                    patientName: prescription.patientName,
+                                    patientId: prescription.patientId,
+                                    doctorName: prescription.doctorName,
+                                    datetime: formatDispenseDate(
+                                      prescription.createdAt,
+                                    ),
+                                    medicineCount: prescription.items.length,
+                                    status: prescription.status.apiValue,
+                                  );
+                                },
+                              );
+                            },
+                          ),
+
+                          // Completed prescriptions
+                          prescriptions.when(
+                            loading: () => const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                            error: (err, stacktrace) => ErrorState(
+                              title: "Error",
+                              subtitle: err.toString(),
+                            ),
+                            data: (list) {
+                              final completedList = list
+                                  .where(
+                                    (prescription) =>
+                                        prescription.status ==
+                                        DispensingStatus.completed,
+                                  )
+                                  .toList();
+
+                              if (completedList.isEmpty) {
+                                return EmptyState(
+                                  icon: LucideIcons.clipboardCheck,
+                                  title: "No Completed Prescriptions",
+                                  subtitle:
+                                      "No prescriptions have been dispensed yet",
+                                );
+                              }
+
+                              return ListView.separated(
+                                itemCount: completedList.length,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
+                                separatorBuilder: (context, index) =>
+                                    const SizedBox(height: 12),
+                                itemBuilder: (context, index) {
+                                  final prescription = completedList[index];
+
+                                  return PendingPrescriptionCard(
+                                    prescriptionId: prescription.prescriptionId,
+                                    initials: getInitials(
+                                      prescription.patientName,
+                                    ),
+                                    patientName: prescription.patientName,
+                                    patientId: prescription.patientId,
+                                    doctorName: prescription.doctorName,
+                                    datetime: formatDispenseDate(
+                                      prescription.createdAt,
+                                    ),
+                                    medicineCount: prescription.items.length,
+                                    status: prescription.status.apiValue,
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -124,88 +242,35 @@ class _PharmacistPrescriptionScreenState
     );
   }
 
-  Widget _buildPendingList() {
-    final pending = [
-      PendingPrescriptionCard(
-        prescriptionId: 'RX-2084',
-        initials: 'RK',
-        patientName: 'Ravi Kumar',
-        patientId: 'RX-2084 • Age 34',
-        doctorName: 'Dr. Ananya Sharma',
-        datetime: 'Today, 09:00 AM',
-        medicineCount: 3,
-        status: 'Pending',
-      ),
-      PendingPrescriptionCard(
-        prescriptionId: 'RX-2083',
-        initials: 'MP',
-        patientName: 'Meera Patel',
-        patientId: 'RX-2083 • Age 42',
-        doctorName: 'Dr. Vikram Singh',
-        datetime: 'Today, 10:30 AM',
-        medicineCount: 2,
-        status: 'Pending',
-      ),
-      PendingPrescriptionCard(
-        prescriptionId: 'RX-2082',
-        initials: 'AN',
-        patientName: 'Arjun Nair',
-        patientId: 'RX-2082 • Age 29',
-        doctorName: 'Dr. Rohan Mehta',
-        datetime: 'Yesterday, 04:15 PM',
-        medicineCount: 4,
-        status: 'Pending',
-      ),
-    ];
+  String getInitials(String name) {
+    final cleanName = name.trim();
 
-    return ListView.separated(
-      padding: const EdgeInsets.only(bottom: 20),
-      itemCount: pending.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 14),
-      itemBuilder: (context, index) => pending[index],
-    );
+    if (cleanName.isEmpty) {
+      return '';
+    }
+
+    final parts = cleanName.split(RegExp(r'\s+'));
+
+    if (parts.length == 1) {
+      return parts.first[0].toUpperCase();
+    }
+
+    return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
   }
 
-  Widget _buildCompletedList() {
-    final completed = [
-      CompletedPrescriptionCard(
-        initials: 'SP',
-        patientName: 'Sneha Pillai',
-        patientId: 'RX-2081 • Age 38',
-        doctorName: 'Dr. Neha Kapoor',
-        datetime: 'Today, 10:24 AM',
-        medicineCount: 3,
-        by: 'Priya',
-        amount: '₹284',
-      ),
-      CompletedPrescriptionCard(
-        initials: 'KM',
-        patientName: 'Karan Malhotra',
-        patientId: 'RX-2080 • Age 46',
-        doctorName: 'Dr. Arvind Rao',
-        datetime: 'Today, 09:42 AM',
-        medicineCount: 2,
-        by: 'Priya',
-        amount: '₹156',
-      ),
-      CompletedPrescriptionCard(
-        initials: 'DV',
-        patientName: 'Diya Verma',
-        patientId: 'RX-2079 • Age 31',
-        doctorName: 'Dr. Rohan Mehta',
-        datetime: 'Yesterday, 04:50 PM',
-        medicineCount: 4,
-        by: 'Priya',
-        amount: '₹492',
-      ),
-    ];
+  String formatDispenseDate(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}/'
+        '${date.month.toString().padLeft(2, '0')}/'
+        '${date.year}';
+  }
 
-    return ListView.separated(
-      padding: const EdgeInsets.only(bottom: 20),
-      itemCount: completed.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 14),
-      itemBuilder: (context, index) => completed[index],
-    );
+  String formatDispenseTime(DateTime date) {
+    final hour = date.hour;
+    final minute = date.minute;
+    final period = hour >= 12 ? 'PM' : 'AM';
+    final displayHour = hour % 12 == 0 ? 12 : hour % 12;
+
+    return '$displayHour:${minute.toString().padLeft(2, '0')} $period';
   }
 }
 
