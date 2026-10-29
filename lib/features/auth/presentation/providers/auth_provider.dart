@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/core/network/dio_client.dart';
@@ -245,15 +246,41 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<void> getMe() async {
-    final response = await repository.getMe();
+    try {
+      debugPrint('[getMe] Started');
 
-    if (!response.success || response.data == null) {
-      throw ApiException(message: response.message);
+      debugPrint('[getMe] Calling repository.getMe()');
+      final response = await repository.getMe();
+
+      debugPrint('[getMe] API success: ${response.success}');
+      debugPrint('[getMe] API message: ${response.message}');
+      debugPrint('[getMe] Data is null: ${response.data == null}');
+
+      if (!response.success || response.data == null) {
+        debugPrint('[getMe] API failed or data is null');
+        throw ApiException(message: response.message);
+      }
+
+      debugPrint('[getMe] Converting response data to entity');
+
+      final user = response.data!.toEntity();
+
+      debugPrint('[getMe] User entity created successfully');
+      debugPrint('[getMe] User ID: ${user.id}');
+      debugPrint('[getMe] User name: ${user.name}');
+      debugPrint('[getMe] User role: ${user.role}');
+      debugPrint('[getMe] User staffId: ${user.staffId}');
+
+      debugPrint('[getMe] Updating auth state');
+
+      state = state.copyWith(isAuthenticated: true, user: user);
+
+      debugPrint('[getMe] Auth state updated successfully');
+    } catch (e, stackTrace) {
+      debugPrint('[getMe] ERROR: $e');
+      debugPrintStack(stackTrace: stackTrace);
+      rethrow;
     }
-
-    final user = response.data!.toEntity();
-
-    state = state.copyWith(isAuthenticated: true, user: user);
   }
 }
 

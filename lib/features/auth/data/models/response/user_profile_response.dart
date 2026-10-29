@@ -4,25 +4,25 @@ import 'package:frontend/shared/enums/user_role.dart';
 class UserProfileResponse {
   final String id;
   final String name;
-  final String staffId;
+  final String? staffId;
   final String phoneNumber;
   final String role;
 
   const UserProfileResponse({
     required this.id,
     required this.name,
-    required this.staffId,
+    this.staffId,
     required this.phoneNumber,
     required this.role,
   });
 
   factory UserProfileResponse.fromJson(Map<String, dynamic> json) {
     return UserProfileResponse(
-      id: json['id'],
-      name: json['name'],
-      phoneNumber: json['phoneNumber'],
-      role: json['role'],
-      staffId: json['staffId'],
+      id: json['id'] as String,
+      name: json['name'] as String,
+      staffId: json['staffId'] as String?,
+      phoneNumber: json['phoneNumber'] as String,
+      role: json['role'] as String,
     );
   }
 

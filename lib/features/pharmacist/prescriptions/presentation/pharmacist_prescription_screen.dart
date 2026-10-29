@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/core/router/app_routes.dart';
 import 'package:frontend/core/theme/app_text_styles.dart';
 import 'package:frontend/core/widgets/app_search_bar.dart';
 import 'package:frontend/core/widgets/empty_state.dart';
@@ -223,7 +224,9 @@ class _PharmacistPrescriptionScreenState
                                       prescription.createdAt,
                                     ),
                                     medicineCount: prescription.items.length,
-                                    status: prescription.status.apiValue,
+                                    status: 'Completed',
+                                    showActionButton: false,
+                                    isCompleted: true,
                                   );
                                 },
                               );
@@ -341,6 +344,8 @@ class PendingPrescriptionCard extends StatelessWidget {
   final String datetime;
   final int medicineCount;
   final String status;
+  final bool showActionButton;
+  final bool isCompleted;
 
   const PendingPrescriptionCard({
     super.key,
@@ -352,11 +357,19 @@ class PendingPrescriptionCard extends StatelessWidget {
     required this.datetime,
     required this.medicineCount,
     required this.status,
+    this.showActionButton = true,
+    this.isCompleted = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = const Color(0xFFF7DCA8);
+    final statusColor = isCompleted
+        ? const Color(0xFFD8F5EA)
+        : const Color(0xFFF7DCA8);
+    final statusTextColor = isCompleted
+        ? const Color(0xFF1A7B5E)
+        : const Color(0xFF7A4D00);
+    final badgeStatus = isCompleted ? 'Completed' : status;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
@@ -411,9 +424,9 @@ class PendingPrescriptionCard extends StatelessWidget {
                           ),
                         ),
                         StatusBadge(
-                          status: status,
+                          status: badgeStatus,
                           backgroundColor: statusColor,
-                          textColor: const Color(0xFF7A4D00),
+                          textColor: statusTextColor,
                           fontSize: 10,
                           height: 22,
                         ),
@@ -485,21 +498,21 @@ class PendingPrescriptionCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 38,
-            child: PrimaryButton.primary(
-              text: 'Dispense',
-              onPressed: () {
-                context.push(
-                  '/pharmacist/prescriptions/$prescriptionId/dispense',
-                );
-              },
-              color: const Color(0xFF1BA7EF),
-              fontSize: 14,
-              suffixIcon: Icons.arrow_forward_rounded,
+          if (showActionButton) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 38,
+              child: PrimaryButton.primary(
+                text: 'Dispense',
+                onPressed: () {
+                  context.push(AppRoutes.pharmacistDispensePath(prescriptionId));
+                },
+                color: const Color(0xFF1BA7EF),
+                fontSize: 14,
+                suffixIcon: Icons.arrow_forward_rounded,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );

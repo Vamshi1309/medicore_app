@@ -14,7 +14,7 @@ class DispenseResponse {
   // Bill
   final double totalAmount;
 
-  final String notes;
+  final String? notes;
   final DateTime dispensedAt;
 
   const DispenseResponse({
@@ -25,33 +25,9 @@ class DispenseResponse {
     required this.dispensedByName,
     required this.items,
     required this.totalAmount,
-    required this.notes,
+    this.notes,
     required this.dispensedAt,
   });
-
-  DispenseResponse copyWith({
-    String? prescriptionId,
-    String? patientId,
-    String? patientName,
-    String? dispensedById,
-    String? dispensedByName,
-    List<DispenseItemResponse>? items,
-    double? totalAmount,
-    String? notes,
-    DateTime? dispensedAt,
-  }) {
-    return DispenseResponse(
-      prescriptionId: prescriptionId ?? this.prescriptionId,
-      patientId: patientId ?? this.patientId,
-      patientName: patientName ?? this.patientName,
-      dispensedById: dispensedById ?? this.dispensedById,
-      dispensedByName: dispensedByName ?? this.dispensedByName,
-      items: items ?? this.items,
-      totalAmount: totalAmount ?? this.totalAmount,
-      notes: notes ?? this.notes,
-      dispensedAt: dispensedAt ?? this.dispensedAt,
-    );
-  }
 
   factory DispenseResponse.fromJson(Map<String, dynamic> json) {
     return DispenseResponse(
@@ -68,7 +44,7 @@ class DispenseResponse {
           )
           .toList(),
       totalAmount: (json['totalAmount'] as num).toDouble(),
-      notes: json['notes'] as String,
+      notes: json['notes'] as String?,
       dispensedAt: DateTime.parse(json['dispensedAt'] as String),
     );
   }

@@ -3,6 +3,7 @@ import 'package:frontend/core/network/api_client.dart';
 import 'package:frontend/core/network/api_constants.dart';
 import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/core/network/api_response.dart';
+import 'package:frontend/features/pharmacy/data/models/dispense_medicine_request.dart';
 import 'package:frontend/features/pharmacy/data/models/dispense_response.dart';
 
 class PharmacyRepository {
@@ -67,6 +68,34 @@ class PharmacyRepository {
       }
 
       throw ApiException(message: "Something went wrong");
+    }
+  }
+
+  Future<ApiResponse<DispenseResponse>> dispenseMedicine(
+    DispenseMedicineRequest request,
+  ) async {
+    try {
+      final response = await apiClient.post(
+        ApiConstants.dispenseMedicine,
+        data: request.toJson(),
+      );
+
+      return ApiResponse.fromJson(
+        response.data,
+        (data) => DispenseResponse.fromJson(data as Map<String, dynamic>),
+      );
+    } on DioException catch (e) {
+      if (e.response?.data != null) {
+        final data = e.response!.data;
+
+        throw ApiException(message: data['message'] ?? 'Something went wrong');
+      }
+
+      if (e.error is ApiException) {
+        throw e.error as ApiException;
+      }
+
+      throw ApiException(message: 'Something went wrong');
     }
   }
 }

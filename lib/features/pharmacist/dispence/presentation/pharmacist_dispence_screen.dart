@@ -1,60 +1,100 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
+import 'package:frontend/core/widgets/status_badge.dart';
+import 'package:frontend/features/pharmacist/dashboard/presentation/pharmacist_dashboard.dart';
+import 'package:frontend/features/pharmacy/data/models/dispense_item_request.dart';
+import 'package:frontend/features/pharmacy/data/models/dispense_medicine_request.dart';
+import 'package:frontend/features/pharmacy/providers/dispense_medicine_provider.dart';
+import 'package:frontend/features/pharmacy/providers/pharmacist_dispence_history_provider.dart';
+import 'package:frontend/features/prescription/data/models/enums/dispence_status.dart';
+import 'package:frontend/features/prescription/data/models/prescription_item_response.dart';
+import 'package:frontend/features/prescription/data/models/prescription_response.dart';
+import 'package:frontend/features/prescription/providers/all_prescription_provider.dart';
+import 'package:frontend/features/prescription/providers/prescription_by_id_provider.dart';
 
-class PharmacistDispenceScreen extends StatefulWidget {
-  const PharmacistDispenceScreen({super.key});
+class PharmacistDispenceScreen extends ConsumerStatefulWidget {
+  final String prescriptionId;
+  const PharmacistDispenceScreen({super.key, required this.prescriptionId});
 
   @override
-  State<PharmacistDispenceScreen> createState() =>
+  ConsumerState<PharmacistDispenceScreen> createState() =>
       _PharmacistDispenceScreenState();
 }
 
-class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
-  late List<_MedicineItem> _items;
+class _PharmacistDispenceScreenState
+    extends ConsumerState<PharmacistDispenceScreen> {
+  final Map<String, int> _quantities = {};
 
   @override
   void initState() {
     super.initState();
-    _items = [
-      const _MedicineItem(
-        number: '1',
-        name: 'Metformin 500mg',
-        schedule: '1 tablet • 2x daily',
-        duration: '30 days',
-        quantity: 1,
-        unitPrice: 7,
-      ),
-      const _MedicineItem(
-        number: '2',
-        name: 'Atorvastatin 10mg',
-        schedule: '1 tablet • at night',
-        duration: '30 days',
-        quantity: 2,
-        unitPrice: 11,
-      ),
-    ];
   }
 
-  int get totalAmount {
-    return _items.fold<int>(
-      0,
-      (sum, item) => sum + item.quantity * item.unitPrice,
+  double totalAmount(List<PrescriptionItemResponse> items) {
+    return items.fold<double>(
+      0.0,
+      (sum, item) =>
+          sum + (_quantities[item.itemId] ?? item.quantity) * item.pricePerUnit,
     );
   }
 
   bool _isCompleted = false;
 
-  void _updateQuantity(int index, int delta) {
+  void _updateQuantity(int index, int delta, PrescriptionItemResponse item) {
+    final currentQuantity = _quantities[item.itemId] ?? item.quantity;
+    final nextQuantity = (currentQuantity + delta).clamp(0, 99);
+
     setState(() {
-      final next = _items[index].quantity + delta;
-      _items[index] = _items[index].copyWith(quantity: next.clamp(0, 99));
+      _quantities[item.itemId] = nextQuantity;
     });
   }
 
-  void _confirmDispense() {
-    setState(() {
-      _isCompleted = true;
-    });
+  String formatPrescriptionId(String id) {
+    return 'RX-${id.substring(0, 4).toUpperCase()}';
+  }
+
+  Future<void> _confirmDispense(PrescriptionResponse prescription) async {
+    try {
+      final request = DispenseMedicineRequest(
+        prescriptionId: prescription.prescriptionId,
+        items: prescription.items.map((item) {
+          final medicineId = item.medicineId;
+
+          if (medicineId == null) {
+            throw ApiException(
+              message:
+                  'Medicine ID is missing for ${item.medicineName ?? 'an item'}.',
+            );
+          }
+
+          return DispenseItemRequest(
+            medicineId: medicineId,
+            quantityDispensed: _quantities[item.itemId] ?? item.quantity,
+          );
+        }).toList(),
+      );
+
+      await ref
+          .read(dispenseMedicineProvider.notifier)
+          .dispenseMedicine(request);
+
+      if (!mounted) return;
+
+      setState(() {
+        _isCompleted = true;
+      });
+
+      ref.invalidate(pharmacistDispenceHistoryProvider);
+      ref.invalidate(getAllPrescriptionsProvider);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
+    }
   }
 
   void _backToHome() {
@@ -63,7 +103,8 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
     }
   }
 
-  Widget _buildReviewScreen() {
+  Widget _buildReviewScreen(PrescriptionResponse prescription) {
+    final isDispensing = ref.watch(dispenseMedicineProvider).isLoading;
     return Scaffold(
       backgroundColor: const Color(0xFFF1F5F9),
       body: SafeArea(
@@ -86,9 +127,9 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'RX-2083 • Before dispensing',
-                          style: TextStyle(
+                        Text(
+                          '${formatPrescriptionId(prescription.prescriptionId)} • Before dispensing',
+                          style: const TextStyle(
                             color: Color(0xD9EAFBFF),
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -107,23 +148,10 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      'Pending',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                  StatusBadge(
+                    status: "Pending",
+                    backgroundColor: Colors.white24,
+                    textColor: Colors.white,
                   ),
                 ],
               ),
@@ -193,8 +221,8 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                               borderRadius: BorderRadius.circular(24),
                             ),
                             alignment: Alignment.center,
-                            child: const Text(
-                              'MP',
+                            child: Text(
+                              getInitials(prescription.patientName),
                               style: TextStyle(
                                 color: Color(0xFF0B5EA5),
                                 fontSize: 20,
@@ -206,9 +234,9 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
+                              children: [
                                 Text(
-                                  'Meera Patel',
+                                  prescription.patientName,
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 20,
@@ -218,7 +246,7 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                                 ),
                                 SizedBox(height: 4),
                                 Text(
-                                  'Age 42 • Prescribed by Dr. Vikram Singh',
+                                  'Prescribed by Dr. ${prescription.doctorName}',
                                   style: TextStyle(
                                     color: Color(0xFFE6F6FF),
                                     fontSize: 12,
@@ -242,8 +270,11 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                       ),
                     ),
                     const SizedBox(height: 14),
-                    ...List.generate(_items.length, (index) {
-                      final item = _items[index];
+                    ...List.generate(prescription.items.length, (index) {
+                      final item = prescription.items[index];
+                      String idx = (index + 1).toString();
+                      final quantity =
+                          _quantities[item.itemId] ?? item.quantity;
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: Container(
@@ -273,7 +304,7 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                                     ),
                                     alignment: Alignment.center,
                                     child: Text(
-                                      item.number,
+                                      idx,
                                       style: const TextStyle(
                                         color: Color(0xFF0B5EA5),
                                         fontSize: 16,
@@ -284,7 +315,7 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: Text(
-                                      item.name,
+                                      item.medicineName!,
                                       style: const TextStyle(
                                         color: Color(0xFF1B2D3C),
                                         fontSize: 17,
@@ -302,7 +333,7 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      item.schedule,
+                                      "Take Medicine at ${item.frequency.name}",
                                       style: const TextStyle(
                                         color: Color(0xFF667A8E),
                                         fontSize: 12,
@@ -311,7 +342,7 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      item.duration,
+                                      "Duration : ${item.durationInDays} Days",
                                       style: const TextStyle(
                                         color: Color(0xFF667A8E),
                                         fontSize: 12,
@@ -350,7 +381,7 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                                       children: [
                                         InkWell(
                                           onTap: () =>
-                                              _updateQuantity(index, -1),
+                                              _updateQuantity(index, -1, item),
                                           borderRadius: BorderRadius.circular(
                                             6,
                                           ),
@@ -366,7 +397,7 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                                         SizedBox(
                                           width: 34,
                                           child: Text(
-                                            '${item.quantity}',
+                                            '$quantity',
                                             textAlign: TextAlign.center,
                                             style: const TextStyle(
                                               color: Color(0xFF1E2C3A),
@@ -377,7 +408,7 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                                         ),
                                         InkWell(
                                           onTap: () =>
-                                              _updateQuantity(index, 1),
+                                              _updateQuantity(index, 1, item),
                                           borderRadius: BorderRadius.circular(
                                             6,
                                           ),
@@ -395,7 +426,7 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                                   ),
                                   const SizedBox(width: 10),
                                   Text(
-                                    '₹${item.quantity * item.unitPrice}',
+                                    '₹${(quantity * item.pricePerUnit).toStringAsFixed(2)}',
                                     style: const TextStyle(
                                       color: Color(0xFF1B2D3C),
                                       fontSize: 15,
@@ -435,14 +466,14 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                       ),
                       child: Column(
                         children: [
-                          for (var item in _items)
+                          for (var item in prescription.items)
                             Padding(
                               padding: const EdgeInsets.only(bottom: 8),
                               child: Row(
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      '${item.name} × ${item.quantity}',
+                                      '${item.medicineName} × ${_quantities[item.itemId] ?? item.quantity}',
                                       style: const TextStyle(
                                         color: Color(0xFF2A3C4B),
                                         fontSize: 14,
@@ -451,7 +482,7 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                                     ),
                                   ),
                                   Text(
-                                    '₹${item.quantity * item.unitPrice}',
+                                    '₹${((_quantities[item.itemId] ?? item.quantity) * item.pricePerUnit).toStringAsFixed(2)}',
                                     style: const TextStyle(
                                       color: Color(0xFF2A3C4B),
                                       fontSize: 14,
@@ -478,7 +509,7 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                               ),
                               const Spacer(),
                               Text(
-                                '₹$totalAmount',
+                                '₹${totalAmount(prescription.items)}',
                                 style: const TextStyle(
                                   color: Color(0xFF1D7FCE),
                                   fontSize: 18,
@@ -492,11 +523,17 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                     ),
                     const SizedBox(height: 18),
                     PrimaryButton.primary(
-                      text: 'Confirm Dispense & Update Stock',
-                      onPressed: _confirmDispense,
+                      text: isDispensing
+                          ? 'Dispensing...'
+                          : 'Confirm Dispense & Update Stock',
+                      onPressed: isDispensing
+                          ? null
+                          : () => _confirmDispense(prescription),
                       color: const Color(0xFF1D8CE5),
                       fontSize: 18,
-                      prefixIcon: Icons.check_circle_rounded,
+                      prefixIcon: isDispensing
+                          ? null
+                          : Icons.check_circle_rounded,
                     ),
                     const SizedBox(height: 12),
                     const Text(
@@ -519,7 +556,7 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
     );
   }
 
-  Widget _buildCompletedScreen() {
+  Widget _buildCompletedScreen(PrescriptionResponse prescription) {
     return Scaffold(
       backgroundColor: const Color(0xFFF1F5F9),
       body: SafeArea(
@@ -541,17 +578,17 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
-                          'RX-2083 • Successfully recorded',
-                          style: TextStyle(
+                          '${formatPrescriptionId(prescription.prescriptionId)} • Successfully recorded',
+                          style: const TextStyle(
                             color: Color(0xD9EAFBFF),
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        SizedBox(height: 4),
-                        Text(
+                        const SizedBox(height: 4),
+                        const Text(
                           'Dispense Complete',
                           style: TextStyle(
                             color: Colors.white,
@@ -563,23 +600,10 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      'Completed',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                  StatusBadge(
+                    status: "Completed",
+                    backgroundColor: Colors.white24,
+                    textColor: Colors.white,
                   ),
                 ],
               ),
@@ -660,9 +684,9 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                                   shape: BoxShape.circle,
                                 ),
                                 alignment: Alignment.center,
-                                child: const Text(
-                                  'MP',
-                                  style: TextStyle(
+                                child: Text(
+                                  getInitials(prescription.patientName),
+                                  style: const TextStyle(
                                     color: Color(0xFF0B5EA5),
                                     fontSize: 18,
                                     fontWeight: FontWeight.w800,
@@ -670,10 +694,10 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              const Expanded(
+                              Expanded(
                                 child: Text(
-                                  'Meera Patel',
-                                  style: TextStyle(
+                                  prescription.patientName,
+                                  style: const TextStyle(
                                     color: Color(0xFF1F2D3D),
                                     fontSize: 18,
                                     fontWeight: FontWeight.w700,
@@ -685,12 +709,21 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                           const SizedBox(height: 14),
                           const Divider(color: Color(0xFFE6EDF4), thickness: 1),
                           const SizedBox(height: 12),
-                          _buildDetailRow('Prescription', 'RX-2083'),
-                          _buildDetailRow('Medicines issued', '2'),
-                          _buildDetailRow('Amount collected', '₹18'),
+                          _buildDetailRow(
+                            'Prescription',
+                            formatPrescriptionId(prescription.prescriptionId),
+                          ),
+                          _buildDetailRow(
+                            'Medicines issued',
+                            '${prescription.items.length}',
+                          ),
+                          _buildDetailRow(
+                            'Amount collected',
+                            '₹${totalAmount(prescription.items).toStringAsFixed(2)}',
+                          ),
                           _buildDetailRow(
                             'Status',
-                            'Paid & completed',
+                            'Dispense completed',
                             isStatus: true,
                           ),
                         ],
@@ -716,7 +749,7 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                       child: Column(
                         children: [
                           Row(
-                            children: const [
+                            children: [
                               Expanded(
                                 child: Text(
                                   'Bill summary',
@@ -728,7 +761,9 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                                 ),
                               ),
                               Text(
-                                'RX-2083',
+                                formatPrescriptionId(
+                                  prescription.prescriptionId,
+                                ),
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Color(0xFF566D7E),
@@ -737,14 +772,19 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                             ],
                           ),
                           const SizedBox(height: 12),
-                          ..._items.map(
-                            (item) => Padding(
+                          ...prescription.items.map((item) {
+                            final quantity =
+                                _quantities[item.itemId] ?? item.quantity;
+                            final amount = quantity * item.pricePerUnit;
+
+                            return Padding(
                               padding: const EdgeInsets.only(bottom: 8),
                               child: Row(
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      '${item.name} • ${item.quantity} item${item.quantity > 1 ? 's' : ''}',
+                                      '${item.medicineName ?? 'Unknown medicine'} • '
+                                      '$quantity item${quantity == 1 ? '' : 's'}',
                                       style: const TextStyle(
                                         color: Color(0xFF2A3C4B),
                                         fontSize: 14,
@@ -753,7 +793,7 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                                     ),
                                   ),
                                   Text(
-                                    '₹${item.quantity * item.unitPrice}',
+                                    '₹${amount.toStringAsFixed(2)}',
                                     style: const TextStyle(
                                       color: Color(0xFF2A3C4B),
                                       fontSize: 14,
@@ -762,8 +802,8 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                                   ),
                                 ],
                               ),
-                            ),
-                          ),
+                            );
+                          }),
                           const Divider(
                             height: 24,
                             thickness: 1.2,
@@ -782,7 +822,7 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                                 ),
                               ),
                               Text(
-                                '₹$totalAmount',
+                                '₹${totalAmount(prescription.items)}',
                                 style: const TextStyle(
                                   color: Color(0xFF1D7FCE),
                                   fontSize: 18,
@@ -802,8 +842,8 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Row(
-                        children: const [
-                          CircleAvatar(
+                        children: [
+                          const CircleAvatar(
                             radius: 14,
                             backgroundColor: Color(0xFF4E8EF7),
                             child: Text(
@@ -814,11 +854,12 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
                               ),
                             ),
                           ),
-                          SizedBox(width: 12),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              'Hand over the medicines and dosage instructions to Meera.',
-                              style: TextStyle(
+                              'Hand over the medicines and dosage instructions to '
+                              '${prescription.patientName}.',
+                              style: const TextStyle(
                                 color: Color(0xFF2F4D66),
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -908,35 +949,24 @@ class _PharmacistDispenceScreenState extends State<PharmacistDispenceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return _isCompleted ? _buildCompletedScreen() : _buildReviewScreen();
-  }
-}
+    final prescriptionAsync = ref.watch(
+      prescriptionByIdProvider(widget.prescriptionId),
+    );
 
-class _MedicineItem {
-  final String number;
-  final String name;
-  final String schedule;
-  final String duration;
-  final int quantity;
-  final int unitPrice;
+    return prescriptionAsync.when(
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (error, stackTrace) => Scaffold(
+        body: Center(child: Text('Failed to load prescription: $error')),
+      ),
+      data: (prescription) {
+        final isCompleted =
+            _isCompleted || prescription.status == DispensingStatus.completed;
 
-  const _MedicineItem({
-    required this.number,
-    required this.name,
-    required this.schedule,
-    required this.duration,
-    required this.quantity,
-    required this.unitPrice,
-  });
-
-  _MedicineItem copyWith({int? quantity}) {
-    return _MedicineItem(
-      number: number,
-      name: name,
-      schedule: schedule,
-      duration: duration,
-      quantity: quantity ?? this.quantity,
-      unitPrice: unitPrice,
+        return isCompleted
+            ? _buildCompletedScreen(prescription)
+            : _buildReviewScreen(prescription);
+      },
     );
   }
 }

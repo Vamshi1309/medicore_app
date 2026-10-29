@@ -41,7 +41,10 @@ class AppRoutes {
   static const pharmacistHome = '/pharmacist/home';
   static const pharmacistPrescriptions = '/pharmacist/prescriptions';
   static const pharmacistDispense = ':prescriptionId/dispense';
-  static const pharmacistDispensePath = '/pharmacist/prescriptions/:prescriptionId/dispense';
+
+  static String pharmacistDispensePath(String prescriptionId) =>
+      '$pharmacistPrescriptions/$prescriptionId/dispense';
+
   static const pharmacistInventory = '/pharmacist/inventory';
   static const pharmacistProfile = '/pharmacist/profile';
 }

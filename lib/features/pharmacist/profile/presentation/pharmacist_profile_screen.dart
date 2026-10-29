@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
+import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
 
-class PharmacistProfileScreen extends StatelessWidget {
+class PharmacistProfileScreen extends ConsumerWidget {
   const PharmacistProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final blueDark = const Color(0xFF0B5ED7);
     final blueMid = const Color(0xFF2A6DEB);
     final bg = const Color(0xFFEAF2F6);
@@ -237,7 +239,9 @@ class PharmacistProfileScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 18),
                       child: PrimaryButton.outlinedFilled(
                         text: 'Log out',
-                        onPressed: () {},
+                        onPressed: () {
+                          ref.watch(authProvider.notifier).logout();
+                        },
                         color: const Color(0xFFDD5C5C),
                         foregroundColor: const Color(0xFFDD5C5C),
                         prefixIcon: Icons.logout_rounded,

@@ -197,4 +197,37 @@ class PrescriptionRepository {
       );
     }
   }
+
+  Future<ApiResponse<PrescriptionResponse>> getPrescriptionByPrescriptionId(
+    String prescriptionId,
+  ) async {
+    try {
+      final response = await apiClient.get(
+        ApiConstants.getPrescriptionsByPrescriptionId(prescriptionId),
+      );
+
+      return ApiResponse.fromJson(
+        response.data,
+        (data) => PrescriptionResponse.fromJson(data as Map<String, dynamic>),
+      );
+    } on DioException catch (e) {
+      if (e.response?.data != null) {
+        final data = e.response!.data;
+
+        throw ApiException(
+          message: data['message'] ?? "Something went wrong",
+          statusCode: e.response?.statusCode,
+        );
+      }
+
+      if (e.error is ApiException) {
+        throw e.error as ApiException;
+      }
+
+      throw ApiException(
+        message: "Something went wrong",
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
 }

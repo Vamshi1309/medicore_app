@@ -169,7 +169,7 @@ class AppRouter {
           path: AppRoutes.receptionistEditProfile,
           builder: (context, state) => const EditReceptionistProfileScreen(),
         ),
-        
+
         StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) {
             return ReceptionistShell(navigationShell: navigationShell);
@@ -258,7 +258,7 @@ class AppRouter {
                     GoRoute(
                       path: AppRoutes.pharmacistDispense,
                       builder: (context, state) => PharmacistDispenceScreen(
-                        //prescriptionId: state.pathParameters['prescriptionId']!,
+                        prescriptionId: state.pathParameters['prescriptionId']!,
                       ),
                     ),
                   ],
