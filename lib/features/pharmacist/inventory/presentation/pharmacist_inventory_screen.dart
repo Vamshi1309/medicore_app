@@ -1,102 +1,69 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/theme/app_text_styles.dart';
+import 'package:frontend/features/inventory/data/models/medicine_response.dart';
+import 'package:frontend/features/inventory/providers/expired_medicine_provider.dart';
+import 'package:frontend/features/inventory/providers/inventory_provider.dart';
+import 'package:frontend/features/inventory/providers/low_stock_medicine_provider.dart';
 
-class PharmacistInventoryScreen extends StatefulWidget {
+class PharmacistInventoryScreen extends ConsumerStatefulWidget {
   const PharmacistInventoryScreen({super.key});
 
   @override
-  State<PharmacistInventoryScreen> createState() => _PharmacistInventoryScreenState();
+  ConsumerState<PharmacistInventoryScreen> createState() =>
+      _PharmacistInventoryScreenState();
 }
 
-class _PharmacistInventoryScreenState extends State<PharmacistInventoryScreen> {
+class _PharmacistInventoryScreenState
+    extends ConsumerState<PharmacistInventoryScreen> {
   String _selectedFilter = 'All';
 
-  final List<_MedicineItem> _medicines = const [
-    _MedicineItem(
-      name: 'Amoxicillin 500mg',
-      category: 'Antibiotic',
-      expiry: 'Expires 18 Dec 2026',
-      status: 'Low Stock',
-      statusColor: Color(0xFFF9D7D7),
-      statusTextColor: Color(0xFFB42318),
-      stock: '8 units',
-      price: '₹12',
-      displayPrice: '₹12',
-      iconBg: Color(0xFFEAF6FF),
-      iconColor: Color(0xFF4A7DEB),
-      type: 'low',
-    ),
-    _MedicineItem(
-      name: 'Paracetamol 650mg',
-      category: 'Analgesic',
-      expiry: 'Expires 08 Mar 2027',
-      status: 'In Stock',
-      statusColor: Color(0xFFD8F5EA),
-      statusTextColor: Color(0xFF067647),
-      stock: '142 units',
-      price: '₹5',
-      displayPrice: '₹5',
-      iconBg: Color(0xFFEAF6FF),
-      iconColor: Color(0xFF4A7DEB),
-      type: 'stock',
-    ),
-    _MedicineItem(
-      name: 'Cetirizine 10mg',
-      category: 'Antihistamine',
-      expiry: 'Expires 12 Jan 2025',
-      status: 'Expired',
-      statusColor: Color(0xFFFDE8E8),
-      statusTextColor: Color(0xFFB42318),
-      stock: '0 units',
-      price: '₹6',
-      displayPrice: '₹6',
-      iconBg: Color(0xFFEAF6FF),
-      iconColor: Color(0xFF4A7DEB),
-      type: 'expired',
-    ),
-    _MedicineItem(
-      name: 'Metformin 500mg',
-      category: 'Antidiabetic',
-      expiry: 'Expires 24 Nov 2026',
-      status: 'In Stock',
-      statusColor: Color(0xFFD8F5EA),
-      statusTextColor: Color(0xFF067647),
-      stock: '84 units',
-      price: '₹7',
-      displayPrice: '₹7',
-      iconBg: Color(0xFFEAF6FF),
-      iconColor: Color(0xFF4A7DEB),
-      type: 'stock',
-    ),
-    _MedicineItem(
-      name: 'Azithromycin 500mg',
-      category: 'Antibiotic',
-      expiry: 'Expires 30 Aug 2026',
-      status: 'Low Stock',
-      statusColor: Color(0xFFF9D7D7),
-      statusTextColor: Color(0xFFB42318),
-      stock: '6 units',
-      price: '₹24',
-      displayPrice: '₹24',
-      iconBg: Color(0xFFEAF6FF),
-      iconColor: Color(0xFF4A7DEB),
-      type: 'low',
-    ),
-  ];
+  List<MedicineResponse> _filterMedicines(
+    String filter,
+    List<MedicineResponse> medicines,
+  ) {
+    if (filter == 'Low Stock') {
+      return medicines.where((medicine) => medicine.quantity <= 10).toList();
+    }
 
-  List<_MedicineItem> get _filteredMedicines {
-    if (_selectedFilter == 'Low Stock') {
-      return _medicines.where((m) => m.type == 'low').toList();
+    if (filter == 'Expired') {
+      final now = DateTime.now();
+      return medicines.where((medicine) => medicine.expiryDate.isBefore(now)).toList();
     }
-    if (_selectedFilter == 'Expired') {
-      return _medicines.where((m) => m.type == 'expired').toList();
-    }
-    return _medicines;
+
+    return medicines;
   }
 
   @override
   Widget build(BuildContext context) {
-    final filteredList = _filteredMedicines;
+    final inventoryState = ref.watch(inventoryNotifierProvider);
+    final lowStockState = ref.watch(lowStockMedicinesProvider);
+    final expiredState = ref.watch(expiredMedicinesProvider);
+
+    final allMedicines = inventoryState.maybeWhen(
+      data: (list) => list,
+      orElse: () => <MedicineResponse>[],
+    );
+    final lowStockMedicines = lowStockState.maybeWhen(
+      data: (list) => list,
+      orElse: () => <MedicineResponse>[],
+    );
+    final expiredMedicines = expiredState.maybeWhen(
+      data: (list) => list,
+      orElse: () => <MedicineResponse>[],
+    );
+
+    final currentMedicines = switch (_selectedFilter) {
+      'Low Stock' => _filterMedicines('Low Stock', lowStockMedicines),
+      'Expired' => _filterMedicines('Expired', expiredMedicines),
+      _ => _filterMedicines('All', allMedicines),
+    };
+
+    final activeState = switch (_selectedFilter) {
+      'Low Stock' => lowStockState,
+      'Expired' => expiredState,
+      _ => inventoryState,
+    };
 
     return Scaffold(
       backgroundColor: const Color(0xFFF2F5FA),
@@ -119,7 +86,7 @@ class _PharmacistInventoryScreenState extends State<PharmacistInventoryScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${filteredList.length} medicines in stock',
+                        '${currentMedicines.length} medicines in stock',
                         style: AppTextStyles.bodyMedium.copyWith(
                           color: Colors.white.withValues(alpha: 0.8),
                           fontWeight: FontWeight.w600,
@@ -187,7 +154,8 @@ class _PharmacistInventoryScreenState extends State<PharmacistInventoryScreen> {
                                 child: _FilterTab(
                                   label: 'All',
                                   selected: _selectedFilter == 'All',
-                                  onTap: () => setState(() => _selectedFilter = 'All'),
+                                  onTap: () =>
+                                      setState(() => _selectedFilter = 'All'),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -195,7 +163,9 @@ class _PharmacistInventoryScreenState extends State<PharmacistInventoryScreen> {
                                 child: _FilterTab(
                                   label: 'Low Stock',
                                   selected: _selectedFilter == 'Low Stock',
-                                  onTap: () => setState(() => _selectedFilter = 'Low Stock'),
+                                  onTap: () => setState(
+                                    () => _selectedFilter = 'Low Stock',
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -203,7 +173,9 @@ class _PharmacistInventoryScreenState extends State<PharmacistInventoryScreen> {
                                 child: _FilterTab(
                                   label: 'Expired',
                                   selected: _selectedFilter == 'Expired',
-                                  onTap: () => setState(() => _selectedFilter = 'Expired'),
+                                  onTap: () => setState(
+                                    () => _selectedFilter = 'Expired',
+                                  ),
                                 ),
                               ),
                             ],
@@ -211,125 +183,201 @@ class _PharmacistInventoryScreenState extends State<PharmacistInventoryScreen> {
                         ),
                         const SizedBox(height: 14),
                         Expanded(
-                          child: ListView.separated(
-                            itemCount: filteredList.length,
-                            itemBuilder: (context, index) {
-                              final medicine = filteredList[index];
-                              return Container(
-                                padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(18),
-                                  border: Border.all(color: const Color(0xFFE3E7EE)),
+                          child: activeState.when(
+                            loading: () => const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                            error: (error, stackTrace) => Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(20),
+                                child: Text(
+                                  'Something went wrong while loading medicines.',
+                                  textAlign: TextAlign.center,
+                                  style: AppTextStyles.bodyLarge.copyWith(
+                                    color: const Color(0xFF1D2432),
+                                  ),
                                 ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      width: 38,
-                                      height: 38,
-                                      decoration: BoxDecoration(
-                                        color: medicine.iconBg,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Icon(
-                                        Icons.medication_rounded,
-                                        color: medicine.iconColor,
-                                        size: 18,
+                              ),
+                            ),
+                            data: (medicines) {
+                              if (currentMedicines.isEmpty) {
+                                return const Center(
+                                  child: Text('No medicines found'),
+                                );
+                              }
+
+                              return ListView.separated(
+                                itemCount: currentMedicines.length,
+                                itemBuilder: (context, index) {
+                                  final medicine = currentMedicines[index];
+                                  final isLowStock = medicine.quantity <= 10;
+                                  final isExpired = medicine.expiryDate.isBefore(
+                                    DateTime.now(),
+                                  );
+                                  final statusLabel =
+                                      isExpired ? 'Expired' : (isLowStock ? 'Low Stock' : 'In Stock');
+                                  final statusColor = isExpired || isLowStock
+                                      ? const Color(0xFFFDE8E8)
+                                      : const Color(0xFFD8F5EA);
+                                  final statusTextColor = isExpired || isLowStock
+                                      ? const Color(0xFFB42318)
+                                      : const Color(0xFF067647);
+
+                                  return Container(
+                                    padding: const EdgeInsets.fromLTRB(
+                                      12,
+                                      12,
+                                      12,
+                                      10,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(18),
+                                      border: Border.all(
+                                        color: const Color(0xFFE3E7EE),
                                       ),
                                     ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            medicine.name,
-                                            style: AppTextStyles.titleLarge.copyWith(
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.w700,
-                                              color: const Color(0xFF1D2432),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Row(
-                                            children: [
-                                              Text(
-                                                medicine.category,
-                                                style: AppTextStyles.bodyMedium.copyWith(
-                                                  color: const Color(0xFF69778C),
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 10),
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(
-                                                  horizontal: 8,
-                                                  vertical: 3,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: medicine.statusColor,
-                                                  borderRadius: BorderRadius.circular(8),
-                                                ),
-                                                child: Text(
-                                                  medicine.status,
-                                                  style: AppTextStyles.bodySmall.copyWith(
-                                                    color: medicine.statusTextColor,
-                                                    fontWeight: FontWeight.w700,
-                                                    fontSize: 11,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Row(
-                                            children: [
-                                              Text(
-                                                medicine.expiry,
-                                                style: AppTextStyles.bodySmall.copyWith(
-                                                  color: const Color(0xFF77839A),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 10),
-                                              Text(
-                                                medicine.stock,
-                                                style: AppTextStyles.bodySmall.copyWith(
-                                                  color: const Color(0xFF536177),
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
                                       children: [
-                                        Text(
-                                          medicine.displayPrice,
-                                          style: AppTextStyles.headlineMedium.copyWith(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w700,
-                                            color: const Color(0xFF1B2636),
+                                        Container(
+                                          width: 38,
+                                          height: 38,
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFEAF6FF),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                            Icons.medication_rounded,
+                                            color: Color(0xFF4A7DEB),
+                                            size: 18,
                                           ),
                                         ),
-                                        const SizedBox(height: 1),
-                                        Text(
-                                          '/unit',
-                                          style: AppTextStyles.bodySmall.copyWith(
-                                            color: const Color(0xFF7C879C),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                medicine.medicineName,
+                                                style: AppTextStyles.titleLarge
+                                                    .copyWith(
+                                                      fontSize: 15,
+                                                      fontWeight: FontWeight.w700,
+                                                      color: const Color(
+                                                        0xFF1D2432,
+                                                      ),
+                                                    ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    medicine.unit,
+                                                    style: AppTextStyles.bodyMedium
+                                                        .copyWith(
+                                                          color: const Color(
+                                                            0xFF69778C,
+                                                          ),
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        ),
+                                                  ),
+                                                  const SizedBox(width: 10),
+                                                  Container(
+                                                    padding:
+                                                        const EdgeInsets
+                                                            .symmetric(
+                                                          horizontal: 8,
+                                                          vertical: 3,
+                                                        ),
+                                                    decoration: BoxDecoration(
+                                                      color: statusColor,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            8,
+                                                          ),
+                                                    ),
+                                                    child: Text(
+                                                      statusLabel,
+                                                      style: AppTextStyles.bodySmall
+                                                          .copyWith(
+                                                            color: statusTextColor,
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            fontSize: 11,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    'Expires ${medicine.expiryDate.day}/${medicine.expiryDate.month}/${medicine.expiryDate.year}',
+                                                    style: AppTextStyles.bodySmall
+                                                        .copyWith(
+                                                          color: const Color(
+                                                            0xFF77839A,
+                                                          ),
+                                                        ),
+                                                  ),
+                                                  const SizedBox(width: 10),
+                                                  Text(
+                                                    '${medicine.quantity} units',
+                                                    style: AppTextStyles.bodySmall
+                                                        .copyWith(
+                                                          color: const Color(
+                                                            0xFF536177,
+                                                          ),
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                        ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
                                           ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: [
+                                            Text(
+                                              '₹${medicine.price.toStringAsFixed(0)}',
+                                              style: AppTextStyles.headlineMedium
+                                                  .copyWith(
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: const Color(
+                                                      0xFF1B2636,
+                                                    ),
+                                                  ),
+                                            ),
+                                            const SizedBox(height: 1),
+                                            Text(
+                                              '/unit',
+                                              style: AppTextStyles.bodySmall
+                                                  .copyWith(
+                                                    color: const Color(
+                                                      0xFF7C879C,
+                                                    ),
+                                                  ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
-                                  ],
-                                ),
+                                  );
+                                },
+                                separatorBuilder: (_, _) =>
+                                    const SizedBox(height: 10),
                               );
                             },
-                            separatorBuilder: (_, _) => const SizedBox(height: 10),
                           ),
                         ),
                       ],
@@ -389,34 +437,4 @@ class _FilterTab extends StatelessWidget {
       ),
     );
   }
-}
-
-class _MedicineItem {
-  final String name;
-  final String category;
-  final String expiry;
-  final String status;
-  final Color statusColor;
-  final Color statusTextColor;
-  final String stock;
-  final String price;
-  final String displayPrice;
-  final Color iconBg;
-  final Color iconColor;
-  final String type;
-
-  const _MedicineItem({
-    required this.name,
-    required this.category,
-    required this.expiry,
-    required this.status,
-    required this.statusColor,
-    required this.statusTextColor,
-    required this.stock,
-    required this.price,
-    required this.displayPrice,
-    required this.iconBg,
-    required this.iconColor,
-    required this.type,
-  });
 }

@@ -11,7 +11,14 @@ class LowStockMedicinesNotifier
   @override
   Future<List<MedicineResponse>> build() async {
     inventoryRepository = ref.watch(inventoryRepoProvider);
-    return [];
+
+    final response = await inventoryRepository.getLowStockMedicines(10);
+
+    if (response.data == null) {
+      throw ApiException(message: response.message);
+    }
+
+    return response.data!;
   }
 
   Future<List<MedicineResponse>> getLowStockMedicines({

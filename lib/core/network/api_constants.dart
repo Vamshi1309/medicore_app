@@ -3,7 +3,7 @@ class ApiConstants {
 
   //baseUrl endpoint
   // static const String baseUrl = "http://localhost:8080/api";
-  static const String baseUrl = "http://192.168.0.80:8080/api";
+  static const String baseUrl = "http://192.168.1.6:8080/api";
 
   //auth endpoints
   static const String patientLogin = "/auth/login";
@@ -68,6 +68,7 @@ class ApiConstants {
   static String getAllMedicines = "/inventory";
   static String getLowStockMedicines(int threshold) =>
       "/inventory/low-stock?$threshold";
+  static String getExpiredMedicines = "/inventory/expired";
 
   //Receptionist Endpoints
   static String receptionistProfile = "/receptionist/profile";

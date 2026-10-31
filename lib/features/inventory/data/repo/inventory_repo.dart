@@ -35,11 +35,38 @@ class InventoryRepository {
     }
   }
 
-  Future<ApiResponse<List<MedicineResponse>>> getLowStockMedicines(int threshold) async {
+  Future<ApiResponse<List<MedicineResponse>>> getLowStockMedicines(
+    int threshold,
+  ) async {
     try {
       final response = await apiClient.get(
         ApiConstants.getLowStockMedicines(threshold),
       );
+
+      return ApiResponse.fromJson(
+        response.data,
+        (data) => (data as List)
+            .map((e) => MedicineResponse.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
+    } on DioException catch (e) {
+      if (e.response?.data is Map<String, dynamic>) {
+        final data = e.response!.data as Map<String, dynamic>;
+
+        throw ApiException(message: data['message'] ?? "Something went wrong");
+      }
+
+      if (e.error is ApiException) {
+        throw e.error as ApiException;
+      }
+
+      throw ApiException(message: "Something went wrong");
+    }
+  }
+
+  Future<ApiResponse<List<MedicineResponse>>> getExpiredMedicines() async {
+    try {
+      final response = await apiClient.get(ApiConstants.getExpiredMedicines);
 
       return ApiResponse.fromJson(
         response.data,
