@@ -194,18 +194,20 @@ class PharmacistDashboard extends ConsumerWidget {
                               );
                             }
 
-                            return ListView.builder(
-                              itemBuilder: (context, index) {
-                                final medicine = list[index];
-
-                                return _AlertRow(
-                                  name: medicine.medicineName,
-                                  subtitle:
-                                      "Only ${medicine.quantity} units remaining",
-                                  level: "Low",
-                                  accent: Colors.orangeAccent,
-                                );
-                              },
+                            return Column(
+                              children: [
+                                for (final medicine in list)
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 10),
+                                    child: _AlertRow(
+                                      name: medicine.medicineName,
+                                      subtitle:
+                                          "Only ${medicine.quantity} units remaining",
+                                      level: "Low",
+                                      accent: Colors.orangeAccent,
+                                    ),
+                                  ),
+                              ],
                             );
                           },
                           loading: () =>
@@ -251,25 +253,21 @@ class PharmacistDashboard extends ConsumerWidget {
                               );
                             }
 
-                            return ListView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              padding: EdgeInsets.zero,
-                              itemCount: list.length,
-                              itemBuilder: (context, index) {
-                                final prescription = list[index];
-                                return _RecentDispenseRow(
-                                  initials: getInitials(
-                                    prescription.patientName,
+                            return Column(
+                              children: [
+                                for (final prescription in list)
+                                  _RecentDispenseRow(
+                                    initials: getInitials(
+                                      prescription.patientName,
+                                    ),
+                                    name: prescription.patientName,
+                                    details:
+                                        '${prescription.items.length} medicine${prescription.items.length == 1 ? '' : 's'}',
+                                    time:
+                                        '${formatDispenseDate(prescription.dispensedAt)}\n${formatDispenseTime(prescription.dispensedAt)}',
+                                    color: Colors.lightBlueAccent,
                                   ),
-                                  name: prescription.patientName,
-                                  details:
-                                      '${prescription.items.length} medicine${prescription.items.length == 1 ? '' : 's'}',
-                                  time:
-                                      '${formatDispenseDate(prescription.dispensedAt)}\n${formatDispenseTime(prescription.dispensedAt)}',
-                                  color: Colors.lightBlueAccent,
-                                );
-                              },
+                              ],
                             );
                           },
                         ),

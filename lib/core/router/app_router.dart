@@ -15,6 +15,7 @@ import 'package:frontend/features/pharmacist/dashboard/presentation/pharmacist_d
 import 'package:frontend/features/pharmacist/dispence/presentation/pharmacist_dispence_screen.dart';
 import 'package:frontend/features/pharmacist/inventory/presentation/pharmacist_inventory_screen.dart';
 import 'package:frontend/features/pharmacist/prescriptions/presentation/pharmacist_prescription_screen.dart';
+import 'package:frontend/features/pharmacist/profile/presentation/edit_pharmacist_profile_screen.dart';
 import 'package:frontend/features/pharmacist/profile/presentation/pharmacist_profile_screen.dart';
 import 'package:frontend/features/pharmacist/widgets/pharmacist_shell.dart';
 import 'package:frontend/features/receptionist/appointments/presentation/receptionist_appointments_screen.dart';
@@ -168,6 +169,11 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.receptionistEditProfile,
           builder: (context, state) => const EditReceptionistProfileScreen(),
+        ),
+
+        GoRoute(
+          path: AppRoutes.pharmacistEditProfile,
+          builder: (context, state) => const EditPharmacistProfileScreen(),
         ),
 
         StatefulShellRoute.indexedStack(

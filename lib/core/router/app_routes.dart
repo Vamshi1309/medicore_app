@@ -47,4 +47,5 @@ class AppRoutes {
 
   static const pharmacistInventory = '/pharmacist/inventory';
   static const pharmacistProfile = '/pharmacist/profile';
+  static const pharmacistEditProfile = '/pharmacist/profile/edit';
 }

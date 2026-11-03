@@ -1,13 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/core/providers/go_router_provider.dart';
+import 'package:frontend/core/router/app_routes.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
+import 'package:frontend/features/pharmacist/data/providers/pharmacist_profile_provider.dart';
 
 class PharmacistProfileScreen extends ConsumerWidget {
   const PharmacistProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authProvider).user;
+    final pharmacistProfile = ref.watch(pharmacistProfileProvider);
+    final profileData = pharmacistProfile.asData?.value;
+
+    final initials = (user?.name ?? 'Pharmacist')
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((part) => part.isNotEmpty)
+        .take(2)
+        .map((part) => part[0].toUpperCase())
+        .join();
+
     final blueDark = const Color(0xFF0B5ED7);
     final blueMid = const Color(0xFF2A6DEB);
     final bg = const Color(0xFFEAF2F6);
@@ -49,9 +64,9 @@ class PharmacistProfileScreen extends ConsumerWidget {
                               backgroundColor: Colors.white.withValues(
                                 alpha: 0.22,
                               ),
-                              child: const Text(
-                                'PS',
-                                style: TextStyle(
+                              child: Text(
+                                initials.isNotEmpty ? initials : 'P',
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 28,
                                   fontWeight: FontWeight.w700,
@@ -59,18 +74,18 @@ class PharmacistProfileScreen extends ConsumerWidget {
                               ),
                             ),
                             const SizedBox(height: 12),
-                            const Text(
-                              'Priya Shah',
-                              style: TextStyle(
+                            Text(
+                              user?.name ?? 'Pharmacist',
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 28,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
                             const SizedBox(height: 4),
-                            const Text(
-                              'priya@citycare.in',
-                              style: TextStyle(
+                            Text(
+                              profileData?.email ?? 'Not available',
+                              style: const TextStyle(
                                 color: Color(0xFFE9F1FF),
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
@@ -167,8 +182,8 @@ class PharmacistProfileScreen extends ConsumerWidget {
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
-                                      children: const [
-                                        Text(
+                                      children: [
+                                        const Text(
                                           'License number',
                                           style: TextStyle(
                                             fontSize: 13,
@@ -176,10 +191,10 @@ class PharmacistProfileScreen extends ConsumerWidget {
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
-                                        SizedBox(height: 4),
+                                        const SizedBox(height: 4),
                                         Text(
-                                          'MH-PC-2018-04821',
-                                          style: TextStyle(
+                                          profileData?.licenseNumber ?? 'Not available',
+                                          style: const TextStyle(
                                             fontSize: 17,
                                             color: Color(0xFF1E2B3A),
                                             fontWeight: FontWeight.w600,
@@ -216,25 +231,41 @@ class PharmacistProfileScreen extends ConsumerWidget {
                           ],
                         ),
                         child: Column(
-                          children: const [
+                          children: [
                             _InfoRow(
                               icon: Icons.mail_outline,
-                              iconColor: Color(0xFF2A6DEB),
+                              iconColor: const Color(0xFF2A6DEB),
                               label: 'Work email',
-                              value: 'priya@citycare.in',
+                              value: profileData?.email ?? 'Not available',
                             ),
-                            Divider(height: 1, color: Color(0xFFE2E8F0)),
+                            const Divider(
+                              height: 1,
+                              color: Color(0xFFE2E8F0),
+                            ),
                             _InfoRow(
-                              icon: Icons.access_time,
-                              iconColor: Color(0xFF2A6DEB),
-                              label: 'Shift',
-                              value: '08:00 AM - 05:00 PM',
+                              icon: Icons.phone_outlined,
+                              iconColor: const Color(0xFF2A6DEB),
+                              label: 'Phone number',
+                              value: profileData?.phoneNumber ?? 'Not available',
                             ),
                           ],
                         ),
                       ),
                     ),
                     const SizedBox(height: 22),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 18),
+                      child: PrimaryButton.primary(
+                        text: 'Edit Profile',
+                        onPressed: () {
+                          ref.read(goRouterProvider).push(
+                            AppRoutes.pharmacistEditProfile,
+                          );
+                        },
+                        prefixIcon: Icons.edit_rounded,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 18),
                       child: PrimaryButton.outlinedFilled(
