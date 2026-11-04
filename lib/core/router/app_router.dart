@@ -13,6 +13,7 @@ import 'package:frontend/features/patient/profile/presentation/edit_profile_scre
 import 'package:frontend/features/patient/widgets/patient_shell.dart';
 import 'package:frontend/features/pharmacist/dashboard/presentation/pharmacist_dashboard.dart';
 import 'package:frontend/features/pharmacist/dispence/presentation/pharmacist_dispence_screen.dart';
+import 'package:frontend/features/pharmacist/inventory/presentation/add_medicine_screen.dart';
 import 'package:frontend/features/pharmacist/inventory/presentation/pharmacist_inventory_screen.dart';
 import 'package:frontend/features/pharmacist/prescriptions/presentation/pharmacist_prescription_screen.dart';
 import 'package:frontend/features/pharmacist/profile/presentation/edit_pharmacist_profile_screen.dart';
@@ -237,6 +238,11 @@ class AppRouter {
               },
             );
           },
+        ),
+
+        GoRoute(
+          path: AppRoutes.pharmacistAddMedicine,
+          builder: (context, state) => const AddMedicineScreen(),
         ),
 
         StatefulShellRoute.indexedStack(

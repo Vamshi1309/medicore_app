@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/core/router/app_routes.dart';
 import 'package:frontend/core/theme/app_text_styles.dart';
+import 'package:frontend/core/widgets/empty_state.dart';
+import 'package:frontend/core/widgets/error_state.dart';
 import 'package:frontend/features/inventory/data/models/medicine_response.dart';
 import 'package:frontend/features/inventory/providers/expired_medicine_provider.dart';
 import 'package:frontend/features/inventory/providers/inventory_provider.dart';
 import 'package:frontend/features/inventory/providers/low_stock_medicine_provider.dart';
+import 'package:go_router/go_router.dart';
 
 class PharmacistInventoryScreen extends ConsumerStatefulWidget {
   const PharmacistInventoryScreen({super.key});
@@ -65,6 +69,12 @@ class _PharmacistInventoryScreenState
       _ => inventoryState,
     };
 
+    final activeRetry = switch (_selectedFilter) {
+      'Low Stock' => () => ref.read(lowStockMedicinesProvider.notifier).refresh(),
+      'Expired' => () => ref.read(expiredMedicinesProvider.notifier).refresh(),
+      _ => () => ref.read(inventoryNotifierProvider.notifier).getAllMedicines(),
+    };
+
     return Scaffold(
       backgroundColor: const Color(0xFFF2F5FA),
       body: SafeArea(
@@ -93,21 +103,39 @@ class _PharmacistInventoryScreenState
                         ),
                       ),
                       const SizedBox(height: 6),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Inventory',
-                              style: AppTextStyles.headlineMedium.copyWith(
-                                color: Colors.white,
-                                fontSize: 35,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -1.2,
-                              ),
+                      Text(
+                        'Inventory',
+                        style: AppTextStyles.headlineMedium.copyWith(
+                          color: Colors.white,
+                          fontSize: 35,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.icon(
+                          onPressed: () => context.push(
+                            AppRoutes.pharmacistAddMedicine,
+                          ),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFFEFEFFA),
+                            foregroundColor: const Color(0xFF2852D8),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
                             ),
                           ),
-                        ],
+                          icon: const Icon(Icons.add, size: 18),
+                          label: Text(
+                            'Add medicine',
+                            style: AppTextStyles.button.copyWith(
+                              fontSize: 15,
+                              color: const Color(0xFF2852D8),
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -187,22 +215,32 @@ class _PharmacistInventoryScreenState
                             loading: () => const Center(
                               child: CircularProgressIndicator(),
                             ),
-                            error: (error, stackTrace) => Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(20),
-                                child: Text(
-                                  'Something went wrong while loading medicines.',
-                                  textAlign: TextAlign.center,
-                                  style: AppTextStyles.bodyLarge.copyWith(
-                                    color: const Color(0xFF1D2432),
-                                  ),
-                                ),
-                              ),
+                            error: (error, stackTrace) => ErrorState(
+                              title: 'Unable to load medicines',
+                              subtitle: error.toString(),
+                              onRetry: activeRetry,
                             ),
                             data: (medicines) {
                               if (currentMedicines.isEmpty) {
-                                return const Center(
-                                  child: Text('No medicines found'),
+                                return EmptyState(
+                                  icon: Icons.medication_outlined,
+                                  title: 'No medicines found',
+                                  subtitle:
+                                      'Add the first medicine to keep the inventory up to date.',
+                                  action: FilledButton.icon(
+                                    onPressed: () => context.push(
+                                      AppRoutes.pharmacistAddMedicine,
+                                    ),
+                                    style: FilledButton.styleFrom(
+                                      backgroundColor: const Color(0xFF3E6BFF),
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                    icon: const Icon(Icons.add),
+                                    label: const Text('Add medicine'),
+                                  ),
                                 );
                               }
 

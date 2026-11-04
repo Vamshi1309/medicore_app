@@ -41,6 +41,20 @@ class LowStockMedicinesNotifier
       rethrow;
     }
   }
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+
+    state = await AsyncValue.guard(() async {
+      final response = await inventoryRepository.getLowStockMedicines(10);
+
+      if (response.data == null) {
+        throw ApiException(message: response.message);
+      }
+
+      return response.data!;
+    });
+  }
 }
 
 final lowStockMedicinesProvider = AsyncNotifierProvider<
