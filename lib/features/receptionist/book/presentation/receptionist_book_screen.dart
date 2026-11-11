@@ -7,7 +7,7 @@ import 'package:frontend/core/widgets/app_text_field.dart';
 import 'package:frontend/core/widgets/error_state.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
 import 'package:frontend/core/widgets/stepper/widget/receptionist_booking_stepper.dart';
-import 'package:frontend/features/admin/data/models/user_summary_response.dart';
+import 'package:frontend/features/admin/data/models/patient_summary_response.dart';
 import 'package:frontend/features/appointment/providers/all_appointments_provider.dart';
 import 'package:frontend/features/doctor/dashboard/data/models/doctor_profile_response.dart';
 import 'package:frontend/features/patient/dashboard/presentation/providers/get_all_doctors_provider.dart';
@@ -30,7 +30,7 @@ class _ReceptionistBookScreenState
   int currentStep = 0;
   bool bookingConfirmed = false;
 
-  UserSummaryResponse? selectedPatient;
+  PatientSummaryResponse? selectedPatient;
   DoctorProfileResponse? selectedDoctor;
 
   final List<String> availableTimes = [
@@ -96,7 +96,7 @@ class _ReceptionistBookScreenState
   }
 
   Widget _buildCurrentStep(
-    AsyncValue<List<UserSummaryResponse>> receptionistPatientsState,
+    AsyncValue<List<PatientSummaryResponse>> receptionistPatientsState,
     AsyncValue<List<DoctorProfileResponse>> receptionistDoctorsState,
   ) {
     if (currentStep == 0) {
@@ -410,7 +410,7 @@ class _ReceptionistBookScreenState
     );
   }
 
-  Widget _buildPatientList(AsyncValue<List<UserSummaryResponse>> state) {
+  Widget _buildPatientList(AsyncValue<List<PatientSummaryResponse>> state) {
     return state.when(
       data: (patients) {
         if (patients.isEmpty) {
@@ -453,7 +453,7 @@ class _ReceptionistBookScreenState
     );
   }
 
-  Widget _buildPatientCard(UserSummaryResponse patient) {
+  Widget _buildPatientCard(PatientSummaryResponse patient) {
     return GestureDetector(
       onTap: () {
         setState(() {

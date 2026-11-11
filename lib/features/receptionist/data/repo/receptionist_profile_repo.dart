@@ -3,7 +3,7 @@ import 'package:frontend/core/network/api_client.dart';
 import 'package:frontend/core/network/api_constants.dart';
 import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/core/network/api_response.dart';
-import 'package:frontend/features/admin/data/models/user_summary_response.dart';
+import 'package:frontend/features/admin/data/models/patient_summary_response.dart';
 import 'package:frontend/features/receptionist/data/model/receptionist_profile_response.dart';
 import 'package:frontend/features/receptionist/data/model/update_receptionist_profile_req.dart';
 
@@ -65,14 +65,14 @@ class ReceptionistProfileRepo {
     }
   }
 
-  Future<ApiResponse<List<UserSummaryResponse>>> getAllPatients() async {
+  Future<ApiResponse<List<PatientSummaryResponse>>> getAllPatients() async {
     try {
-      final response = await apiClient.get(ApiConstants.getAllPatients);
+      final response = await apiClient.get(ApiConstants.receptionistGetAllPatients);
 
       return ApiResponse.fromJson(
         response.data,
         (data) => (data as List)
-            .map((e) => UserSummaryResponse.fromJson(e as Map<String, dynamic>))
+            .map((e) => PatientSummaryResponse.fromJson(e as Map<String, dynamic>))
             .toList(),
       );
     } on DioException catch (e) {

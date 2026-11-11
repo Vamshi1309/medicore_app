@@ -3,7 +3,7 @@ class ApiConstants {
 
   //baseUrl endpoint
   // static const String baseUrl = "http://localhost:8080/api";
-  static const String baseUrl = "http://192.168.0.82:8080/api";
+  static const String baseUrl = "http://192.168.0.81:8080/api";
 
   //auth endpoints
   static const String patientLogin = "/auth/login";
@@ -73,10 +73,11 @@ class ApiConstants {
 
   //Receptionist Endpoints
   static String receptionistProfile = "/receptionist/profile";
-  static String getAllPatients = "/receptionist/patients";
+  static String receptionistGetAllPatients = "/receptionist/patients";
 
   //admin endpoints
-  static String getAllUsers = "/admin/users";
+  static String getAllStaff = "/admin/staff";
+  static String adminGetAllPatients = "/admin/patients";
 
   //pharmacist endpoints
   static String pharmacistProfile = "/pharmacist/profile";
