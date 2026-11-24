@@ -49,4 +49,10 @@ class AppRoutes {
   static const pharmacistAddMedicine = '/pharmacist/inventory/add';
   static const pharmacistProfile = '/pharmacist/profile';
   static const pharmacistEditProfile = '/pharmacist/profile/edit';
+
+  // Radiologist routes
+  static const radiologistHome = '/radiologist/home';
+  static const radiologistUpload = '/radiologist/upload';
+  static const radiologistReports = '/radiologist/reports';
+  static const radiologistProfile = '/radiologist/profile';
 }

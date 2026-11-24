@@ -19,6 +19,11 @@ import 'package:frontend/features/pharmacist/prescriptions/presentation/pharmaci
 import 'package:frontend/features/pharmacist/profile/presentation/edit_pharmacist_profile_screen.dart';
 import 'package:frontend/features/pharmacist/profile/presentation/pharmacist_profile_screen.dart';
 import 'package:frontend/features/pharmacist/widgets/pharmacist_shell.dart';
+import 'package:frontend/features/radiologist/dashboard/radiologist_dashboard.dart';
+import 'package:frontend/features/radiologist/radiologist_profile_screen.dart';
+import 'package:frontend/features/radiologist/radiologist_reports_screen.dart';
+import 'package:frontend/features/radiologist/radiologist_upload_screen.dart';
+import 'package:frontend/features/radiologist/widgets/radiologist_shell.dart';
 import 'package:frontend/features/receptionist/appointments/presentation/receptionist_appointments_screen.dart';
 import 'package:frontend/features/receptionist/book/presentation/booking_confirmation_screen.dart';
 import 'package:frontend/features/receptionist/book/presentation/receptionist_book_screen.dart';
@@ -299,6 +304,46 @@ class AppRouter {
             ),
           ],
         ),
+
+        StatefulShellRoute.indexedStack(
+          builder: (context, state, navigationShell) {
+            return RadiologistShell(navigationShell: navigationShell);
+          },
+          branches: [
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: AppRoutes.radiologistHome,
+                  builder: (context, state) => const RadiologistDashboard(),
+                ),
+              ],
+            ),
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: AppRoutes.radiologistUpload,
+                  builder: (context, state) => const RadiologistUploadScreen(),
+                ),
+              ],
+            ),
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: AppRoutes.radiologistReports,
+                  builder: (context, state) => const RadiologistReportsScreen(),
+                ),
+              ],
+            ),
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: AppRoutes.radiologistProfile,
+                  builder: (context, state) => const RadiologistProfileScreen(),
+                ),
+              ],
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -325,6 +370,9 @@ class AppRouter {
 
       case UserRole.pharmacist:
         return AppRoutes.pharmacistHome;
+
+      case UserRole.radiologist:
+        return AppRoutes.radiologistHome;
 
       // case UserRole.admin:
       //   return AppRoutes.adminHome;
