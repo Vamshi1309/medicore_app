@@ -3,7 +3,7 @@ class ApiConstants {
 
   //baseUrl endpoint
   // static const String baseUrl = "http://localhost:8080/api";
-  static const String baseUrl = "http://16.113.94.155:8080/api";
+  static const String baseUrl = "http://16.113.195.250:8080/api";
 
   //auth endpoints
   static const String patientLogin = "/auth/login";

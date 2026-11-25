@@ -27,6 +27,7 @@ class AppCard extends StatelessWidget {
       width: double.infinity,
       child: Card(
         color: bgColor,
+        margin: margin,
         shape: RoundedRectangleBorder(
           borderRadius: borderRadius ?? AppRadius.md,
           side: border ?? BorderSide.none,

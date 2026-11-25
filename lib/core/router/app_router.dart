@@ -20,9 +20,9 @@ import 'package:frontend/features/pharmacist/profile/presentation/edit_pharmacis
 import 'package:frontend/features/pharmacist/profile/presentation/pharmacist_profile_screen.dart';
 import 'package:frontend/features/pharmacist/widgets/pharmacist_shell.dart';
 import 'package:frontend/features/radiologist/dashboard/radiologist_dashboard.dart';
-import 'package:frontend/features/radiologist/radiologist_profile_screen.dart';
-import 'package:frontend/features/radiologist/radiologist_reports_screen.dart';
-import 'package:frontend/features/radiologist/radiologist_upload_screen.dart';
+import 'package:frontend/features/radiologist/profile/radiologist_profile_screen.dart';
+import 'package:frontend/features/radiologist/reports/radiologist_reports_screen.dart';
+import 'package:frontend/features/radiologist/upload/radiologist_upload_screen.dart';
 import 'package:frontend/features/radiologist/widgets/radiologist_shell.dart';
 import 'package:frontend/features/receptionist/appointments/presentation/receptionist_appointments_screen.dart';
 import 'package:frontend/features/receptionist/book/presentation/booking_confirmation_screen.dart';
@@ -38,6 +38,7 @@ import 'package:frontend/features/patient/dashboard/presentation/screens/booking
 import 'package:frontend/features/patient/dashboard/presentation/screens/booking/select_time_step.dart';
 import 'package:frontend/features/patient/dashboard/presentation/screens/booking/notes_step.dart';
 import 'package:frontend/features/patient/dashboard/presentation/screens/booking/confirm_step.dart';
+import 'package:frontend/features/radiologist/profile/radiologist_edit_profile_screen.dart';
 
 class AppRouter {
   AppRouter._();
@@ -180,6 +181,16 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.pharmacistEditProfile,
           builder: (context, state) => const EditPharmacistProfileScreen(),
+        ),
+
+        GoRoute(
+          path: AppRoutes.radiologistEditProfile,
+          builder: (context, state) {
+            final initial = state.extra is RadiologistProfileData
+                ? state.extra as RadiologistProfileData
+                : null;
+            return RadiologistEditProfileScreen(initial: initial);
+          },
         ),
 
         StatefulShellRoute.indexedStack(

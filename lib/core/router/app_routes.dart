@@ -55,4 +55,5 @@ class AppRoutes {
   static const radiologistUpload = '/radiologist/upload';
   static const radiologistReports = '/radiologist/reports';
   static const radiologistProfile = '/radiologist/profile';
+  static const radiologistEditProfile = '/radiologist/profile/edit';
 }
