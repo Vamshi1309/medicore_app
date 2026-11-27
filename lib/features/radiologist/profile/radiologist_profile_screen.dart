@@ -1,63 +1,125 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/core/router/app_routes.dart';
 import 'package:frontend/features/auth/presentation/providers/auth_provider.dart';
+import 'package:frontend/features/radiologist/common/radiologist_format.dart';
+import 'package:frontend/features/radiologist/data/models/radiologist_profile_response.dart';
+import 'package:frontend/features/radiologist/data/providers/radiologist_profile_provider.dart';
 import 'package:frontend/features/widgets/profile/profile_header.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
-import 'radiologist_edit_profile_screen.dart';
 
-/// Profile screen. UI only: mock profile data. "Edit profile" opens the edit
-/// screen and the profile updates with the data it returns. Logout is a
-/// placeholder (no auth integration).
-class RadiologistProfileScreen extends ConsumerStatefulWidget {
+class RadiologistProfileScreen extends ConsumerWidget {
   const RadiologistProfileScreen({super.key});
 
-  @override
-  ConsumerState<RadiologistProfileScreen> createState() =>
-      _RadiologistProfileScreenState();
-}
-
-class _RadiologistProfileScreenState
-    extends ConsumerState<RadiologistProfileScreen> {
-  static const _bg = Color(0xFFEAEFFA);
-  static const _textDark = Color(0xFF1B1E2B);
-  static const _border = Color(0xFFD7DFF2);
-  static const _danger = Color(0xFFC62828);
-
-  // Mock data. Replace with your auth/user state later.
-  RadiologistProfileData _profile = const RadiologistProfileData(
-    name: 'Elena Rodriguez',
-    staffId: 'RAD-0001',
-    phone: '9300000001',
-    labSection: 'Radiology Lab, Imaging Wing',
-    certification: 'Board Certified in Diagnostic Radiology',
-  );
-
-  Future<void> _openEdit() async {
-    final updated = await context.push<RadiologistProfileData>(
-      AppRoutes.radiologistEditProfile,
-      extra: _profile,
-    );
-    if (updated == null || !mounted) return;
-    setState(() => _profile = updated);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profile updated')),
-    );
-  }
-
-  Future<void> _confirmLogout() async {
+  Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => const _LogoutDialog(),
     );
-    if (confirmed != true || !mounted) return;
+    if (confirmed != true || !context.mounted) return;
     await ref.read(authProvider.notifier).logout();
   }
 
-  // ------------------------------------------------------------------ build
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profileAsync = ref.watch(radiologistProfileProvider);
+    final user = ref.watch(authProvider).user;
+    final name = radiologistDisplay(user?.name);
+    final role = radiologistRoleLabel(user?.role.name);
+
+    return profileAsync.when(
+      skipLoadingOnReload: true,
+      loading: () => _StatusScaffold(
+        name: name,
+        role: role,
+        child: const CircularProgressIndicator(),
+      ),
+      error: (error, _) => _StatusScaffold(
+        name: name,
+        role: role,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                error is ApiException
+                    ? error.message
+                    : 'Could not load profile',
+                textAlign: TextAlign.center,
+              ),
+              TextButton(
+                onPressed: () => ref.invalidate(radiologistProfileProvider),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      ),
+      data: (profile) => _ProfileBody(
+        name: name,
+        role: role,
+        profile: profile,
+        staffId: radiologistDisplay(user?.staffId),
+        onEdit: () => context.push(AppRoutes.radiologistEditProfile),
+        onLogout: () => _confirmLogout(context, ref),
+      ),
+    );
+  }
+}
+
+class _StatusScaffold extends StatelessWidget {
+  final String name;
+  final String role;
+  final Widget child;
+
+  const _StatusScaffold({
+    required this.name,
+    required this.role,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFEAF2F6),
+      body: SafeArea(
+        child: Column(
+          children: [
+            ProfileHeader(
+              name: name,
+              role: role,
+              isEditable: false,
+              avatarLetter: radiologistInitials(name),
+            ),
+            Expanded(child: Center(child: child)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileBody extends StatelessWidget {
+  final String name;
+  final String role;
+  final RadiologistProfileResponse profile;
+  final String staffId;
+  final VoidCallback onEdit;
+  final VoidCallback onLogout;
+
+  const _ProfileBody({
+    required this.name,
+    required this.role,
+    required this.profile,
+    required this.staffId,
+    required this.onEdit,
+    required this.onLogout,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -75,11 +137,11 @@ class _RadiologistProfileScreenState
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     ProfileHeader(
-                      name: _profile.name,
-                      role: 'Radiologist',
+                      name: name,
+                      role: role,
                       isEditable: false,
-                      subtitle: 'Radiology Department',
-                      avatarLetter: _profile.initials,
+                      subtitle: radiologistDisplay(profile.labSection),
+                      avatarLetter: radiologistInitials(name),
                     ),
                     const SizedBox(height: 18),
                     Padding(
@@ -123,7 +185,7 @@ class _RadiologistProfileScreenState
                               child: _DetailRow(
                                 icon: Icons.description_outlined,
                                 label: 'Certification',
-                                value: _profile.certification,
+                                value: radiologistDisplay(profile.certification),
                               ),
                             ),
                           ],
@@ -154,21 +216,21 @@ class _RadiologistProfileScreenState
                               icon: Icons.badge_outlined,
                               iconColor: blueDark,
                               label: 'Staff ID',
-                              value: _profile.staffId,
+                              value: staffId,
                             ),
                             const Divider(height: 1, color: Color(0xFFE2E8F0)),
                             _InfoRow(
                               icon: Icons.phone_outlined,
                               iconColor: blueDark,
                               label: 'Phone number',
-                              value: _profile.phone,
+                              value: radiologistDisplay(profile.phoneNumber),
                             ),
                             const Divider(height: 1, color: Color(0xFFE2E8F0)),
                             _InfoRow(
                               icon: Icons.biotech_outlined,
                               iconColor: blueDark,
                               label: 'Lab section',
-                              value: _profile.labSection,
+                              value: radiologistDisplay(profile.labSection),
                             ),
                           ],
                         ),
@@ -179,7 +241,7 @@ class _RadiologistProfileScreenState
                       padding: const EdgeInsets.symmetric(horizontal: 18),
                       child: PrimaryButton.primary(
                         text: 'Edit Profile',
-                        onPressed: _openEdit,
+                        onPressed: onEdit,
                         prefixIcon: Icons.edit_rounded,
                       ),
                     ),
@@ -188,7 +250,7 @@ class _RadiologistProfileScreenState
                       padding: const EdgeInsets.symmetric(horizontal: 18),
                       child: PrimaryButton.outlinedFilled(
                         text: 'Log out',
-                        onPressed: _confirmLogout,
+                        onPressed: onLogout,
                         color: const Color(0xFFDD5C5C),
                         foregroundColor: const Color(0xFFDD5C5C),
                         prefixIcon: Icons.logout_rounded,

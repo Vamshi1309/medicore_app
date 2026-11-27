@@ -1,78 +1,48 @@
-import 'dart:async';
 import 'dart:ui' show PathMetric;
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/constants/app_sizes.dart';
+import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/widgets/app_card.dart';
+import 'package:frontend/core/widgets/app_snackbar.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
 import 'package:frontend/core/widgets/status_badge.dart';
+import 'package:frontend/features/appointment/data/models/appointment_response.dart';
+import 'package:frontend/features/appointment/providers/all_appointments_provider.dart';
+import 'package:frontend/features/labReports/data/enums/report_types_enum.dart';
+import 'package:frontend/features/labReports/data/models/create_lab_report_request.dart';
+import 'package:frontend/features/labReports/providers/lab_reports_provider_annoted.dart';
+import 'package:frontend/features/patient/appointments/widgets/appointment_card.dart';
+import 'package:frontend/features/radiologist/common/radiologist_format.dart';
 
-/// Upload report screen. UI only: mock appointments, mock file picker,
-/// fake upload delay. No API integration.
-class RadiologistUploadScreen extends StatefulWidget {
+/// Upload a lab report for an appointment.
+class RadiologistUploadScreen extends ConsumerStatefulWidget {
   const RadiologistUploadScreen({super.key});
 
   @override
-  State<RadiologistUploadScreen> createState() => _RadiologistUploadScreenState();
+  ConsumerState<RadiologistUploadScreen> createState() =>
+      _RadiologistUploadScreenState();
 }
 
-class _RadiologistUploadScreenState extends State<RadiologistUploadScreen> {
+class _RadiologistUploadScreenState
+    extends ConsumerState<RadiologistUploadScreen> {
   // Local palette (only AppColors.primary is assumed to exist).
   static const _bg = Color(0xFFEAEFFA);
   static const _textDark = Color(0xFF1B1E2B);
   static const _textGrey = Color(0xFF6B7280);
   static const _border = Color(0xFFD7DFF2);
 
-  static const _reportTypes = [
-    'X-Ray',
-    'MRI',
-    'CT Scan',
-    'Blood Test',
-    'Urine Test',
-    'Ultrasound',
-  ];
-
-  static const _avatarColors = [
-    Color(0xFFE8DDF3), // lavender
-    Color(0xFFDCE8FB), // light blue
-    Color(0xFFF5E8BF), // cream
-    Color(0xFFDDF2E6), // mint
-    Color(0xFFFBE0DD), // blush
-  ];
-
-  final _appointments = const <_Appointment>[
-    _Appointment(
-      'a1',
-      'Maya Thompson',
-      'Jun 12, 2025',
-      '10:30 AM',
-      'Scheduled',
-    ),
-    _Appointment('a2', 'James Wilson', 'Jun 12, 2025', '11:15 AM', 'Completed'),
-    _Appointment(
-      'a3',
-      'Olivia Martin',
-      'Jun 11, 2025',
-      '09:00 AM',
-      'Completed',
-    ),
-    _Appointment('a4', 'Daniel Brooks', 'Jun 11, 2025', '02:45 PM', 'Pending'),
-    _Appointment(
-      'a5',
-      'Sophia Carter',
-      'Jun 10, 2025',
-      '04:00 PM',
-      'Scheduled',
-    ),
-  ];
+  static const _reportTypes = ReportType.values;
 
   final _searchController = TextEditingController();
   final _findingsController = TextEditingController();
 
   String _query = '';
-  _Appointment? _selectedAppointment;
-  String? _selectedType;
+  AppointmentResponse? _selectedAppointment;
+  ReportType? _selectedType;
   _PickedFile? _pickedFile;
   bool _isUploading = false;
 
@@ -82,11 +52,13 @@ class _RadiologistUploadScreenState extends State<RadiologistUploadScreen> {
       _pickedFile != null &&
       !_isUploading;
 
-  List<_Appointment> get _filtered {
+  List<AppointmentResponse> _filtered(List<AppointmentResponse> appointments) {
+    final sorted = [...appointments]
+      ..sort((a, b) => b.scheduledAt.compareTo(a.scheduledAt));
     final q = _query.trim().toLowerCase();
-    if (q.isEmpty) return _appointments;
-    return _appointments
-        .where((a) => a.patient.toLowerCase().contains(q))
+    if (q.isEmpty) return sorted;
+    return sorted
+        .where((a) => a.patientName.toLowerCase().contains(q))
         .toList();
   }
 
@@ -99,35 +71,67 @@ class _RadiologistUploadScreenState extends State<RadiologistUploadScreen> {
 
   // ---------------------------------------------------------------- actions
 
-  void _pickFile() {
-    // MOCK picker. To use a real one, add the `file_picker` package and:
-    //
-    // final result = await FilePicker.platform.pickFiles(
-    //   type: FileType.custom,
-    //   allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
-    // );
-    // if (result == null) return;
-    // final f = result.files.single;
-    // setState(() => _pickedFile = _PickedFile(f.name, f.size));
+  Future<void> _pickFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+    );
+    if (!mounted || result == null || result.files.isEmpty) return;
+
+    final file = result.files.single;
+    final path = file.path;
+    if (path == null || path.isEmpty) {
+      AppSnackBar.error(context, 'Could not read the selected file');
+      return;
+    }
+
     setState(
-      () => _pickedFile = const _PickedFile('chest_report_scan.pdf', 2516582),
+      () => _pickedFile = _PickedFile(
+        name: file.name,
+        sizeInBytes: file.size,
+        path: path,
+      ),
     );
   }
 
   Future<void> _upload() async {
-    setState(() => _isUploading = true);
-    await Future<void>.delayed(
-      const Duration(milliseconds: 1500),
-    ); // fake request
-    if (!mounted) return;
-    setState(() => _isUploading = false);
+    final appointment = _selectedAppointment;
+    final type = _selectedType;
+    final file = _pickedFile;
+    if (appointment == null || type == null || file == null) return;
 
-    await showDialog<void>(
-      context: context,
-      builder: (_) => const _SuccessDialog(),
-    );
-    if (!mounted) return;
-    _resetForm();
+    setState(() => _isUploading = true);
+    try {
+      await ref.read(createLabReportProvider.notifier).createLabReport(
+            CreateLabReportRequest(
+              appointmentId: appointment.appointmentId,
+              reportType: type,
+              findings: _findingsController.text,
+              filePath: file.path,
+              fileName: file.name,
+            ),
+          );
+      ref.invalidate(myLabReportsProvider);
+      if (!mounted) return;
+      setState(() => _isUploading = false);
+
+      await showDialog<void>(
+        context: context,
+        builder: (_) => const _SuccessDialog(),
+      );
+      if (!mounted) return;
+      _resetForm();
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _isUploading = false);
+      final message = error is ApiException
+          ? error.message
+          : 'Something went wrong';
+      AppSnackBar.error(
+        context,
+        message.trim().isEmpty ? 'Something went wrong' : message,
+      );
+    }
   }
 
   void _resetForm() {
@@ -145,6 +149,8 @@ class _RadiologistUploadScreenState extends State<RadiologistUploadScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(createLabReportProvider);
+
     return Scaffold(
       backgroundColor: _bg,
       body: Column(
@@ -164,7 +170,9 @@ class _RadiologistUploadScreenState extends State<RadiologistUploadScreen> {
                     const _SectionTitle('Select appointment'),
                     _buildSearchField(),
                     const SizedBox(height: 8),
-                    _buildAppointmentList(),
+                    _buildAppointmentList(
+                      ref.watch(allAppointmentsProvider),
+                    ),
                     const SizedBox(height: 18),
                     const _SectionTitle('Report type'),
                     _buildTypeChips(),
@@ -249,8 +257,43 @@ class _RadiologistUploadScreenState extends State<RadiologistUploadScreen> {
     );
   }
 
-  Widget _buildAppointmentList() {
-    final items = _filtered;
+  Widget _buildAppointmentList(
+    AsyncValue<List<AppointmentResponse>> appointments,
+  ) {
+    return appointments.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, _) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            Text(
+              error is ApiException
+                  ? error.message
+                  : 'Could not load appointments',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: _textGrey, fontSize: 14),
+            ),
+            TextButton(
+              onPressed: () => ref.invalidate(allAppointmentsProvider),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
+      data: _buildAppointmentCards,
+    );
+  }
+
+  Widget _buildAppointmentCards(List<AppointmentResponse> appointments) {
+    final items = _filtered(appointments);
     if (items.isEmpty) {
       return Container(
         width: double.infinity,
@@ -259,13 +302,15 @@ class _RadiologistUploadScreenState extends State<RadiologistUploadScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: const Column(
+        child: Column(
           children: [
-            Icon(Icons.person_search_outlined, size: 28, color: _textGrey),
-            SizedBox(height: 6),
+            const Icon(Icons.person_search_outlined, size: 28, color: _textGrey),
+            const SizedBox(height: 6),
             Text(
-              'No appointments match this name',
-              style: TextStyle(color: _textGrey, fontSize: 14),
+              _query.trim().isEmpty
+                  ? 'No appointments available'
+                  : 'No appointments match this name',
+              style: const TextStyle(color: _textGrey, fontSize: 14),
             ),
           ],
         ),
@@ -273,7 +318,7 @@ class _RadiologistUploadScreenState extends State<RadiologistUploadScreen> {
     }
 
     final visibleCount = items.length > 5 ? 5 : items.length;
-    const cardHeight = 84.0;
+    const cardHeight = 88.0;
     final listHeight = visibleCount * cardHeight + (visibleCount - 1) * 4.0;
 
     return SizedBox(
@@ -282,17 +327,17 @@ class _RadiologistUploadScreenState extends State<RadiologistUploadScreen> {
         primary: false,
         padding: EdgeInsets.zero,
         itemCount: items.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 4),
+        separatorBuilder: (_, __) => const SizedBox(height: 6),
         itemBuilder: (context, index) {
           final a = items[index];
           return SizedBox(
             height: cardHeight,
             child: _AppointmentCard(
               appointment: a,
-              avatarColor:
-                  _avatarColors[_appointments.indexOf(a) %
-                      _avatarColors.length],
-              selected: _selectedAppointment?.id == a.id,
+              avatarColor: radiologistAvatarColors[
+                  index % radiologistAvatarColors.length],
+              selected:
+                  _selectedAppointment?.appointmentId == a.appointmentId,
               onTap: () => setState(() => _selectedAppointment = a),
             ),
           );
@@ -317,7 +362,7 @@ class _RadiologistUploadScreenState extends State<RadiologistUploadScreen> {
       itemBuilder: (context, index) {
         final type = _reportTypes[index];
         return _TypeChip(
-          label: type,
+          label: type.label,
           selected: _selectedType == type,
           onTap: () => setState(() => _selectedType = type),
         );
@@ -507,7 +552,7 @@ class _SectionTitle extends StatelessWidget {
 }
 
 class _AppointmentCard extends StatelessWidget {
-  final _Appointment appointment;
+  final AppointmentResponse appointment;
   final Color avatarColor;
   final bool selected;
   final VoidCallback onTap;
@@ -521,11 +566,14 @@ class _AppointmentCard extends StatelessWidget {
 
   ({Color bg, Color fg}) get _statusColors {
     switch (appointment.status) {
-      case 'Completed':
+      case AppointmentStatus.completed:
         return (bg: const Color(0xFFDDF2E6), fg: const Color(0xFF2E7D4F));
-      case 'Pending':
+      case AppointmentStatus.pending:
         return (bg: const Color(0xFFFCEBCF), fg: const Color(0xFFB26A00));
-      default:
+      case AppointmentStatus.cancelled:
+      case AppointmentStatus.noShow:
+        return (bg: const Color(0xFFFBE0DD), fg: const Color(0xFFC62828));
+      case AppointmentStatus.confirmed:
         return (bg: const Color(0xFFDCE8FB), fg: AppColors.primary);
     }
   }
@@ -555,7 +603,7 @@ class _AppointmentCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(13),
             ),
             child: Text(
-              appointment.initials,
+              radiologistInitials(appointment.patientName),
               style: const TextStyle(
                 color: AppColors.primary,
                 fontSize: 15,
@@ -569,7 +617,7 @@ class _AppointmentCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  appointment.patient,
+                  appointment.patientName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -580,7 +628,7 @@ class _AppointmentCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${appointment.date}, ${appointment.time}',
+                  '${formatRadiologistDate(appointment.scheduledAt)}, ${formatRadiologistTime(appointment.scheduledAt)}',
                   style: const TextStyle(
                     color: Color(0xFF6B7280),
                     fontSize: 12,
@@ -588,7 +636,7 @@ class _AppointmentCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 StatusBadge(
-                  status: appointment.status,
+                  status: appointment.status.label,
                   backgroundColor: colors.bg,
                   textColor: colors.fg,
                   fontSize: 11,
@@ -754,30 +802,16 @@ class _DashedBorderPainter extends CustomPainter {
       old.color != color || old.radius != radius;
 }
 
-// ============================================================== mock models
-
-class _Appointment {
-  final String id;
-  final String patient;
-  final String date;
-  final String time;
-  final String status;
-
-  const _Appointment(this.id, this.patient, this.date, this.time, this.status);
-
-  String get initials {
-    final parts = patient.trim().split(RegExp(r'\s+'));
-    final first = parts.first[0];
-    final last = parts.length > 1 ? parts.last[0] : '';
-    return (first + last).toUpperCase();
-  }
-}
-
 class _PickedFile {
   final String name;
   final int sizeInBytes;
+  final String path;
 
-  const _PickedFile(this.name, this.sizeInBytes);
+  const _PickedFile({
+    required this.name,
+    required this.sizeInBytes,
+    required this.path,
+  });
 
   bool get isPdf => name.toLowerCase().endsWith('.pdf');
 

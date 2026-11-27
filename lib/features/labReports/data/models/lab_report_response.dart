@@ -33,7 +33,7 @@ class LabReportResponse {
       radiologistName: json['radiologistName'] as String,
       reportType: json['reportType'] as String,
       reportUrl: json['reportUrl'] as String,
-      findings: json['findings'] as String,
+      findings: json['findings'] as String? ?? '',
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }

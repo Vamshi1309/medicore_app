@@ -1,122 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/core/network/api_exception.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/widgets/app_card.dart';
+import 'package:frontend/core/widgets/app_snackbar.dart';
 import 'package:frontend/core/widgets/primary_button.dart';
 import 'package:frontend/core/widgets/status_badge.dart';
+import 'package:frontend/features/labReports/data/models/lab_report_response.dart';
+import 'package:frontend/features/labReports/providers/lab_reports_provider_annoted.dart';
+import 'package:frontend/features/labReports/providers/lab_reports_repository_provider.dart';
+import 'package:frontend/features/radiologist/common/radiologist_format.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-/// My Reports screen. UI only: mock reports, local search + type filter,
-/// details bottom sheet. No API integration.
-class RadiologistReportsScreen extends StatefulWidget {
+class RadiologistReportsScreen extends ConsumerStatefulWidget {
   const RadiologistReportsScreen({super.key});
 
   @override
-  State<RadiologistReportsScreen> createState() =>
+  ConsumerState<RadiologistReportsScreen> createState() =>
       _RadiologistReportsScreenState();
 }
 
-class _RadiologistReportsScreenState extends State<RadiologistReportsScreen> {
+class _RadiologistReportsScreenState
+    extends ConsumerState<RadiologistReportsScreen> {
   static const _bg = Color(0xFFEAEFFA);
   static const _textDark = Color(0xFF1B1E2B);
   static const _textGrey = Color(0xFF6B7280);
   static const _border = Color(0xFFD7DFF2);
 
-  static const _filters = [
-    'All',
-    'X-Ray',
-    'MRI',
-    'CT Scan',
-    'Blood Test',
-    'Urine Test',
-    'Ultrasound',
-  ];
-
-  static const _avatarColors = [
-    Color(0xFFE8DDF3), // lavender
-    Color(0xFFDCE8FB), // light blue
-    Color(0xFFF5E8BF), // cream
-    Color(0xFFDDF2E6), // mint
-    Color(0xFFFBE0DD), // blush
-  ];
-
-  final _reports = const <_Report>[
-    _Report(
-      'r1',
-      'Maya Thompson',
-      'MRI',
-      'Jun 12, 2025',
-      'Mild disc bulge at L4-L5 without nerve root compression. No signal abnormality in the spinal cord. Recommend follow-up if symptoms persist.',
-      'maya_thompson_mri.pdf',
-      '2.4 MB',
-    ),
-    _Report(
-      'r2',
-      'James Wilson',
-      'X-Ray',
-      'Jun 12, 2025',
-      'No acute fracture or dislocation. Joint spaces are preserved. Soft tissues appear normal.',
-      'james_wilson_xray.jpg',
-      '1.1 MB',
-    ),
-    _Report(
-      'r3',
-      'Olivia Martin',
-      'CT Scan',
-      'Jun 11, 2025',
-      'Small nodule (4 mm) in the right upper lobe. No pleural effusion. Suggest repeat CT in 6 months.',
-      'olivia_martin_ct.pdf',
-      '5.8 MB',
-    ),
-    _Report(
-      'r4',
-      'Daniel Brooks',
-      'Blood Test',
-      'Jun 11, 2025',
-      '',
-      'daniel_brooks_blood.pdf',
-      '320 KB',
-    ),
-    _Report(
-      'r5',
-      'Sophia Carter',
-      'Ultrasound',
-      'Jun 10, 2025',
-      'Gallbladder is normal in size with no stones. Liver echotexture is homogeneous. No free fluid in the abdomen.',
-      'sophia_carter_us.png',
-      '1.9 MB',
-    ),
-    _Report(
-      'r6',
-      'Liam Harris',
-      'Urine Test',
-      'Jun 09, 2025',
-      'Trace protein detected. No glucose or ketones. Microscopy shows no significant cells or casts.',
-      'liam_harris_urine.pdf',
-      '210 KB',
-    ),
-    _Report(
-      'r7',
-      'Ava Johnson',
-      'X-Ray',
-      'Jun 08, 2025',
-      'Healed fracture of the left radius with good alignment. No new bony abnormality.',
-      'ava_johnson_xray.jpg',
-      '1.4 MB',
-    ),
-  ];
+  static const _filters = ['All', ..._filterLabels];
 
   final _searchController = TextEditingController();
   String _query = '';
   String _selectedFilter = 'All';
-
-  List<_Report> get _filtered {
-    final q = _query.trim().toLowerCase();
-    return _reports.where((r) {
-      final matchesName = q.isEmpty || r.patient.toLowerCase().contains(q);
-      final matchesType =
-          _selectedFilter == 'All' || r.type == _selectedFilter;
-      return matchesName && matchesType;
-    }).toList();
-  }
+  String? _openingReportId;
 
   @override
   void dispose() {
@@ -124,11 +40,23 @@ class _RadiologistReportsScreenState extends State<RadiologistReportsScreen> {
     super.dispose();
   }
 
-  // ------------------------------------------------------------------ build
+  List<LabReportResponse> _filtered(List<LabReportResponse> reports) {
+    final q = _query.trim().toLowerCase();
+    final sorted = [...reports]
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return sorted.where((report) {
+      final matchesName =
+          q.isEmpty || report.patientName.toLowerCase().contains(q);
+      final matchesType =
+          _selectedFilter == 'All' ||
+          radiologistReportTypeLabel(report.reportType) == _selectedFilter;
+      return matchesName && matchesType;
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final items = _filtered;
+    final reportsAsync = ref.watch(myLabReportsProvider);
 
     return Scaffold(
       backgroundColor: _bg,
@@ -144,37 +72,58 @@ class _RadiologistReportsScreenState extends State<RadiologistReportsScreen> {
                 const SizedBox(height: 12),
                 _buildFilterChips(),
                 const SizedBox(height: 14),
-                Text(
-                  items.length == 1 ? '1 report' : '${items.length} reports',
-                  style: const TextStyle(
-                    color: _textGrey,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
+                reportsAsync.maybeWhen(
+                  data: (reports) {
+                    final count = _filtered(reports).length;
+                    return Text(
+                      count == 1 ? '1 report' : '$count reports',
+                      style: const TextStyle(
+                        color: _textGrey,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    );
+                  },
+                  orElse: () => const SizedBox.shrink(),
                 ),
                 const SizedBox(height: 8),
               ],
             ),
           ),
           Expanded(
-            child: items.isEmpty
-                ? _buildEmptyState()
-                : ListView.separated(
-                    keyboardDismissBehavior:
-                        ScrollViewKeyboardDismissBehavior.onDrag,
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                    itemCount: items.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
-                      final r = items[index];
-                      return _ReportCard(
-                        report: r,
-                        avatarColor: _avatarColors[
-                            _reports.indexOf(r) % _avatarColors.length],
-                        onTap: () => _showDetails(r),
-                      );
-                    },
-                  ),
+            child: reportsAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, _) => _MessageState(
+                message: error is ApiException
+                    ? error.message
+                    : 'Could not load reports',
+                onRetry: () => ref.invalidate(myLabReportsProvider),
+              ),
+              data: (reports) {
+                final items = _filtered(reports);
+                if (reports.isEmpty) {
+                  return const _MessageState(message: 'No reports uploaded yet');
+                }
+                if (items.isEmpty) return _buildEmptyState();
+
+                return ListView.separated(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                  itemCount: items.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final report = items[index];
+                    return _ReportCard(
+                      report: report,
+                      avatarColor: radiologistAvatarColors[
+                          index % radiologistAvatarColors.length],
+                      onTap: () => _showDetails(report, index),
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -287,9 +236,39 @@ class _RadiologistReportsScreenState extends State<RadiologistReportsScreen> {
     );
   }
 
-  // --------------------------------------------------------- details sheet
+  Future<void> _openFile(String reportId) async {
+    if (_openingReportId != null) return;
+    setState(() => _openingReportId = reportId);
+    try {
+      final response = await ref
+          .read(labReportsRepoProvider)
+          .getDownloadUrl(reportId);
+      if (response.data == null || response.data!.isEmpty) {
+        throw ApiException(message: response.message);
+      }
 
-  void _showDetails(_Report r) {
+      final launched = await launchUrl(
+        Uri.parse(response.data!),
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched && mounted) {
+        AppSnackBar.error(context, 'Unable to open the report');
+      }
+    } catch (error) {
+      if (!mounted) return;
+      AppSnackBar.error(
+        context,
+        error is ApiException ? error.message : 'Unable to open the report',
+      );
+    } finally {
+      if (mounted) setState(() => _openingReportId = null);
+    }
+  }
+
+  void _showDetails(LabReportResponse report, int index) {
+    final fileName = radiologistFileName(report.reportUrl);
+    final typeLabel = radiologistReportTypeLabel(report.reportType);
+
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -318,9 +297,9 @@ class _RadiologistReportsScreenState extends State<RadiologistReportsScreen> {
               Row(
                 children: [
                   _Avatar(
-                    initials: r.initials,
-                    color: _avatarColors[
-                        _reports.indexOf(r) % _avatarColors.length],
+                    initials: radiologistInitials(report.patientName),
+                    color: radiologistAvatarColors[
+                        index % radiologistAvatarColors.length],
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -328,7 +307,7 @@ class _RadiologistReportsScreenState extends State<RadiologistReportsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          r.patient,
+                          report.patientName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -339,13 +318,13 @@ class _RadiologistReportsScreenState extends State<RadiologistReportsScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          r.date,
+                          formatRadiologistDate(report.createdAt),
                           style: const TextStyle(color: _textGrey, fontSize: 12),
                         ),
                       ],
                     ),
                   ),
-                  _typeBadge(r.type),
+                  _typeBadge(typeLabel),
                 ],
               ),
               const SizedBox(height: 18),
@@ -359,9 +338,11 @@ class _RadiologistReportsScreenState extends State<RadiologistReportsScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                r.findings.isEmpty ? 'No findings were added.' : r.findings,
+                report.findings.trim().isEmpty
+                    ? 'No findings were added.'
+                    : report.findings,
                 style: TextStyle(
-                  color: r.findings.isEmpty ? _textGrey : _textDark,
+                  color: report.findings.trim().isEmpty ? _textGrey : _textDark,
                   fontSize: 14,
                   height: 1.4,
                 ),
@@ -392,7 +373,7 @@ class _RadiologistReportsScreenState extends State<RadiologistReportsScreen> {
                         borderRadius: BorderRadius.circular(13),
                       ),
                       child: Icon(
-                        r.isPdf
+                        radiologistFileIsPdf(fileName)
                             ? Icons.picture_as_pdf_outlined
                             : Icons.image_outlined,
                         color: AppColors.primary,
@@ -400,26 +381,15 @@ class _RadiologistReportsScreenState extends State<RadiologistReportsScreen> {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            r.fileName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: _textDark,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            r.fileSize,
-                            style:
-                                const TextStyle(color: _textGrey, fontSize: 12),
-                          ),
-                        ],
+                      child: Text(
+                        fileName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: _textDark,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
@@ -429,12 +399,10 @@ class _RadiologistReportsScreenState extends State<RadiologistReportsScreen> {
               PrimaryButton.primary(
                 text: 'Open file',
                 prefixIcon: Icons.open_in_new_rounded,
+                isLoading: _openingReportId == report.reportId,
                 onPressed: () {
                   Navigator.of(sheetContext).pop();
-                  // TODO: open the real file (url_launcher / open_filex / viewer).
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Opening ${r.fileName}')),
-                  );
+                  _openFile(report.reportId);
                 },
               ),
             ],
@@ -445,9 +413,15 @@ class _RadiologistReportsScreenState extends State<RadiologistReportsScreen> {
   }
 }
 
-// =============================================================== components
+const _filterLabels = [
+  'X-Ray',
+  'MRI',
+  'CT Scan',
+  'Blood Test',
+  'Urine Test',
+  'Ultrasound',
+];
 
-/// Pastel colors per report type, used for the badge.
 ({Color bg, Color fg}) _typeColors(String type) {
   switch (type) {
     case 'MRI':
@@ -460,7 +434,7 @@ class _RadiologistReportsScreenState extends State<RadiologistReportsScreen> {
       return (bg: const Color(0xFFFBE0DD), fg: const Color(0xFFC62828));
     case 'Urine Test':
       return (bg: const Color(0xFFFCEBCF), fg: const Color(0xFFB26A00));
-    default: // Ultrasound
+    default:
       return (bg: const Color(0xFFDDF2E6), fg: const Color(0xFF2E7D4F));
   }
 }
@@ -473,6 +447,36 @@ Widget _typeBadge(String type) {
     textColor: c.fg,
     fontSize: 11,
   );
+}
+
+class _MessageState extends StatelessWidget {
+  final String message;
+  final VoidCallback? onRetry;
+
+  const _MessageState({required this.message, this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.description_outlined, size: 32, color: Color(0xFF6B7280)),
+            const SizedBox(height: 6),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Color(0xFF6B7280), fontSize: 14),
+            ),
+            if (onRetry != null)
+              TextButton(onPressed: onRetry, child: const Text('Retry')),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _Avatar extends StatelessWidget {
@@ -503,7 +507,7 @@ class _Avatar extends StatelessWidget {
 }
 
 class _ReportCard extends StatelessWidget {
-  final _Report report;
+  final LabReportResponse report;
   final Color avatarColor;
   final VoidCallback onTap;
 
@@ -515,6 +519,8 @@ class _ReportCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final typeLabel = radiologistReportTypeLabel(report.reportType);
+
     return AppCard(
       onTap: onTap,
       bgColor: Colors.white,
@@ -525,14 +531,17 @@ class _ReportCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _Avatar(initials: report.initials, color: avatarColor),
+          _Avatar(
+            initials: radiologistInitials(report.patientName),
+            color: avatarColor,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  report.patient,
+                  report.patientName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -544,10 +553,10 @@ class _ReportCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    _typeBadge(report.type),
+                    _typeBadge(typeLabel),
                     const SizedBox(width: 8),
                     Text(
-                      report.date,
+                      formatRadiologistDate(report.createdAt),
                       style: const TextStyle(
                         color: Color(0xFF6B7280),
                         fontSize: 12,
@@ -557,7 +566,7 @@ class _ReportCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  report.findings.isEmpty
+                  report.findings.trim().isEmpty
                       ? 'No findings added'
                       : report.findings,
                   maxLines: 2,
@@ -622,36 +631,5 @@ class _FilterChip extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-// ============================================================== mock models
-
-class _Report {
-  final String id;
-  final String patient;
-  final String type;
-  final String date;
-  final String findings;
-  final String fileName;
-  final String fileSize;
-
-  const _Report(
-    this.id,
-    this.patient,
-    this.type,
-    this.date,
-    this.findings,
-    this.fileName,
-    this.fileSize,
-  );
-
-  bool get isPdf => fileName.toLowerCase().endsWith('.pdf');
-
-  String get initials {
-    final parts = patient.trim().split(RegExp(r'\s+'));
-    final first = parts.first[0];
-    final last = parts.length > 1 ? parts.last[0] : '';
-    return (first + last).toUpperCase();
   }
 }

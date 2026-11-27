@@ -185,12 +185,7 @@ class AppRouter {
 
         GoRoute(
           path: AppRoutes.radiologistEditProfile,
-          builder: (context, state) {
-            final initial = state.extra is RadiologistProfileData
-                ? state.extra as RadiologistProfileData
-                : null;
-            return RadiologistEditProfileScreen(initial: initial);
-          },
+          builder: (context, state) => const RadiologistEditProfileScreen(),
         ),
 
         StatefulShellRoute.indexedStack(

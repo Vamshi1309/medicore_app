@@ -46,10 +46,8 @@ class ErrorInterceptor extends Interceptor {
 
   ApiException _handleStatusCode(Response? response) {
     final statusCode = response?.statusCode;
-
-    final message = response?.data is Map<String, dynamic>
-        ? response?.data['message']?.toString()
-        : null;
+    final data = response?.data;
+    final message = data is Map ? data['message']?.toString() : null;
 
     return ApiException(
       message: message ?? _defaultMessage(statusCode),

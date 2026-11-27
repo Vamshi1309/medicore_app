@@ -56,6 +56,14 @@ class ApiConstants {
       "/lab-reports/patient/$patientId";
   static String getLabReportDownloadUrl(String reportId) =>
       "/lab-reports/$reportId/download-url";
+  static const String labReports = '/lab-reports';
+
+  static const String getMyLabReports = '$labReports/my';
+
+  static String getLabReportById(String id) => '$labReports/$id';
+
+  static String getLabReportsByAppointmentId(String appointmentId) =>
+      '$labReports/appointment/$appointmentId';
 
   //Pharmacy endpoints
   static String dispenseMedicine = '/pharmacy/dispence';
@@ -81,4 +89,7 @@ class ApiConstants {
 
   //pharmacist endpoints
   static String pharmacistProfile = "/pharmacist/profile";
+
+  //radiologist endpoints
+  static const String radiologistProfile = "/radiologist/profile";
 }
