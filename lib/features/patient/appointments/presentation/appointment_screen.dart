@@ -79,85 +79,49 @@ class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
       body: SafeArea(
-        child: Column(
-          children: [
-            // ========================= HEADER =========================
-            AppHeader(
-              title: "My Appointments",
-              statCards: appointmentsAsync.when(
-                loading: () => const [
-                  StatCard(
-                    count: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                    heading: "upcoming",
-                  ),
-                  StatCard(
-                    count: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                    heading: "previous",
-                  ),
-                  StatCard(
-                    count: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                    heading: "cancelled",
-                  ),
-                ],
-
-                error: (_, _) => const [
-                  StatCard(
-                    count: Text(
-                      "0",
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(appointmentsProvider);
+            await ref.read(appointmentsProvider.future);
+          },
+          child: Column(
+            children: [
+              // ========================= HEADER =========================
+              AppHeader(
+                title: "My Appointments",
+                statCards: appointmentsAsync.when(
+                  loading: () => const [
+                    StatCard(
+                      count: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
                       ),
+                      heading: "upcoming",
                     ),
-                    heading: "upcoming",
-                  ),
-                  StatCard(
-                    count: Text(
-                      "0",
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                    StatCard(
+                      count: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
                       ),
+                      heading: "previous",
                     ),
-                    heading: "previous",
-                  ),
-                  StatCard(
-                    count: Text(
-                      "0",
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                    StatCard(
+                      count: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
                       ),
+                      heading: "cancelled",
                     ),
-                    heading: "cancelled",
-                  ),
-                ],
+                  ],
 
-                data: (appointments) {
-                  final upcoming = getUpcomingAppointments(appointments);
-                  final previous = getPreviousAppointments(appointments);
-                  final cancelled = getCancelledAppointments(appointments);
-
-                  return [
+                  error: (_, _) => const [
                     StatCard(
                       count: Text(
-                        upcoming.length.toString(),
-                        style: const TextStyle(
+                        "0",
+                        style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -167,8 +131,8 @@ class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
                     ),
                     StatCard(
                       count: Text(
-                        previous.length.toString(),
-                        style: const TextStyle(
+                        "0",
+                        style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -178,8 +142,8 @@ class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
                     ),
                     StatCard(
                       count: Text(
-                        cancelled.length.toString(),
-                        style: const TextStyle(
+                        "0",
+                        style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -187,84 +151,130 @@ class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
                       ),
                       heading: "cancelled",
                     ),
-                  ];
-                },
-              ),
-            ),
-
-            // ========================= FILTER CHIPS =========================
-            Container(
-              width: double.infinity,
-              color: const Color(0xFFF5F6F8),
-              padding: const EdgeInsets.fromLTRB(12, 8, 0, 16),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _filterChip("All", AppointmentFilter.all),
-                    const SizedBox(width: 8),
-                    _filterChip("Upcoming", AppointmentFilter.upcoming),
-                    const SizedBox(width: 8),
-                    _filterChip("Previous", AppointmentFilter.previous),
-                    const SizedBox(width: 8),
-                    _filterChip("Cancelled", AppointmentFilter.cancelled),
                   ],
+
+                  data: (appointments) {
+                    final upcoming = getUpcomingAppointments(appointments);
+                    final previous = getPreviousAppointments(appointments);
+                    final cancelled = getCancelledAppointments(appointments);
+
+                    return [
+                      StatCard(
+                        count: Text(
+                          upcoming.length.toString(),
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        heading: "upcoming",
+                      ),
+                      StatCard(
+                        count: Text(
+                          previous.length.toString(),
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        heading: "previous",
+                      ),
+                      StatCard(
+                        count: Text(
+                          cancelled.length.toString(),
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        heading: "cancelled",
+                      ),
+                    ];
+                  },
                 ),
               ),
-            ),
 
-            // ========================= APPOINTMENTS =========================
-            Expanded(
-              child: appointmentsAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-
-                error: (_, _) =>
-                    const Center(child: Text("Failed to load appointments")),
-
-                data: (appointments) {
-                  final filteredAppointments = getFilteredAppointments(
-                    appointments,
-                  );
-
-                  if (appointments.isEmpty || filteredAppointments.isEmpty) {
-                    final emptyStateTitle = switch (selectedFilter) {
-                      AppointmentFilter.all => 'No Appointments',
-                      AppointmentFilter.upcoming => 'No Upcoming Appointments',
-                      AppointmentFilter.previous => 'No Previous Appointments',
-                      AppointmentFilter.cancelled =>
-                        'No Cancelled Appointments',
-                    };
-
-                    final emptyStateSubtitle = switch (selectedFilter) {
-                      AppointmentFilter.all =>
-                        'You don’t have any appointments yet.',
-                      AppointmentFilter.upcoming =>
-                        'You have no upcoming appointments right now.',
-                      AppointmentFilter.previous =>
-                        'You have no previous appointments yet.',
-                      AppointmentFilter.cancelled =>
-                        'There are no cancelled appointments to show.',
-                    };
-
-                    return SizedBox.expand(
-                      child: Center(
-                        child: EmptyState(
-                          icon: LucideIcons.calendarX,
-                          title: emptyStateTitle,
-                          subtitle: emptyStateSubtitle,
-                        ),
-                      ),
-                    );
-                  }
-
-                  return SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    child: buildSelectedContent(appointments),
-                  );
-                },
+              // ========================= FILTER CHIPS =========================
+              Container(
+                width: double.infinity,
+                color: const Color(0xFFF5F6F8),
+                padding: const EdgeInsets.fromLTRB(12, 8, 0, 16),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _filterChip("All", AppointmentFilter.all),
+                      const SizedBox(width: 8),
+                      _filterChip("Upcoming", AppointmentFilter.upcoming),
+                      const SizedBox(width: 8),
+                      _filterChip("Previous", AppointmentFilter.previous),
+                      const SizedBox(width: 8),
+                      _filterChip("Cancelled", AppointmentFilter.cancelled),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ],
+
+              // ========================= APPOINTMENTS =========================
+              Expanded(
+                child: appointmentsAsync.when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+
+                  error: (_, _) =>
+                      const Center(child: Text("Failed to load appointments")),
+
+                  data: (appointments) {
+                    final filteredAppointments = getFilteredAppointments(
+                      appointments,
+                    );
+
+                    if (appointments.isEmpty || filteredAppointments.isEmpty) {
+                      final emptyStateTitle = switch (selectedFilter) {
+                        AppointmentFilter.all => 'No Appointments',
+                        AppointmentFilter.upcoming =>
+                          'No Upcoming Appointments',
+                        AppointmentFilter.previous =>
+                          'No Previous Appointments',
+                        AppointmentFilter.cancelled =>
+                          'No Cancelled Appointments',
+                      };
+
+                      final emptyStateSubtitle = switch (selectedFilter) {
+                        AppointmentFilter.all =>
+                          'You don’t have any appointments yet.',
+                        AppointmentFilter.upcoming =>
+                          'You have no upcoming appointments right now.',
+                        AppointmentFilter.previous =>
+                          'You have no previous appointments yet.',
+                        AppointmentFilter.cancelled =>
+                          'There are no cancelled appointments to show.',
+                      };
+
+                      return SizedBox.expand(
+                        child: Center(
+                          child: EmptyState(
+                            icon: LucideIcons.calendarX,
+                            title: emptyStateTitle,
+                            subtitle: emptyStateSubtitle,
+                          ),
+                        ),
+                      );
+                    }
+
+                    return SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      child: buildSelectedContent(appointments),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

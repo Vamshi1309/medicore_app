@@ -45,57 +45,78 @@ class _PrescriptionsScreenState extends ConsumerState<PrescriptionsScreen> {
   Widget build(BuildContext context) {
     final prescriptionAsync = ref.watch(prescriptionProvider);
 
-    return prescriptionAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-
-      error: (error, _) => Center(
-        child: Text(
-          error is ApiException ? error.message : "Something went wrong",
+    return RefreshIndicator(
+      onRefresh: () async {
+        await ref.refresh(prescriptionProvider.future);
+      },
+      child: prescriptionAsync.when(
+        loading: () => ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: const [
+            SizedBox(height: 250),
+            Center(child: CircularProgressIndicator()),
+          ],
         ),
-      ),
 
-      data: (prescriptions) {
-        if (prescriptions.isEmpty) {
-          return const Center(
-            child: EmptyState(
-              icon: LucideIcons.fileX,
-              title: "No prescriptions available",
-              subtitle: "Your prescriptions will appear here.",
-            ),
-          );
-        }
-
-        return ListView(
-          padding: const EdgeInsets.only(top: 12),
+        error: (error, _) => ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+            const SizedBox(height: 100),
+            Center(
               child: Text(
-                '${prescriptions.length} prescriptions available',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF6F7785),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            ...prescriptions.map(
-              (item) => RecordPrescriptionCard(
-                doctorName: item.doctorName,
-                specialty: item.doctorSpecialization,
-                date: formatDate(item.createdAt),
-                medicineCount: item.items.length,
-                onDownload: () {
-                  downloadAndOpenPrescription(item.prescriptionId);
-                },
+                error is ApiException ? error.message : "Something went wrong",
               ),
             ),
           ],
-        );
-      },
+        ),
+
+        data: (prescriptions) {
+          if (prescriptions.isEmpty) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: const [
+                SizedBox(height: 100),
+                EmptyState(
+                  icon: LucideIcons.fileX,
+                  title: "No prescriptions available",
+                  subtitle: "Your prescriptions will appear here.",
+                ),
+              ],
+            );
+          }
+
+          return ListView(
+            padding: const EdgeInsets.only(top: 12),
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  '${prescriptions.length} prescriptions available',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF6F7785),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              ...prescriptions.map(
+                (item) => RecordPrescriptionCard(
+                  doctorName: item.doctorName,
+                  specialty: item.doctorSpecialization,
+                  date: formatDate(item.createdAt),
+                  medicineCount: item.items.length,
+                  onDownload: () {
+                    downloadAndOpenPrescription(item.prescriptionId);
+                  },
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 

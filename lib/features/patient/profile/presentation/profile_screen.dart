@@ -35,143 +35,130 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         },
       );
     });
-
-    ref.listenManual(authProvider, (previous, next) {
-      if (next.error != null) {
-        AppSnackBar.error(context, next.error!);
-      }
-
-      if (next.message != null) {
-        AppSnackBar.success(context, next.message!);
-      }
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
     final profileAsync = ref.watch(patientProfileProvider);
-
-    final user = authState.user;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
       body: SafeArea(
         bottom: false,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // User data comes from authProvider
-              ProfileHeader(
-                name: user?.name ?? 'Patient',
-                role: user?.role.name ?? 'Patient',
-                isEditable: false,
-              ),
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await ref.refresh(patientProfileProvider.future);
+          },
+          child: profileAsync.when(
+            loading: () => const SingleChildScrollView(
+              physics: AlwaysScrollableScrollPhysics(),
+              child: _ProfileLoadingState(),
+            ),
 
-              Padding(
-                padding: const EdgeInsets.all(AppSizes.md),
+            error: (error, stackTrace) {
+              final message = error is ApiException
+                  ? error.message
+                  : 'Unable to load your profile';
+
+              return SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: _ProfileErrorState(
+                  message: message,
+                  onRetry: () {
+                    ref.invalidate(patientProfileProvider);
+                  },
+                ),
+              );
+            },
+
+            data: (profile) {
+              return SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    profileAsync.when(
-                      loading: () => const _ProfileLoadingState(),
-
-                      error: (error, stackTrace) {
-                        final message = error is ApiException
-                            ? error.message
-                            : 'Unable to load your profile';
-
-                        return _ProfileErrorState(
-                          message: message,
-                          onRetry: () {
-                            ref.invalidate(patientProfileProvider);
-                          },
-                        );
-                      },
-
-                      data: (profile) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            InfoSectionCard(
-                              icon: LucideIcons.user600,
-                              title: 'Personal Information',
-                              rows: [
-                                // From authProvider
-                                InfoRowData(
-                                  label: 'Full Name',
-                                  value: user?.name ?? 'Not available',
-                                ),
-
-                                // From authProvider
-                                InfoRowData(
-                                  label: 'Phone',
-                                  value: user?.phoneNumber ?? 'Not available',
-                                ),
-
-                                // From patientProfileProvider
-                                InfoRowData(
-                                  label: 'Email',
-                                  value: profile.email,
-                                ),
-                              ],
-                            ),
-
-                            const SizedBox(height: AppSizes.md),
-
-                            InfoSectionCard(
-                              icon: LucideIcons.activity600,
-                              iconColor: Colors.red,
-                              title: 'Medical Information',
-                              rows: [
-                                InfoRowData(
-                                  label: 'Blood Group',
-                                  value: profile.bloodGroup,
-                                ),
-                                InfoRowData(
-                                  label: 'Date of Birth',
-                                  value: profile.dateOfBirth,
-                                ),
-                                InfoRowData(
-                                  label: 'Emergency Contact',
-                                  value: profile.emergencyContact,
-                                ),
-                                InfoRowData(
-                                  label: 'Insurance',
-                                  value: profile.insuranceInfo,
-                                ),
-                              ],
-                            ),
-                          ],
-                        );
-                      },
+                    ProfileHeader(
+                      name: profile.name,
+                      role: 'patient',
+                      isEditable: false,
                     ),
 
-                    const SizedBox(height: AppSizes.lg),
+                    Padding(
+                      padding: const EdgeInsets.all(AppSizes.md),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          InfoSectionCard(
+                            icon: LucideIcons.user600,
+                            title: 'Personal Information',
+                            rows: [
+                              InfoRowData(
+                                label: 'Full Name',
+                                value: profile.name,
+                              ),
+                              InfoRowData(
+                                label: 'Phone',
+                                value: profile.phoneNumber,
+                              ),
+                              InfoRowData(label: 'Email', value: profile.email),
+                            ],
+                          ),
 
-                    PrimaryButton.primary(
-                      text: 'Edit Profile',
-                      prefixIcon: LucideIcons.pencil600,
-                      onPressed: () {
-                        ref
-                            .read(goRouterProvider)
-                            .push(AppRoutes.editPatientProfile);
-                      },
-                    ),
+                          const SizedBox(height: AppSizes.md),
 
-                    const SizedBox(height: AppSizes.sm),
+                          InfoSectionCard(
+                            icon: LucideIcons.activity600,
+                            iconColor: Colors.red,
+                            title: 'Medical Information',
+                            rows: [
+                              InfoRowData(
+                                label: 'Blood Group',
+                                value: profile.bloodGroup,
+                              ),
+                              InfoRowData(
+                                label: 'Date of Birth',
+                                value: profile.dateOfBirth,
+                              ),
+                              InfoRowData(
+                                label: 'Emergency Contact',
+                                value: profile.emergencyContact,
+                              ),
+                              InfoRowData(
+                                label: 'Insurance',
+                                value: profile.insuranceInfo,
+                              ),
+                            ],
+                          ),
 
-                    PrimaryButton.outlinedFilled(
-                      text: 'Logout',
-                      prefixIcon: LucideIcons.logOut600,
-                      color: Colors.red,
-                      onPressed: () => ref.read(authProvider.notifier).logout(),
+                          const SizedBox(height: AppSizes.lg),
+
+                          PrimaryButton.primary(
+                            text: 'Edit Profile',
+                            prefixIcon: LucideIcons.pencil600,
+                            onPressed: () {
+                              ref
+                                  .read(goRouterProvider)
+                                  .push(AppRoutes.editPatientProfile);
+                            },
+                          ),
+
+                          const SizedBox(height: AppSizes.sm),
+
+                          PrimaryButton.outlinedFilled(
+                            text: 'Logout',
+                            prefixIcon: LucideIcons.logOut600,
+                            color: Colors.red,
+                            onPressed: () {
+                              ref.read(authProvider.notifier).logout();
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-              ),
-            ],
+              );
+            },
           ),
         ),
       ),

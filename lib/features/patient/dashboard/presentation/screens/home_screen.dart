@@ -122,220 +122,232 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       appBar: CustomAppBar(
         userRole: ref.watch(authProvider).user?.role.name ?? "No role",
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 16),
-              displayDashboardCard(nextAppointment),
-              SizedBox(height: 15),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  DashboardOutlinedCard(
-                    color: Colors.blue.shade100,
-                    icon: LucideIcons.calendarCheck600Dir,
-                    count: upcomingAppointments.when(
-                      data: (list) => Text(
-                        list.length.toString(),
-                        style: Theme.of(
-                          context,
-                        ).textTheme.displayMedium?.copyWith(fontSize: 30),
-                      ),
-                      loading: () => const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2.5),
-                      ),
-                      error: (_, _) => Text(
-                        '0',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.displayMedium?.copyWith(fontSize: 30),
-                      ),
-                    ),
-                    text: "Upcoming",
-                  ),
-                  DashboardOutlinedCard(
-                    color: Colors.lightBlueAccent.shade200,
-                    icon: LucideIcons.fileText600Dir,
-                    count: prescriptionsList.when(
-                      data: (list) => Text(
-                        list.length.toString(),
-                        style: Theme.of(
-                          context,
-                        ).textTheme.displayMedium?.copyWith(fontSize: 30),
-                      ),
-                      loading: () => const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2.5),
-                      ),
-                      error: (_, _) => Text(
-                        '0',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.displayMedium?.copyWith(fontSize: 30),
-                      ),
-                    ),
-                    text: "Prescriptions",
-                  ),
-                  DashboardOutlinedCard(
-                    color: Colors.green.shade100,
-                    icon: LucideIcons.clipboard600,
-                    count: labReportsList.when(
-                      data: (list) => Text(
-                        list.length.toString(),
-                        style: Theme.of(
-                          context,
-                        ).textTheme.displayMedium?.copyWith(fontSize: 30),
-                      ),
-                      loading: () => const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2.5),
-                      ),
-                      error: (_, _) => Text(
-                        '0',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.displayMedium?.copyWith(fontSize: 30),
-                      ),
-                    ),
-                    text: "Reports",
-                  ),
-                ],
-              ),
-              SizedBox(height: 20),
-              Text("Actions", style: Theme.of(context).textTheme.titleLarge),
-              SizedBox(height: 15),
-              PrimaryButton.primary(
-                text: "Book Appointment",
-                prefixIcon: LucideIcons.calendarPlus300Dir,
-                color: Colors.blue.shade700,
-                onPressed: () {
-                  ref.read(goRouterProvider).push(AppRoutes.bookAppointment);
-                },
-              ),
-              SizedBox(height: 20),
-              Row(
-                children: [
-                  Text(
-                    "Upcoming Appointments",
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  Spacer(),
-                  TextButton(
-                    onPressed: () {},
-                    child: Text(
-                      "See all",
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.blue.shade700,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 8),
-              upcomingAppointments.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-
-                error: (_, _) => const SizedBox.shrink(),
-
-                data: (appointments) {
-                  if (appointments.isEmpty) {
-                    return const EmptyState(
-                      icon: LucideIcons.calendarX,
-                      title: 'No upcoming appointments',
-                      subtitle: 'You have no upcoming appointments.',
-                    );
-                  }
-
-                  return ListView.builder(
-                    itemCount: min(appointments.length, 5),
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-
-                    itemBuilder: (context, index) {
-                      final appointment = appointments[index];
-
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.grey.shade200),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await Future.wait([
+            ref.refresh(appointmentsProvider.future),
+            ref.refresh(prescriptionProvider.future),
+            ref.refresh(labReportsProvider.future),
+          ]);
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 16),
+                displayDashboardCard(nextAppointment),
+                SizedBox(height: 15),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    DashboardOutlinedCard(
+                      color: Colors.blue.shade100,
+                      icon: LucideIcons.calendarCheck600Dir,
+                      count: upcomingAppointments.when(
+                        data: (list) => Text(
+                          list.length.toString(),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.displayMedium?.copyWith(fontSize: 30),
                         ),
+                        loading: () => const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2.5),
+                        ),
+                        error: (_, _) => Text(
+                          '0',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.displayMedium?.copyWith(fontSize: 30),
+                        ),
+                      ),
+                      text: "Upcoming",
+                    ),
+                    DashboardOutlinedCard(
+                      color: Colors.lightBlueAccent.shade200,
+                      icon: LucideIcons.fileText600Dir,
+                      count: prescriptionsList.when(
+                        data: (list) => Text(
+                          list.length.toString(),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.displayMedium?.copyWith(fontSize: 30),
+                        ),
+                        loading: () => const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2.5),
+                        ),
+                        error: (_, _) => Text(
+                          '0',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.displayMedium?.copyWith(fontSize: 30),
+                        ),
+                      ),
+                      text: "Prescriptions",
+                    ),
+                    DashboardOutlinedCard(
+                      color: Colors.green.shade100,
+                      icon: LucideIcons.clipboard600,
+                      count: labReportsList.when(
+                        data: (list) => Text(
+                          list.length.toString(),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.displayMedium?.copyWith(fontSize: 30),
+                        ),
+                        loading: () => const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2.5),
+                        ),
+                        error: (_, _) => Text(
+                          '0',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.displayMedium?.copyWith(fontSize: 30),
+                        ),
+                      ),
+                      text: "Reports",
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20),
+                Text("Actions", style: Theme.of(context).textTheme.titleLarge),
+                SizedBox(height: 15),
+                PrimaryButton.primary(
+                  text: "Book Appointment",
+                  prefixIcon: LucideIcons.calendarPlus300Dir,
+                  color: Colors.blue.shade700,
+                  onPressed: () {
+                    ref.read(goRouterProvider).push(AppRoutes.bookAppointment);
+                  },
+                ),
+                SizedBox(height: 20),
+                Row(
+                  children: [
+                    Text(
+                      "Upcoming Appointments",
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    Spacer(),
+                    TextButton(
+                      onPressed: () {},
+                      child: Text(
+                        "See all",
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: Colors.blue.shade700,
+                              fontSize: 15,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8),
+                upcomingAppointments.when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
 
-                        child: Row(
-                          children: [
-                            // Doctor avatar
-                            CircleAvatar(
-                              radius: 20,
-                              backgroundColor: Colors.blue.shade50,
-                              child: Text(
-                                appointment.doctorName
-                                    .replaceFirst('Dr. ', '')
-                                    .substring(0, 1),
-                                style: TextStyle(
-                                  color: Colors.blue.shade700,
-                                  fontWeight: FontWeight.w600,
+                  error: (_, _) => const SizedBox.shrink(),
+
+                  data: (appointments) {
+                    if (appointments.isEmpty) {
+                      return const EmptyState(
+                        icon: LucideIcons.calendarX,
+                        title: 'No upcoming appointments',
+                        subtitle: 'You have no upcoming appointments.',
+                      );
+                    }
+
+                    return ListView.builder(
+                      itemCount: min(appointments.length, 5),
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+
+                      itemBuilder: (context, index) {
+                        final appointment = appointments[index];
+
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+
+                          child: Row(
+                            children: [
+                              // Doctor avatar
+                              CircleAvatar(
+                                radius: 20,
+                                backgroundColor: Colors.blue.shade50,
+                                child: Text(
+                                  appointment.doctorName
+                                      .replaceFirst('Dr. ', '')
+                                      .substring(0, 1),
+                                  style: TextStyle(
+                                    color: Colors.blue.shade700,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
-                            ),
 
-                            const SizedBox(width: 12),
+                              const SizedBox(width: 12),
 
-                            // Doctor information
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    appointment.doctorName,
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
+                              // Doctor information
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      appointment.doctorName,
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
-                                  ),
 
-                                  const SizedBox(height: 4),
+                                    const SizedBox(height: 4),
 
-                                  Text(
-                                    '${appointment.doctorSpecialization ?? 'General'} · '
-                                    '${appointment.scheduledAt}',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.grey.shade500,
+                                    Text(
+                                      '${appointment.doctorSpecialization ?? 'General'} · '
+                                      '${appointment.scheduledAt}',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.grey.shade500,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
 
-                            const SizedBox(width: 8),
+                              const SizedBox(width: 8),
 
-                            // Status
-                            StatusBadge(
-                              status: appointment.status.label,
-                              fontSize: 11,
-                              icon: appointment.status.icon,
-                              backgroundColor:
-                                  appointment.status.backgroundColor,
-                              textColor: appointment.status.textColor,
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ],
+                              // Status
+                              StatusBadge(
+                                status: appointment.status.label,
+                                fontSize: 11,
+                                icon: appointment.status.icon,
+                                backgroundColor:
+                                    appointment.status.backgroundColor,
+                                textColor: appointment.status.textColor,
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),

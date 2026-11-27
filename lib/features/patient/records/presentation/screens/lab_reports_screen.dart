@@ -37,55 +37,76 @@ class _LabReportsScreenState extends ConsumerState<LabReportsScreen> {
   Widget build(BuildContext context) {
     final labReportsAsync = ref.watch(labReportsProvider);
 
-    return labReportsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-
-      error: (error, _) => Center(
-        child: Text(
-          error is ApiException ? error.message : "Something went wrong",
+    return RefreshIndicator(
+      onRefresh: () async {
+        await ref.refresh(labReportsProvider.future);
+      },
+      child: labReportsAsync.when(
+        loading: () => ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: const [
+            SizedBox(height: 250),
+            Center(child: CircularProgressIndicator()),
+          ],
         ),
-      ),
 
-      data: (labReports) {
-        if (labReports.isEmpty) {
-          return const Center(
-            child: EmptyState(
-              icon: LucideIcons.fileX,
-              title: "No lab reports available",
-              subtitle: "Your lab reports will appear here.",
-            ),
-          );
-        }
-
-        return ListView(
-          padding: const EdgeInsets.only(top: 12),
+        error: (error, _) => ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+            const SizedBox(height: 100),
+            Center(
               child: Text(
-                '${labReports.length} reports available',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF6F7785),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            ...labReports.map(
-              (item) => RecordlabReportCard(
-                reportName: item.reportType,
-                doctorName: item.radiologistName,
-                date: formatDate(item.createdAt),
-                notes: item.findings,
-                onDownload: () => _openLabReport(item.reportId),
+                error is ApiException ? error.message : "Something went wrong",
               ),
             ),
           ],
-        );
-      },
+        ),
+
+        data: (labReports) {
+          if (labReports.isEmpty) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: const [
+                SizedBox(height: 100),
+                EmptyState(
+                  icon: LucideIcons.packageOpen,
+                  title: "No lab reports available",
+                  subtitle: "Your lab reports will appear here.",
+                ),
+              ],
+            );
+          }
+
+          return ListView(
+            padding: const EdgeInsets.only(top: 12),
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  '${labReports.length} reports available',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF6F7785),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              ...labReports.map(
+                (item) => RecordlabReportCard(
+                  reportName: item.reportType,
+                  doctorName: item.radiologistName,
+                  date: formatDate(item.createdAt),
+                  notes: item.findings,
+                  onDownload: () => _openLabReport(item.reportId),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 

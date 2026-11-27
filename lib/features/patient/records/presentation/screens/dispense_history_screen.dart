@@ -37,62 +37,82 @@ class _DispenseHistoryScreenState extends ConsumerState<DispenseHistoryScreen> {
   Widget build(BuildContext context) {
     final dispenseHistoryAsync = ref.watch(patientPharmacyProvider);
 
-    return dispenseHistoryAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-
-      error: (error, _) => Center(
-        child: Text(
-          error is ApiException ? error.message : "Something went wrong",
+    return RefreshIndicator(
+      onRefresh: () async {
+        await ref.refresh(patientPharmacyProvider.future);
+      },
+      child: dispenseHistoryAsync.when(
+        loading: () => ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: const [
+            SizedBox(height: 250),
+            Center(child: CircularProgressIndicator()),
+          ],
         ),
-      ),
 
-      data: (dispenseHistory) {
-        if (dispenseHistory.isEmpty) {
-          return const Center(
-            child: EmptyState(
-              icon: LucideIcons.packageOpen,
-              title: "No dispense history available",
-              subtitle: "Your dispensed medicines will appear here.",
-            ),
-          );
-        }
-
-        final medicineCount = dispenseHistory.fold<int>(
-          0,
-          (total, dispense) => total + dispense.items.length,
-        );
-
-        return ListView(
-          padding: const EdgeInsets.only(top: 12),
+        error: (error, _) => ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+            const SizedBox(height: 100),
+            Center(
               child: Text(
-                '$medicineCount medicines dispensed',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF6F7785),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            ...dispenseHistory.expand(
-              (dispense) => dispense.items.map(
-                (item) => RecordDispenseHistoryCard(
-                  medicineName: item.medicineName,
-                  price: item.totalPrice,
-                  tabletCount: item.quantityDispensed,
-                  pharmacistName: dispense.dispensedByName,
-                  date: formatDate(dispense.dispensedAt),
-                ),
+                error is ApiException ? error.message : "Something went wrong",
               ),
             ),
           ],
-        );
-      },
+        ),
+
+        data: (dispenseHistory) {
+          if (dispenseHistory.isEmpty) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: const [
+                SizedBox(height: 100),
+                EmptyState(
+                  icon: LucideIcons.packageOpen,
+                  title: "No dispense history available",
+                  subtitle: "Your dispensed medicines will appear here.",
+                ),
+              ],
+            );
+          }
+
+          final medicineCount = dispenseHistory.fold<int>(
+            0,
+            (total, dispense) => total + dispense.items.length,
+          );
+
+          return ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.only(top: 12),
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  '$medicineCount medicines dispensed',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF6F7785),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              ...dispenseHistory.expand(
+                (dispense) => dispense.items.map(
+                  (item) => RecordDispenseHistoryCard(
+                    medicineName: item.medicineName,
+                    price: item.totalPrice,
+                    tabletCount: item.quantityDispensed,
+                    pharmacistName: dispense.dispensedByName,
+                    date: formatDate(dispense.dispensedAt),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 
